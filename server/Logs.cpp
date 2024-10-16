@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Logs.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/16 16:02:34 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/16 16:18:12 by mozennou         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <header.hpp>
 
 void    displayTimestamp(const char *color)
@@ -22,7 +10,7 @@ void    displayTimestamp(const char *color)
     cerr << color << time_buffer;
 }
 
-void    logging(const string& msg, int level)
+void    logging(const string& msg, int level) // we can add more detailed logs like server index who trigger the logging function and more
 {
     if (level == INFO)
     {

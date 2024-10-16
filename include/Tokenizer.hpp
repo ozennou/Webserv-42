@@ -6,7 +6,7 @@
 /*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/14 15:57:29 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/14 20:55:02 by mozennou         ###   ########.fr       */
+/*   Updated: 2024/10/16 17:22:44 by mozennou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ enum {
     DOUBLE_QUOTE,
     COMMA,
     EQUAL,
+    HASH,
     WHITE_SPACE
 } ;
 

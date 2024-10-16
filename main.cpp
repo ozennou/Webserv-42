@@ -1,7 +1,6 @@
 #include <header.hpp>
 #include <Server.hpp>
 
-
 int main(int ac, char **av) {
     vector<Server>  servers;
     try {
