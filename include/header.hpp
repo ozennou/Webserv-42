@@ -6,7 +6,7 @@
 /*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/14 15:57:47 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/14 22:20:30 by mozennou         ###   ########.fr       */
+/*   Updated: 2024/10/16 16:16:46 by mozennou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,6 @@
 #include <algorithm>
 #include <unistd.h>
 #include <pwd.h>
-
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
-#define RESET   "\033[0m"
 
 #define DEFAULT_CONF "./config_file/default.conf"
 
@@ -47,8 +41,13 @@ vector<pair<int, string> >  tokenizer(ifstream& conf_file);
 
 //parsing.cpp
 vector<Server>  parsing(vector<pair<int, string> > tokens);
+
 //parse_location.cpp
 Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<int, string> >::iterator end);
+//Logs.cpp
+void    logging(const string& msg, int level);
+
 #include <Server.hpp>
 #include <Location.hpp>
 #include <Tokenizer.hpp>
+#include <Logs.hpp>
