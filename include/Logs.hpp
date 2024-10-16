@@ -1,30 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Tokenizer.hpp                                      :+:      :+:    :+:   */
+/*   Logs.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/14 15:57:29 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/16 17:22:44 by mozennou         ###   ########.fr       */
+/*   Created: 2024/10/16 16:03:49 by mozennou          #+#    #+#             */
+/*   Updated: 2024/10/16 16:17:06 by mozennou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-enum {
-    TOKEN,
-    TOKEN_IN_QUOTES,
-    OPEN_BRACKET,
-    CLOSE_BRACKET,
-    SEMICOLON,
-    COLON,
-    SINGLE_QUOTE,
-    DOUBLE_QUOTE,
-    COMMA,
-    EQUAL,
-    HASH,
-    WHITE_SPACE
-} ;
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define RESET   "\033[0m"
 
-string  get_special(int special);
+enum {
+    INFO,
+    WARNING,
+    ERROR
+} ;

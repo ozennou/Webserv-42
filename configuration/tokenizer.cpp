@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   tokenizer.cpp                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/14 14:13:38 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/14 20:54:51 by mozennou         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <header.hpp>
 
 int is_special_token(char a)
@@ -32,6 +20,8 @@ int is_special_token(char a)
         return EQUAL;
     if (a == ',')
         return COMMA;
+    if (a == '#')
+        return HASH;
     return TOKEN;
 }
 
@@ -90,6 +80,8 @@ vector<pair<int, string> >  tokenizer(ifstream& conf_file)
             special = is_special_token(line[i]);
             if (special == WHITE_SPACE)
                 continue;
+            else if (special == HASH)
+                break ;
             else if (special == DOUBLE_QUOTE || special == SINGLE_QUOTE)
                 res.push_back(pair<int, string>(TOKEN_IN_QUOTES, get_token(line, ++i, special)));
             else if (special)

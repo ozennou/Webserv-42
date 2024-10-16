@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   check_config_file.cpp                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/14 14:09:29 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/14 18:32:28 by mozennou         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <header.hpp>
 
 int hasExtension(string file_name) {
@@ -46,6 +34,6 @@ vector<Server>    check_config_file(int ac, char **av) {
     if (!conf_file.is_open())
         throw invalid_argument("Error : Opening the config file");
     tokens = tokenizer(conf_file);
-    // print_tokens(tokens);
+    conf_file.close();
     return parsing(tokens);
 }
