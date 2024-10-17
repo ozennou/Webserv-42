@@ -6,7 +6,7 @@ void    displayTimestamp(const char *color)
     char    time_buffer[30];
 
     now = time(NULL);
-    strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S ", localtime(&now));
+    strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S: ", localtime(&now));
     cerr << color << time_buffer;
 }
 
@@ -16,9 +16,9 @@ void    logging(const string& msg, int level, Server *srv, int port)
     {
         displayTimestamp(GREEN);
         if (srv)
-            cerr << "Server " << srv->get_index();
+            cerr << "Server: " << srv->get_index();
         if (port)
-            cerr << "(port: " << port << ")";
+            cerr << " (port: " << port << ") ";
         cerr << " [INFO] :" << msg << RESET << endl; 
     }
     else if (level == WARNING)
@@ -27,7 +27,7 @@ void    logging(const string& msg, int level, Server *srv, int port)
         if (srv)
             cerr << "Server " << srv->get_index();
         if (port)
-            cerr << "(port: " << port << ")";
+            cerr << " (port: " << port << ") ";
         cerr << "[WARNING] :" << msg << RESET << endl; 
     }
     else if (level == ERROR)
@@ -36,7 +36,7 @@ void    logging(const string& msg, int level, Server *srv, int port)
         if (srv)
             cerr << "Server " << srv->get_index();
         if (port)
-            cerr << "(port: " << port << ")";
+            cerr << " (port: " << port << ") ";
         cerr << "[ERROR] :" << msg << RESET << endl; 
     }
 }

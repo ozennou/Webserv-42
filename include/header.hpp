@@ -48,8 +48,12 @@ vector<Server>  parsing(vector<pair<int, string> > tokens);
 
 //parse_location.cpp
 Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<int, string> >::iterator end);
+
 //Logs.cpp
 void    logging(const string& msg, int level, Server *srv, int port);
+
+//init_servers.cpp
+void    init_servers(vector<Server> servers);
 
 #include <Server.hpp>
 #include <Location.hpp>

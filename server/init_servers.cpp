@@ -9,9 +9,26 @@ void    set_hint(struct addrinfo *hints)
     hints->ai_protocol = IPPROTO_TCP;
 }
 
+int binding(struct addrinfo *res)
+{
+    int binded = -1, sock_d;
+    for (struct addrinfo *i = res; i != NULL; i = i->ai_next)
+    {
+        sock_d = socket(i->ai_family, i->ai_socktype, i->ai_protocol);
+        if (sock_d < 0)
+            continue;
+        if (bind(sock_d, i->ai_addr, i->ai_addrlen) < 0)
+            continue;
+
+
+        binded = 0;
+    }
+    return binded;
+}
+
 void    init_servers(vector<Server> servers)
 {
-    int status;
+    int status, init = 0;
     for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
     {
         set<int>    ports = it->getPorts();
@@ -22,10 +39,18 @@ void    init_servers(vector<Server> servers)
             status = getaddrinfo(it->getHostname().c_str(), to_string(*port).c_str(), &hints, &res);
             if (status != 0)
             {
-                logging(gai_strerror(status), ERROR, &(*it), *port);
+                logging("getaddrinfo fail: " + string(gai_strerror(status)), ERROR, &(*it), *port);
                 continue ; 
             }
-
+            if (binding(res) < 0)
+            {
+                logging("binding fail: " + string(strerror(errno)), ERROR, &(*it), *port);
+                continue ;
+            }
+            freeaddrinfo(res);
+            init++;
         }
     }
+    if (!init)
+        throw logic_error("Error: no server initialized succefully");
 }
