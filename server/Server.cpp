@@ -8,14 +8,24 @@ Server::Server() {
 Server::~Server() {
 }
 
+void	Server::set_index(const int &_index)
+{
+    index = _index;
+}
+
+const int &Server::get_index(void)
+{
+    return index;
+}
+
 std::string Server::getHostname() const {
     return hostname;
 }
 
-void Server::setHostname(const std::string& newHostname) {
-    if (newHostname.empty())
+void Server::setHostname(const std::string& _hostname) {
+    if (_hostname.empty())
         throw logic_error("Error: invalid host name");
-    hostname = newHostname;
+    hostname = _hostname;
 }
 
 std::set<int> &Server::getPorts() {
@@ -34,8 +44,8 @@ size_t Server::getBodySize() const {
     return body_size;
 }
 
-void Server::setBodySize(size_t newBodySize) {
-    body_size = newBodySize;
+void Server::setBodySize(size_t _bodySize) {
+    body_size = _bodySize;
 }
 
 std::set<std::string> &Server::getServerNames() {

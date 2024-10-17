@@ -131,12 +131,14 @@ vector<Server>  parsing(vector<pair<int, string> > tokens)
 {
     vector<Server>  res;
     Server          srv;
+    int             index = 1;
     for (vector<pair<int, string> >::iterator i = tokens.begin(); i != tokens.end(); i++)
     {
         if (i->first != OPEN_BRACKET)
             throw logic_error("ERROR: server not valid (server only inside brackets)");
         srv = parsing_server(i, tokens.end());
         srv.ready_server();
+        srv.set_index(index++);
         res.push_back(srv);
     }
     return res;

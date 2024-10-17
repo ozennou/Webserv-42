@@ -8,6 +8,7 @@ class Location;
 
 class Server {
 	private:
+		int					index;
 		string				hostname;
 		set<int>			ports;
 		size_t				body_size;
@@ -18,15 +19,18 @@ class Server {
 		Server();
 		~Server();
 
+		void	set_index(const int &_index);
+		const int &get_index(void);
+
 		std::string getHostname() const;
-		void setHostname(const std::string& hostname);
+		void setHostname(const std::string& _hostname);
 
 		std::set<int> &getPorts();
 		void addPort(int port);
 		void removePort(int port);
 
 		size_t getBodySize() const;
-		void setBodySize(size_t bodySize);
+		void setBodySize(size_t _bodySize);
 
 		std::set<std::string> &getServerNames();
 		void addServerName(const std::string& serverName);

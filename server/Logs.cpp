@@ -10,21 +10,33 @@ void    displayTimestamp(const char *color)
     cerr << color << time_buffer;
 }
 
-void    logging(const string& msg, int level) // we can add more detailed logs like server index who trigger the logging function and more
+void    logging(const string& msg, int level, Server *srv, int port)
 {
     if (level == INFO)
     {
         displayTimestamp(GREEN);
-        cerr << "[INFO] :" << msg << RESET << endl; 
+        if (srv)
+            cerr << "Server " << srv->get_index();
+        if (port)
+            cerr << "(port: " << port << ")";
+        cerr << " [INFO] :" << msg << RESET << endl; 
     }
     else if (level == WARNING)
     {
         displayTimestamp(YELLOW);
+        if (srv)
+            cerr << "Server " << srv->get_index();
+        if (port)
+            cerr << "(port: " << port << ")";
         cerr << "[WARNING] :" << msg << RESET << endl; 
     }
     else if (level == ERROR)
     {
         displayTimestamp(RED);
+        if (srv)
+            cerr << "Server " << srv->get_index();
+        if (port)
+            cerr << "(port: " << port << ")";
         cerr << "[ERROR] :" << msg << RESET << endl; 
     }
 }

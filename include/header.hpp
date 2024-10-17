@@ -22,6 +22,10 @@
 #include <algorithm>
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <errno.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
 
@@ -45,7 +49,7 @@ vector<Server>  parsing(vector<pair<int, string> > tokens);
 //parse_location.cpp
 Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<int, string> >::iterator end);
 //Logs.cpp
-void    logging(const string& msg, int level);
+void    logging(const string& msg, int level, Server *srv, int port);
 
 #include <Server.hpp>
 #include <Location.hpp>
