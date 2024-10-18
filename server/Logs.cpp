@@ -19,24 +19,24 @@ void    logging(const string& msg, int level, Server *srv, int port)
             cerr << "Server: " << srv->get_index();
         if (port)
             cerr << " (port: " << port << ") ";
-        cerr << " [INFO] :" << msg << RESET << endl; 
+        cerr << "[INFO]: " << msg << RESET << endl; 
     }
     else if (level == WARNING)
     {
         displayTimestamp(YELLOW);
         if (srv)
-            cerr << "Server " << srv->get_index();
+            cerr << "Server: " << srv->get_index();
         if (port)
             cerr << " (port: " << port << ") ";
-        cerr << "[WARNING] :" << msg << RESET << endl; 
+        cerr << "[WARNING]: " << msg << RESET << endl; 
     }
     else if (level == ERROR)
     {
         displayTimestamp(RED);
         if (srv)
-            cerr << "Server " << srv->get_index();
+            cerr << "Server: " << srv->get_index();
         if (port)
             cerr << " (port: " << port << ") ";
-        cerr << "[ERROR] :" << msg << RESET << endl; 
+        cerr << "[ERROR]: " << msg << RESET << endl; 
     }
 }

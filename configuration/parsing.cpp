@@ -1,14 +1,5 @@
 #include <header.hpp>
 
-void    check_is_root(void)
-{
-    uid_t   uid = getuid();
-    struct passwd *pw = getpwuid(uid);
-    string      res(pw->pw_name);
-    if (res != "root")
-        throw logic_error("Error: need root privileges for port range from 1 to 1024");
-}
-
 void    parse_ports(vector<pair<int, string> >::iterator &i, vector<pair<int, string> >::iterator end, Server &srv)
 {
     i = i + 2;
@@ -19,8 +10,6 @@ void    parse_ports(vector<pair<int, string> >::iterator &i, vector<pair<int, st
         ss >> port;
         if (ss.fail() || !ss.eof() || port <= 0 || port > 65535 || i->first != TOKEN)
             throw logic_error("Error: not valid port :" + i->second);
-        if (port > 0 && port < 1024)
-            check_is_root();
         srv.addPort(port);
         if ((++i) != end && i->first == SEMICOLON)
             break ;

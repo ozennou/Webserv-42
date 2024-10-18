@@ -11,16 +11,24 @@ void    set_hint(struct addrinfo *hints)
 
 int binding(struct addrinfo *res)
 {
-    int binded = -1, sock_d;
+    int binded = -1, sock_d, opt;
     for (struct addrinfo *i = res; i != NULL; i = i->ai_next)
     {
+        sock_d = -1, opt = 1;
         sock_d = socket(i->ai_family, i->ai_socktype, i->ai_protocol);
         if (sock_d < 0)
             continue;
-        if (bind(sock_d, i->ai_addr, i->ai_addrlen) < 0)
+        if (setsockopt(sock_d, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0)
+        {
+            close(sock_d);
             continue;
-
-
+        }
+        if (bind(sock_d, i->ai_addr, i->ai_addrlen) < 0)
+        {
+            close(sock_d);
+            continue;
+        }
+        close(sock_d);
         binded = 0;
     }
     return binded;
@@ -44,13 +52,17 @@ void    init_servers(vector<Server> servers)
             }
             if (binding(res) < 0)
             {
-                logging("binding fail: " + string(strerror(errno)), ERROR, &(*it), *port);
+                logging("initializing fail: " + string(strerror(errno)), ERROR, &(*it), *port);
+                freeaddrinfo(res);
                 continue ;
             }
             freeaddrinfo(res);
             init++;
+            logging("Initialized successfully.", INFO, &(*it), *port);
         }
     }
+    if (!servers.size())
+        throw logic_error("Error: empty server");
     if (!init)
         throw logic_error("Error: no server initialized succefully");
 }

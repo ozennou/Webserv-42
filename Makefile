@@ -2,7 +2,7 @@ NAME = webserv
 
 OBJS = $(shell find . -name "*.cpp" | sed 's/\.cpp$$/.o/' | tr '\n' ' ')
 
-FLAGS= -fsanitize=address -Wall -Werror -Wextra
+FLAGS=  -Wshadow -Wall -Werror -Wextra -fsanitize=address
 
 CC=c++ -std=c++98 -Iinclude/ $(FLAGS)
 

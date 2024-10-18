@@ -45,4 +45,5 @@ class Server {
 		void addLocation(const Location& location);
 
 		void	ready_server(void);
+		bool	isValidIPv4(const string& ip);
 } ;

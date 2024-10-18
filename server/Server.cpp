@@ -22,8 +22,25 @@ std::string Server::getHostname() const {
     return hostname;
 }
 
+bool Server::isValidIPv4(const string& ip) {
+    stringstream ss(ip);
+    string segment;
+    vector<int> segments;
+
+    while (getline(ss, segment, '.')) {
+        if (segment.empty() || segment.size() > 3) return false;
+        int num = 0;
+        stringstream ss2(segment);
+        if (!(ss2 >> num)) return false;
+        if (ss2.fail() || !ss2.eof()) return false;
+        if (num < 0 || num > 255) return false;
+        segments.push_back(num);
+    }
+    return segments.size() == 4;
+}
+
 void Server::setHostname(const std::string& _hostname) {
-    if (_hostname.empty())
+    if (_hostname.empty() || !isValidIPv4(_hostname))
         throw logic_error("Error: invalid host name");
     hostname = _hostname;
 }
@@ -89,7 +106,7 @@ void Server::addLocation(const Location& location) {
 void Server::ready_server(void)
 {
     if (!ports.size())
-        throw ("Error: ports are mandatory to the server");
+        throw logic_error("Error: ports are mandatory to the server");
     if (!server_names.size())
         this->addServerName("");
 }

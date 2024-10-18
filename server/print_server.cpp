@@ -14,15 +14,15 @@ void printf_locations(vector<Location> &locations) {
             cout << *it2 << " ";
         cout << endl;
         cout << "Default Pages : ";
-        for (vector<string>::iterator it2 = it->getDefaultPages().begin(); it2 != it->getDefaultPages().end(); it2++)
-            cout << *it2 << " ";
+        for (vector<string>::iterator it3 = it->getDefaultPages().begin(); it3 != it->getDefaultPages().end(); it3++)
+            cout << *it3 << " ";
         cout << endl;
         cout << "Root : " << it->getRoot() << endl;
         cout << "Directory Listings : " << it->getDirListings() << endl;
         cout << "Upload Path : " << it->getUploadPath() << endl;
         cout << "CGI Extensions : ";
-        for (set<string>::iterator it2 = it->getCgiExt().begin(); it2 != it->getCgiExt().end(); it2++)
-            cout << *it2 << " ";
+        for (set<string>::iterator it4 = it->getCgiExt().begin(); it4 != it->getCgiExt().end(); it4++)
+            cout << *it4 << " ";
         cout << endl;
         cout << "CGI Timeout : " << it->getCgiTimeout() << endl;
         it++;
@@ -46,12 +46,12 @@ void print_servers(vector<Server> &servers){
         cout << endl;
         cout << "Body Size : " << it->getBodySize() << endl;
         cout << "Server Names : ";
-        for (set<string>::iterator it3 = it->getServerNames().begin(); it3 != it->getServerNames().end(); it3++)
-            cout << *it3 << " ";
+        for (set<string>::iterator it5 = it->getServerNames().begin(); it5 != it->getServerNames().end(); it5++)
+            cout << *it5 << " ";
         cout << endl;
         cout << "Error Pages : ";
-        for (map<int, string>::iterator it3 = it->getErrorPages().begin(); it3 != it->getErrorPages().end(); it3++)
-            cout <<  it3->first <<  " : " << it3->second << " ";
+        for (map<int, string>::iterator it4 = it->getErrorPages().begin(); it4 != it->getErrorPages().end(); it4++)
+            cout <<  it4->first <<  " : " << it4->second << " ";
         cout << endl;
         printf_locations(it->getLocations());
         it++;
