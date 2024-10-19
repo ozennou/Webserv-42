@@ -15,6 +15,7 @@ class Server {
 		set<string>			server_names;
 		map<int, string>	error_pages;
 		vector<Location>	locations;
+		vector<int>			sockets;
 	public:
 		Server();
 		~Server();

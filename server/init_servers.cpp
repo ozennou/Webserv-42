@@ -9,12 +9,12 @@ void    set_hint(struct addrinfo *hints)
     hints->ai_protocol = IPPROTO_TCP;
 }
 
-int binding(struct addrinfo *res)
+int binding(struct addrinfo *res, int &_sock_d)
 {
     int binded = -1, sock_d, opt;
     for (struct addrinfo *i = res; i != NULL; i = i->ai_next)
     {
-        sock_d = -1, opt = 1;
+        opt = 1;
         sock_d = socket(i->ai_family, i->ai_socktype, i->ai_protocol);
         if (sock_d < 0)
             continue;
@@ -28,37 +28,52 @@ int binding(struct addrinfo *res)
             close(sock_d);
             continue;
         }
-        close(sock_d);
+        if (listen(sock_d, BACKLOG) < 0)
+        {
+            close(sock_d);
+            continue;
+        }
         binded = 0;
     }
+    _sock_d = sock_d;
     return binded;
 }
 
-void    init_servers(vector<Server> servers)
+void    init_servers(vector<Server> &servers, Socket_map &sock_map)
 {
-    int status, init = 0;
+    int status, init = 0, sock_d;
+    string      host;
+    Socket_map  sock;
     for (vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
     {
         set<int>    ports = it->getPorts();
+        host = it->getHostname();
         for (set<int>::iterator port = ports.begin(); port != ports.end(); port++)
         {
             struct addrinfo hints, *res;
             set_hint(&hints);
-            status = getaddrinfo(it->getHostname().c_str(), to_string(*port).c_str(), &hints, &res);
+            status = getaddrinfo(host.c_str(), to_string(*port).c_str(), &hints, &res);
             if (status != 0)
             {
                 logging("getaddrinfo fail: " + string(gai_strerror(status)), ERROR, &(*it), *port);
                 continue ; 
             }
-            if (binding(res) < 0)
+            if (binding(res, sock_d) < 0)
             {
-                logging("initializing fail: " + string(strerror(errno)), ERROR, &(*it), *port);
+                if (sock_map.exist_hp(host + ":" + to_string(*port)))
+                {
+                    sock_map.add_server(host + ":" + to_string(*port), *it);
+                    logging("Initialized successfully.", INFO, &(*it), *port);
+                }
+                else
+                    logging("initializing fail: " + string(strerror(errno)), ERROR, &(*it), *port);
                 freeaddrinfo(res);
                 continue ;
             }
             freeaddrinfo(res);
             init++;
             logging("Initialized successfully.", INFO, &(*it), *port);
+            sock_map.add_sock(host + ":" + to_string(*port), sock_d, *it);
         }
     }
     if (!servers.size())

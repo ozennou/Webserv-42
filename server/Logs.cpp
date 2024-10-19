@@ -7,7 +7,7 @@ void    displayTimestamp(const char *color)
 
     now = time(NULL);
     strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S: ", localtime(&now));
-    cerr << color << time_buffer;
+    cout << color << time_buffer;
 }
 
 void    logging(const string& msg, int level, Server *srv, int port)
@@ -16,27 +16,27 @@ void    logging(const string& msg, int level, Server *srv, int port)
     {
         displayTimestamp(GREEN);
         if (srv)
-            cerr << "Server: " << srv->get_index();
+            cout << "Server: " << srv->get_index();
         if (port)
-            cerr << " (port: " << port << ") ";
-        cerr << "[INFO]: " << msg << RESET << endl; 
+            cout << " (port: " << port << ") ";
+        cout << "[INFO]: " << msg << RESET << endl; 
     }
     else if (level == WARNING)
     {
         displayTimestamp(YELLOW);
         if (srv)
-            cerr << "Server: " << srv->get_index();
+            cout << "Server: " << srv->get_index();
         if (port)
-            cerr << " (port: " << port << ") ";
-        cerr << "[WARNING]: " << msg << RESET << endl; 
+            cout << " (port: " << port << ") ";
+        cout << "[WARNING]: " << msg << RESET << endl; 
     }
     else if (level == ERROR)
     {
         displayTimestamp(RED);
         if (srv)
-            cerr << "Server: " << srv->get_index();
+            cout << "Server: " << srv->get_index();
         if (port)
-            cerr << " (port: " << port << ") ";
-        cerr << "[ERROR]: " << msg << RESET << endl; 
+            cout << " (port: " << port << ") ";
+        cout << "[ERROR]: " << msg << RESET << endl; 
     }
 }

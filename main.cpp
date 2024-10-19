@@ -10,10 +10,12 @@ void    lol()
 int main(int ac, char **av) {
     // atexit(lol);
     vector<Server>  servers;
+    Socket_map      sock_map;
     try {
         servers = check_config_file(ac, av);
+        init_servers(servers, sock_map);
         // print_servers(servers);
-        init_servers(servers);
+        sock_map.print_map();
     } catch(exception &e) {
         cerr << RED << e.what() << RESET << endl;
         return 1;

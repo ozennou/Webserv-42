@@ -28,11 +28,13 @@
 #include <errno.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
+#define BACKLOG 30
 
 using namespace std;
 
 class Server;
 class Location;
+class Socket_map;
 
 //printf_server.cpp
 void print_servers(vector<Server> &);
@@ -53,9 +55,10 @@ Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<
 void    logging(const string& msg, int level, Server *srv, int port);
 
 //init_servers.cpp
-void    init_servers(vector<Server> servers);
+void    init_servers(vector<Server> &servers, Socket_map &sock_map);
 
 #include <Server.hpp>
 #include <Location.hpp>
 #include <Tokenizer.hpp>
 #include <Logs.hpp>
+#include <Socket_map.hpp>
