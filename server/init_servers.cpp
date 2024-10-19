@@ -12,7 +12,8 @@ void    set_hint(struct addrinfo *hints)
 int binding(struct addrinfo *res, int &_sock_d)
 {
     int binded = -1, sock_d, opt;
-    for (struct addrinfo *i = res; i != NULL; i = i->ai_next)
+    struct addrinfo *i;
+    for (i = res; i != NULL; i = i->ai_next)
     {
         opt = 1;
         sock_d = socket(i->ai_family, i->ai_socktype, i->ai_protocol);

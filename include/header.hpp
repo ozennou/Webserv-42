@@ -26,9 +26,11 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
+#include <poll.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
 #define BACKLOG 30
+#define POLL_TIMEOUT 10000
 
 using namespace std;
 
@@ -56,6 +58,13 @@ void    logging(const string& msg, int level, Server *srv, int port);
 
 //init_servers.cpp
 void    init_servers(vector<Server> &servers, Socket_map &sock_map);
+
+//server_loop.cpp
+void    server_loop(vector<Server> &srvs, Socket_map &sock_map);
+
+//to_remove
+void poll_loop(vector<Server> &srvs, Socket_map &sock_map);
+//end_remove
 
 #include <Server.hpp>
 #include <Location.hpp>

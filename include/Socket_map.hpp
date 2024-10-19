@@ -19,5 +19,6 @@ class Socket_map {
         vector<Server>  get_servers(const string &hp);
         vector<Server>  get_servers(int &sock_d);
         vector<int>     get_sockets(void);
+
         void print_map(void);
 } ;

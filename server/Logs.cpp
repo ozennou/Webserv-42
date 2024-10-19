@@ -18,7 +18,7 @@ void    logging(const string& msg, int level, Server *srv, int port)
         if (srv)
             cout << "Server: " << srv->get_index();
         if (port)
-            cout << " (port: " << port << ") ";
+            cout << " (" << srv->getHostname() << ":" << port << ") ";
         cout << "[INFO]: " << msg << RESET << endl; 
     }
     else if (level == WARNING)
@@ -27,7 +27,7 @@ void    logging(const string& msg, int level, Server *srv, int port)
         if (srv)
             cout << "Server: " << srv->get_index();
         if (port)
-            cout << " (port: " << port << ") ";
+            cout << " (" << srv->getHostname() << ":" << port << ") ";
         cout << "[WARNING]: " << msg << RESET << endl; 
     }
     else if (level == ERROR)
@@ -36,7 +36,7 @@ void    logging(const string& msg, int level, Server *srv, int port)
         if (srv)
             cout << "Server: " << srv->get_index();
         if (port)
-            cout << " (port: " << port << ") ";
+            cout << " (" << srv->getHostname() << ":" << port << ") ";
         cout << "[ERROR]: " << msg << RESET << endl; 
     }
 }
