@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   header.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mozennou <mozennou@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/14 15:57:47 by mozennou          #+#    #+#             */
-/*   Updated: 2024/10/16 16:16:46 by mozennou         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
 #include <iostream>
@@ -27,6 +15,8 @@
 #include <netdb.h>
 #include <errno.h>
 #include <poll.h>
+#include <arpa/inet.h>
+#include <fstream>
 
 #define DEFAULT_CONF "./config_file/default.conf"
 #define BACKLOG 30
@@ -42,7 +32,7 @@ class Socket_map;
 void print_servers(vector<Server> &);
 
 //check_config_file.cpp
-vector<Server>    check_config_file(int ac, char **av);
+vector<Server>    check_config_file(string path);
 
 //tokenizer.cpp
 vector<pair<int, string> >  tokenizer(ifstream& conf_file);
@@ -55,12 +45,16 @@ Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<
 
 //Logs.cpp
 void    logging(const string& msg, int level, Server *srv, int port);
+string  logging_file(const char *input, int opt);
 
 //init_servers.cpp
 void    init_servers(vector<Server> &servers, Socket_map &sock_map);
 
 //server_loop.cpp
 void    server_loop(vector<Server> &srvs, Socket_map &sock_map);
+
+//check_flags.cpp
+string check_flags(int ac, char **av);
 
 //to_remove
 void poll_loop(vector<Server> &srvs, Socket_map &sock_map);

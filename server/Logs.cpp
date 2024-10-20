@@ -1,42 +1,58 @@
 #include <header.hpp>
 
-void    displayTimestamp(const char *color)
+string logging_file(const char *input, int opt)
+{
+    static string logs_path;
+    if (opt)
+        logs_path = input;
+    return logs_path;
+}
+
+void    displayTimestamp(const char *color, ofstream &out)
 {
     time_t  now;
     char    time_buffer[30];
 
     now = time(NULL);
     strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S: ", localtime(&now));
-    cout << color << time_buffer;
+    out << color << time_buffer;
 }
 
 void    logging(const string& msg, int level, Server *srv, int port)
 {
+    ofstream    out(logging_file(NULL, 0), ios::out | ios::app);
+    bool        bl = (logging_file(NULL, 0) == "/dev/stderr")? 1 : 0;
+    if (!out.is_open())
+    {
+        cerr << logging_file(NULL, 0) << ": no such file or directory" << endl; 
+        return ;
+    }
     if (level == INFO)
     {
-        displayTimestamp(GREEN);
+        displayTimestamp(bl ? GREEN : "", out);
         if (srv)
-            cout << "Server: " << srv->get_index();
+            out << "Server: " << srv->get_index();
         if (port)
-            cout << " (" << srv->getHostname() << ":" << port << ") ";
-        cout << "[INFO]: " << msg << RESET << endl; 
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[INFO]: " << msg << (bl ? RESET : "") << endl; 
     }
     else if (level == WARNING)
     {
-        displayTimestamp(YELLOW);
+        displayTimestamp(bl ? YELLOW : "", out);
         if (srv)
-            cout << "Server: " << srv->get_index();
+            out << "Server: " << srv->get_index();
         if (port)
-            cout << " (" << srv->getHostname() << ":" << port << ") ";
-        cout << "[WARNING]: " << msg << RESET << endl; 
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[WARNING]: " << msg << (bl ? RESET : "") << endl; 
     }
     else if (level == ERROR)
     {
-        displayTimestamp(RED);
+        displayTimestamp(bl ? RED : "", out);
         if (srv)
-            cout << "Server: " << srv->get_index();
+            out << "Server: " << srv->get_index();
         if (port)
-            cout << " (" << srv->getHostname() << ":" << port << ") ";
-        cout << "[ERROR]: " << msg << RESET << endl; 
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[ERROR]: " << msg << (bl ? RESET : "") << endl; 
     }
+    out.close();
 }

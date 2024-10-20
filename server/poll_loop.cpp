@@ -38,10 +38,26 @@ void poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                     sockaddr_storage res;
                     socklen_t t = sizeof(res);
                     int a = accept(pfds[i].fd, (sockaddr*)&res, &t);
-                    recv(a, bf, 1024, 0);
-                    cout << bf << endl;
+                    if (res.ss_family == AF_INET)
+                    {
+                        sockaddr_in* addr = reinterpret_cast<sockaddr_in*>(&res);
+                        char ip[INET_ADDRSTRLEN];
+                        inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
+                        logging("New accepted connection: " + string(ip) + ":" + to_string(ntohs(addr->sin_port)), INFO, NULL, 0);
+                    }
+                    // recv(a, bf, 1024, 0);
+                    // cout << bf;
+                    // cout.flush();
+                    (void)bf;
+                    (void)a;
+                    // close(a);
+                }
+                else if (pfds[i].revents & POLLOUT)
+                {
+                    cout << "HERE: " << i << endl;
                 }
             }
         }
     }
+    delete pfds;
 }

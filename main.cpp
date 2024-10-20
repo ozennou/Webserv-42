@@ -12,7 +12,7 @@ int main(int ac, char **av) {
     vector<Server>  servers;
     Socket_map      sock_map;
     try {
-        servers = check_config_file(ac, av);
+        servers = check_config_file(check_flags(ac, av));
         init_servers(servers, sock_map);
         // print_servers(servers);
         // sock_map.print_map();
