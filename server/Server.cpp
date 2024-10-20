@@ -1,7 +1,7 @@
 #include <Server.hpp>
 
 Server::Server() {
-    body_size = 1000000; // https://stackoverflow.com/questions/28476643/default-nginx-client-max-body-size
+    body_size = 1000000; // https://stackoverflow.com/questions/28476643/default-nginx-Clients-max-body-size
     hostname = DEFAULT_HOST;
 }
 

@@ -34,6 +34,7 @@ int binding(struct addrinfo *res, int &_sock_d)
             close(sock_d);
             continue;
         }
+        fcntl(sock_d, F_SETFL, O_NONBLOCK);
         binded = 0;
     }
     _sock_d = sock_d;

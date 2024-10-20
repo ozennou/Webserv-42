@@ -17,6 +17,7 @@
 #include <poll.h>
 #include <arpa/inet.h>
 #include <fstream>
+#include <fcntl.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
 #define BACKLOG 30
@@ -27,6 +28,7 @@ using namespace std;
 class Server;
 class Location;
 class Socket_map;
+class Clients;
 
 //printf_server.cpp
 void print_servers(vector<Server> &);
@@ -57,7 +59,8 @@ void    server_loop(vector<Server> &srvs, Socket_map &sock_map);
 string check_flags(int ac, char **av);
 
 //to_remove
-void poll_loop(vector<Server> &srvs, Socket_map &sock_map);
+int poll_loop(struct pollfd *pfds, Clients& clients, int &size);
+struct pollfd *init_poll_struct(vector<int> sockets, int &size);
 //end_remove
 
 #include <Server.hpp>
@@ -65,3 +68,4 @@ void poll_loop(vector<Server> &srvs, Socket_map &sock_map);
 #include <Tokenizer.hpp>
 #include <Logs.hpp>
 #include <Socket_map.hpp>
+#include <Clients.hpp>
