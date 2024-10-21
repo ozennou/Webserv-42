@@ -86,10 +86,10 @@ int server_loop(vector<Server> &srvs, Socket_map &sock_map)
 
     while (true)
     {
-        fd_set readfd = fdset;
+        fd_set readfd = fdset;  //https://stackoverflow.com/questions/35761423/how-does-select-modify-its-input-sets
         fd_set writefd = fdset;
-        if (fd_max >= 1024)
-            fd_max = 1023;
+        if (fd_max >= FD_SETSIZE)
+            fd_max = FD_SETSIZE - 1;
         if (select(fd_max + 1, &readfd, &writefd, NULL, NULL) < 0)
             continue;
         for (int i = 0; i <= fd_max; i++)
