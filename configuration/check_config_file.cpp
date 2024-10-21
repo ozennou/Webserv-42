@@ -18,16 +18,9 @@ void print_tokens(vector<pair<int, string> > &tk)
     }
 }
 
-vector<Server>    check_config_file(int ac, char **av) {
-    string                      config_file;
+vector<Server>    check_config_file(string config_file) {
     vector<pair<int, string> >   tokens;
 
-    if (ac == 1)
-        config_file = DEFAULT_CONF;
-    else if (ac == 2)
-        config_file = av[1];
-    else
-        throw invalid_argument("Usage : ./webserv <config_file>(optional)");
     if (!hasExtension(config_file))
         throw invalid_argument("Error: The file must have a .conf extension");
     ifstream conf_file(config_file.c_str());
