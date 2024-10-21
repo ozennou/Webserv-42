@@ -8,25 +8,30 @@ class Location;
 
 class Server {
 	private:
+		int					index;
 		string				hostname;
 		set<int>			ports;
 		size_t				body_size;
 		set<string>			server_names;
 		map<int, string>	error_pages;
 		vector<Location>	locations;
+		vector<int>			sockets;
 	public:
 		Server();
 		~Server();
 
+		void	set_index(const int &_index);
+		const int &get_index(void);
+
 		std::string getHostname() const;
-		void setHostname(const std::string& hostname);
+		void setHostname(const std::string& _hostname);
 
 		std::set<int> &getPorts();
 		void addPort(int port);
 		void removePort(int port);
 
 		size_t getBodySize() const;
-		void setBodySize(size_t bodySize);
+		void setBodySize(size_t _bodySize);
 
 		std::set<std::string> &getServerNames();
 		void addServerName(const std::string& serverName);
@@ -41,4 +46,5 @@ class Server {
 		void addLocation(const Location& location);
 
 		void	ready_server(void);
+		bool	isValidIPv4(const string& ip);
 } ;

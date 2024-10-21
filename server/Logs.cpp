@@ -1,30 +1,58 @@
 #include <header.hpp>
 
-void    displayTimestamp(const char *color)
+string logging_file(const char *input, int opt)
+{
+    static string logs_path;
+    if (opt)
+        logs_path = input;
+    return logs_path;
+}
+
+void    displayTimestamp(const char *color, ofstream &out)
 {
     time_t  now;
     char    time_buffer[30];
 
     now = time(NULL);
-    strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S ", localtime(&now));
-    cerr << color << time_buffer;
+    strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S: ", localtime(&now));
+    out << color << time_buffer;
 }
 
-void    logging(const string& msg, int level) // we can add more detailed logs like server index who trigger the logging function and more
+void    logging(const string& msg, int level, Server *srv, int port)
 {
+    ofstream    out(logging_file(NULL, 0), ios::out | ios::app);
+    bool        bl = (logging_file(NULL, 0) == "/dev/stderr")? 1 : 0;
+    if (!out.is_open())
+    {
+        cerr << logging_file(NULL, 0) << ": no such file or directory" << endl; 
+        return ;
+    }
     if (level == INFO)
     {
-        displayTimestamp(GREEN);
-        cerr << "[INFO] :" << msg << RESET << endl; 
+        displayTimestamp(bl ? GREEN : "", out);
+        if (srv)
+            out << "Server: " << srv->get_index();
+        if (port)
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[INFO]: " << msg << (bl ? RESET : "") << endl; 
     }
     else if (level == WARNING)
     {
-        displayTimestamp(YELLOW);
-        cerr << "[WARNING] :" << msg << RESET << endl; 
+        displayTimestamp(bl ? YELLOW : "", out);
+        if (srv)
+            out << "Server: " << srv->get_index();
+        if (port)
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[WARNING]: " << msg << (bl ? RESET : "") << endl; 
     }
     else if (level == ERROR)
     {
-        displayTimestamp(RED);
-        cerr << "[ERROR] :" << msg << RESET << endl; 
+        displayTimestamp(bl ? RED : "", out);
+        if (srv)
+            out << "Server: " << srv->get_index();
+        if (port)
+            out << " (" << srv->getHostname() << ":" << port << ") ";
+        out << "[ERROR]: " << msg << (bl ? RESET : "") << endl; 
     }
+    out.close();
 }
