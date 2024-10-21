@@ -46,7 +46,7 @@ vector<Server> Socket_map::get_servers(const string &hp)
     return i->second.second;
 }
 
-vector<Server> Socket_map::get_servers(int &sock_d)
+vector<Server> Socket_map::get_servers(int sock_d)
 {
     for (map_sock::iterator i = sock_map.begin(); i != sock_map.end(); i++)
     {
@@ -63,6 +63,11 @@ vector<int> Socket_map::get_sockets(void)
     for (map_sock::iterator i = sock_map.begin(); i != sock_map.end(); i++)
         res.push_back(i->second.first);
     return res;
+}
+
+int Socket_map::size()
+{
+    return sock_map.size();
 }
 
 void Socket_map::print_map(void)

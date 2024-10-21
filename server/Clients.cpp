@@ -40,7 +40,6 @@ void    Clients::remove_client(int client_d)
 void    Clients::clients_loop(Socket_map &sock_map)
 {
     (void)sock_map;
-    cout << RED << client_map.size() << RESET << endl;
     for (map<int, int>::iterator i = client_map.begin(); i != client_map.end();)
     {
         char bf[1024];

@@ -17,8 +17,9 @@ class Socket_map {
         int             exist_hp(const string &hp);
         void            add_server(const string &hp, Server &srv);
         vector<Server>  get_servers(const string &hp);
-        vector<Server>  get_servers(int &sock_d);
+        vector<Server>  get_servers(int sock_d);
         vector<int>     get_sockets(void);
+        int             size();
 
         void print_map(void);
 } ;
