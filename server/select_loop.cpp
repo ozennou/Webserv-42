@@ -1,4 +1,4 @@
-#include <header.hpp>
+#include "../include/RequestParser.hpp"
 
 int init_set(fd_set &fdset, vector<int> &sockets)
 {
@@ -48,20 +48,21 @@ int new_connection(int &i, Clients &clients, fd_set &fdset, int &fd_max)
 
 int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any params you need
 {
-    char    bf[1024];
-    int     lenght = recv(client_fd, bf, 1024, 0);
+    // char    bf[1024];
+    // int     lenght = recv(client_fd, bf, 1024, 0);
 
-    if (lenght < 0)
-        return 1;
-    else if (!lenght)
-    {
-        logging("Client disconnected", INFO, NULL, 0);
-        remove_client(clients, fdset, client_fd);
-    }
-    else
-    {
-        cout << bf;    // reding the request part
+    try {
+        RequestParser requestParser(client_fd);
 
+        requestParser.fillRequestObject();
+    } catch( RequestParser::HttpRequestException &e ) {
+        if (e.statusCode < 0)
+            return 1;
+        else if (!e.statusCode)
+        {
+            logging("Client disconnected", INFO, NULL, 0);
+            remove_client(clients, fdset, client_fd);
+        }
     }
     return 0;
 }
