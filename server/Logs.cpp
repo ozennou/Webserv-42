@@ -20,6 +20,8 @@ void    displayTimestamp(const char *color, ofstream &out)
 
 void    logging(const string& msg, int level, Server *srv, int port)
 {
+    if (!LOGS)
+        return ;
     ofstream    out(logging_file(NULL, 0), ios::out | ios::app);
     bool        bl = (logging_file(NULL, 0) == "/dev/stderr")? 1 : 0;
     if (!out.is_open())

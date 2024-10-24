@@ -3,64 +3,132 @@
 struct pollfd *init_poll_struct(vector<int> sockets, int &size)
 {
     size = sockets.size();
-    struct pollfd *pfds = new struct pollfd[size];
+    struct pollfd *pfds = new struct pollfd[10240];
     for (unsigned long i = 0; i < sockets.size(); i++)
     {
         pfds[i].fd = sockets[i];
-        pfds[i].events = POLLIN | POLLOUT;
+        pfds[i].events = POLLIN;
         pfds[i].revents = 0;
     }
     return pfds;
 }
 
-void check_event(struct pollfd *pfds, int size, Clients& clients){
-    for (int i = 0; i < size; i++)
+void add_client(struct pollfd *pfds, int &newFd, int &size)
+{
+    int i;
+    for (i = 0; i < size; i++)
     {
-        if (pfds[i].revents & POLLIN)
-        {
-            sockaddr_storage res;
-            socklen_t t = sizeof(res);
-            int a = accept(pfds[i].fd, (sockaddr*)&res, &t);
-            if (a < 0)
-                continue;
-            if (res.ss_family == AF_INET)
-            {
-                sockaddr_in* addr = reinterpret_cast<sockaddr_in*>(&res);
-                char ip[INET_ADDRSTRLEN];
-                inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
-                logging("accepted ipv4 connection: " + string(ip) + ":" + to_string(ntohs(addr->sin_port)), INFO, NULL, 0);
-            } else if (res.ss_family == AF_INET6)
-            {
-                sockaddr_in6* addr = reinterpret_cast<sockaddr_in6*>(&res);
-                char ip[INET6_ADDRSTRLEN];
-                inet_ntop(AF_INET6, &addr->sin6_addr, ip, sizeof(ip));
-                logging("accepted ipv6 connection: " + string(ip) + ":" + to_string(ntohs(addr->sin6_port)), INFO, NULL, 0);
-            }
-            else
-            {
-                close(a);
-                continue;
-            }
-            clients.add_client(a, pfds[i].fd);
-        }
-        if (pfds[i].revents & POLLOUT)
-        {
-            cout << "HERE: " << i << endl;
-        }
+        if (pfds[i].fd == -1)
+            break;
+    }
+    if (i < size)
+    {
+        pfds[i].fd = newFd;
+        pfds[i].events = POLLIN | POLLOUT;
+        pfds[i].revents = 0;
+    }
+    else
+    {
+        pfds[size].fd = newFd;
+        pfds[size].events = POLLIN | POLLOUT;
+        pfds[size++].revents = 0;
     }
 }
 
-int poll_loop(struct pollfd *pfds, Clients& clients, int &size)
+int newconnection2(Clients &clients, int &fd, struct pollfd *pfds, int &size)
 {
-    int f = poll(pfds, size, POLL_TIMEOUT);
-    if (f < 0)
+    sockaddr_storage sa;
+    socklen_t t = sizeof(sa);
+    int newFd = accept(fd, (sockaddr*)&sa, &t);
+    if (newFd < 0)
+        return 1;
+    if (sa.ss_family == AF_INET)
+        logging("Accepted ipv4 new connection", INFO, NULL, 0);
+    else
     {
-        logging("poll fail: " + string(strerror(errno)), ERROR, NULL, 0);
+        close(newFd);
         return 1;
     }
-    else if (!f)
-        return 1;
-    else
-        check_event(pfds, size, clients);
+    add_client(pfds, newFd, size);
+    clients.add_client(newFd, fd);
     return 0;
+}
+
+int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int &i)
+{
+    char    bf[1];
+    int     lenght = recv(client_fd, bf, 1, 0);
+
+    if (lenght < 0)
+        return 1;
+    else if (!lenght)
+    {
+        logging("Client disconnected", INFO, NULL, 0);
+        pfds[i].fd = -1;
+        clients.remove_client(i);
+        close(client_fd);
+    }
+    else
+    {
+        // cout << bf << endl;;    // reding the request part
+        (void)bf;
+    }
+    return 0;
+}
+
+int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
+{
+    int sock_d = clients.get_sock_d(client_fd);
+    if (sock_d < 0)   // used for the client that already desconnected from the same iteration
+        return 1;
+    vector<Server> srv = sock_map.get_servers(sock_d);
+        const char *response =
+        "HTTP/1.1 200 OK\r\n"        
+        "Content-Type: text/html\r\n"
+        "Content-Length: 0\r\n"      
+        "\r\n";                      
+
+    int result = send(client_fd, response, strlen(response), 0);
+    if (result < 0)
+        return 1;
+    return 0;
+}
+
+int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
+{
+    Clients       clients;
+    int           size, fd;
+    vector<int> sockets = sock_map.get_sockets();
+    struct pollfd *pfds = init_poll_struct(sockets, size);
+    while (true)
+    {
+        int f = poll(pfds, size, POLL_TIMEOUT);
+        if (f < 0)
+        {
+            logging("poll fail: " + string(strerror(errno)), ERROR, NULL, 0);
+            continue;
+        }
+        else if (!f)
+            continue;
+        else
+        {
+            for (int i = 0; i < size; i++)
+            {
+                fd = pfds[i].fd;
+                if (fd < 0)
+                    continue;
+                if (pfds[i].revents & POLLIN)
+                {
+                    if (find(sockets.begin(), sockets.end(), fd) != sockets.end())
+                        newconnection2(clients, fd, pfds, size);
+                    else
+                        reading_request2(fd, clients, pfds, i);
+                } else if (pfds[i].revents & POLLOUT)
+                {
+                    sending_response2(fd, clients, sock_map);
+                }
+
+            }
+        }
+    }
 }

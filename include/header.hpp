@@ -18,11 +18,12 @@
 #include <arpa/inet.h>
 #include <fstream>
 #include <fcntl.h>
+#include <sys/event.h>
 #include <sys/select.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
-#define BACKLOG 30
 #define POLL_TIMEOUT 10000
+#define LOGS true
 
 using namespace std;
 
@@ -62,7 +63,7 @@ string check_flags(int ac, char **av);
 
 
 //to_remove
-int poll_loop(struct pollfd *pfds, Clients& clients, int &size);
+int poll_loop(vector<Server> &srvs, Socket_map &sock_map);
 struct pollfd *init_poll_struct(vector<int> sockets, int &size);
 //end_remove
 

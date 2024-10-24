@@ -48,8 +48,8 @@ int new_connection(int &i, Clients &clients, fd_set &fdset, int &fd_max)
 
 int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any params you need
 {
-    char    bf[1024];
-    int     lenght = recv(client_fd, bf, 1024, 0);
+    char    bf[1];
+    int     lenght = recv(client_fd, bf, 1, 0);
 
     if (lenght < 0)
         return 1;
@@ -60,8 +60,8 @@ int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any p
     }
     else
     {
-        cout << bf;    // reding the request part
-
+        // cout << bf << endl;;    // reding the request part
+        (void)bf;
     }
     return 0;
 }
@@ -73,6 +73,15 @@ int sending_response(int &client_fd, Socket_map &sock_map, Clients &clients)
     if (sock_d < 0)   // used for the client that already desconnected from the same iteration
         return 1;
     vector<Server> srv = sock_map.get_servers(sock_d);
+        const char *response =
+        "HTTP/1.1 200 OK\r\n"        
+        "Content-Type: text/html\r\n"
+        "Content-Length: 0\r\n"      
+        "\r\n";                      
+
+    int result = send(client_fd, response, strlen(response), 0);
+    if (result < 0)
+        return 1;
     return 0;
 }
 
@@ -88,8 +97,8 @@ int server_loop(vector<Server> &srvs, Socket_map &sock_map)
     {
         fd_set readfd = fdset;  //https://stackoverflow.com/questions/35761423/how-does-select-modify-its-input-sets
         fd_set writefd = fdset;
-        if (fd_max >= FD_SETSIZE)
-            fd_max = FD_SETSIZE - 1;
+        // if (fd_max >= FD_SETSIZE)
+        //     fd_max = FD_SETSIZE - 1;
         if (select(fd_max + 1, &readfd, &writefd, NULL, NULL) < 0)
             continue;
         for (int i = 0; i <= fd_max; i++)
@@ -107,7 +116,7 @@ int server_loop(vector<Server> &srvs, Socket_map &sock_map)
                         continue ;
                 }
             }
-            if (FD_ISSET(i, &writefd))
+            else if (FD_ISSET(i, &writefd))
             {
                 if (sending_response(i, sock_map, clients))
                     continue;
