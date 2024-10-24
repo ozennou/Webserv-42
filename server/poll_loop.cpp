@@ -108,7 +108,7 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
     Clients       clients;
-    int           size, fd, max_size = 2;
+    int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
     struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
     while (true)

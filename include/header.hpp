@@ -54,9 +54,6 @@ string  logging_file(const char *input, int opt);
 //init_servers.cpp
 void    init_servers(vector<Server> &servers, Socket_map &sock_map);
 
-//select_loop.cpp
-int    server_loop(vector<Server> &srvs, Socket_map &sock_map);
-
 //check_flags.cpp
 string check_flags(int ac, char **av);
 
