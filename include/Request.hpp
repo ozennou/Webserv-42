@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 14:39:37 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/24 14:57:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/25 21:39:11 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 
 #include <iostream>
 #include <map>
+
+// #include "Uri.hpp"
+
+// class Uri;
 
 enum {
     GET,
@@ -27,7 +31,7 @@ class Request
     
 public:
     int         methode;
-    std::string targetUrl;
+    // Uri         uri;
     std::string httpVersion;
     //
 

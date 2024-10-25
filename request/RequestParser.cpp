@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/24 14:49:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/25 21:42:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,9 @@ void RequestParser::requestLine( string stringBuffer ) {
 
     if (methode.length() > 6 || methode.length() < 0) throw RequestParser::HttpRequestException("Invalid Methode", 400);
     if (!targetURI.length()) throw RequestParser::HttpRequestException("Invalid URI", 400);
-    if (!httpVersion.length() || httpVersion.find('/') == string::npos || httpVersion.find('/') != 4) throw RequestParser::HttpRequestException("Invalid HTTP-VERSION", 400);
-    else {
-    }
+    if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
+    || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
+        throw RequestParser::HttpRequestException("Invalid HTTP-VERSION", 400);
 
     if (methode == "GET") request.methode = GET;
     else if (methode == "POST") request.methode = POST;
@@ -66,7 +66,9 @@ void RequestParser::requestLine( string stringBuffer ) {
     else throw RequestParser::HttpRequestException("Invalid Methode", 400);
 
     Uri requestTarget(targetURI);
-    
+
+    // request.uri = requestTarget;
+
     // cout << targetURI << "-";
     // cout << httpVersion << "-"<< endl;
     // string restOfTheRequest = stringBuffer.substr(stringBuffer.find(CRLF) + 1, stringBuffer.length() - stringBuffer.find(CRLF) + 1); 
