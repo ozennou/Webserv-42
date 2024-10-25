@@ -48,14 +48,12 @@ int new_connection(int &i, Clients &clients, fd_set &fdset, int &fd_max)
 
 int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any params you need
 {
-    // char    bf[1024];
-    // int     lenght = recv(client_fd, bf, 1024, 0);
-
     try {
         RequestParser requestParser(client_fd);
 
         requestParser.fillRequestObject();
     } catch( RequestParser::HttpRequestException &e ) {
+        cout << e.message << ' ' << e.statusCode << endl; 
         if (e.statusCode < 0)
             return 1;
         else if (!e.statusCode)

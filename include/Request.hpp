@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 14:39:37 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/21 22:25:55 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/24 14:57:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,9 @@ enum {
 class Request
 {
     // -> request line
-    // int         methode;
+    
+public:
+    int         methode;
     std::string targetUrl;
     std::string httpVersion;
     //
@@ -32,8 +34,7 @@ class Request
     // -> header section
     std::map<std::string, std::string> headerFields;
     //
-    
-public:
+
     Request();
     ~Request();
 };

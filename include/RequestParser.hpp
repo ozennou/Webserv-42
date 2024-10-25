@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/21 22:22:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/24 14:55:55 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,9 @@
 #include <fcntl.h>
 
 #include "Request.hpp"
+#include "Uri.hpp"
+
+class Request;
 
 using namespace std;
 
@@ -42,9 +45,9 @@ class RequestParser
     //
 
 
-    void requestLine( string& bufferString, bool isEmpty );
+    void requestLine( string bufferString );
 
-    void headerSection( char *buf, bool isEmpty );
+    void headerSection( char *buf );
 public:
     RequestParser( int socketFd );
 
@@ -53,10 +56,10 @@ public:
     // Exception Class
     class HttpRequestException : public exception
     {
-        string message;
 
         // could need a code here to identify the cause of the exception
     public:
+        string message;
         int statusCode;
         HttpRequestException( string message , int statusCode );
         const char* what() const throw();
