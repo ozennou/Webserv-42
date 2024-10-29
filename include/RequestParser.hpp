@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/25 21:37:49 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/28 17:47:06 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ class RequestParser
     //
 
 
-    void requestLine( string bufferString );
+    void requestLine( string& bufferString );
 
-    void headerSection( char *buf );
+    void headerSection( string stringBuffer );
 public:
     RequestParser( int socketFd );
 

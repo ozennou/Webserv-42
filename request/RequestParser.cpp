@@ -6,11 +6,12 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/25 21:42:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/28 21:23:37 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
+#include "../include/Headers.hpp"
 
 RequestParser::RequestParser( int socketFd ) {
     this->socketFd = socketFd;
@@ -34,13 +35,13 @@ RequestParser::~RequestParser( ) {
 
 }
 
-void RequestParser::requestLine( string stringBuffer ) {
+void RequestParser::requestLine( string& stringBuffer ) {
 
     if (!stringBuffer.length() || stringBuffer.find(CRLF) == string::npos) {
         int i;
         char buf[size];
 
-        while((i = recv(socketFd, buf, size, 0)) && i > 0) {
+        while((i = recv(socketFd, buf, size - 1, 0)) && i > 0) {
             buf[i] = 0; stringBuffer += buf;
             if (stringBuffer.find(CRLF) != string::npos)
                 break;
@@ -67,16 +68,26 @@ void RequestParser::requestLine( string stringBuffer ) {
 
     Uri requestTarget(targetURI);
 
-    // request.uri = requestTarget;
-
-    // cout << targetURI << "-";
-    // cout << httpVersion << "-"<< endl;
-    // string restOfTheRequest = stringBuffer.substr(stringBuffer.find(CRLF) + 1, stringBuffer.length() - stringBuffer.find(CRLF) + 1); 
+    headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
     
 }
 
-void RequestParser::headerSection( char *buf ) {
-    (void)buf;
+void RequestParser::headerSection( string stringBuffer ) {
+    Headers headerSection;
+
+    while (1) {
+        size_t pos = stringBuffer.find(CRLF);
+        string field = stringBuffer.substr(0, pos);
+
+        if (field == CRLF) break;
+        
+        pos += 2;
+        headerSection.parseField(field);
+        stringBuffer = stringBuffer.substr(pos);
+    }
+    // cout << "--------------------" << endl;
+    // headerSection.print();
+    // cout << "--------------------" << endl;
 }
 
 void RequestParser::fillRequestObject( ) {
@@ -84,7 +95,7 @@ void RequestParser::fillRequestObject( ) {
     char buf[size];
     string stringBuffer;
 
-    i = recv(socketFd, buf, size, 0);
+    i = recv(socketFd, buf, size - 1, 0);
 
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", 1);

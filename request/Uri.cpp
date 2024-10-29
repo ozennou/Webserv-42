@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/25 22:07:10 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/28 17:49:58 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,11 @@ void Uri::extractPath( ) {
         type = ABSOLUTE;
         if (!port.length()) port = "80";
         if (!path.length()) path = "/";
-        cout << "the host is= "<< host << endl;
-        cout << "the port is= "<< port << endl;
+        // cout << "the host is= "<< host << endl;
+        // cout << "the port is= "<< port << endl;
     }
-    cout << "the path is= "<< path << endl;
-    cout << "the query is= "<< query << endl;
+    // cout << "the path is= "<< path << endl;
+    // cout << "the query is= "<< query << endl;
 }
 
 void Uri::originForm( ) {
