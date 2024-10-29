@@ -48,8 +48,8 @@ int new_connection(int &i, Clients &clients, fd_set &fdset, int &fd_max)
 
 int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any params you need
 {
+    RequestParser requestParser(client_fd);
     try {
-        RequestParser requestParser(client_fd);
 
         requestParser.fillRequestObject();
     } catch( RequestParser::HttpRequestException &e ) {

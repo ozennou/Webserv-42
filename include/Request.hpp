@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 14:39:37 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/25 21:39:11 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 14:45:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 #include <iostream>
 #include <map>
 
-// #include "Uri.hpp"
+#include "Uri.hpp"
+#include "Headers.hpp"
 
 // class Uri;
 
@@ -31,8 +32,8 @@ class Request
     
 public:
     int         methode;
-    // Uri         uri;
-    std::string httpVersion;
+    Uri*        uri;
+    Headers*    headers;
     //
 
     // -> header section

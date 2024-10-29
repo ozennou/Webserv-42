@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/28 17:47:06 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 11:41:33 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class RequestParser
     int socketFd;
     //
 
+    void findCRLF( string& stringBuffer);
 
     void requestLine( string& bufferString );
 

@@ -6,11 +6,12 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/28 17:49:58 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 14:37:38 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Uri.hpp"
+#include "../include/RequestParser.hpp"
 
 Uri::Uri( string& requestTarget ) : subDelimiters(SUB_DELIM), genDelimiters(GEN_DELIM), requestTarget(requestTarget) {
     extractPath();

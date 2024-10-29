@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/28 21:23:37 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 14:46:26 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,7 @@ RequestParser::~RequestParser( ) {
 
 }
 
-void RequestParser::requestLine( string& stringBuffer ) {
-
+void RequestParser::findCRLF( string& stringBuffer) {
     if (!stringBuffer.length() || stringBuffer.find(CRLF) == string::npos) {
         int i;
         char buf[size];
@@ -47,6 +46,10 @@ void RequestParser::requestLine( string& stringBuffer ) {
                 break;
         }
     }
+}
+
+void RequestParser::requestLine( string& stringBuffer ) {
+
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
     if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw RequestParser::HttpRequestException("Invalid Request Line", 400);
@@ -68,8 +71,9 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
     Uri requestTarget(targetURI);
 
+    request.uri = &requestTarget;
+
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
-    
 }
 
 void RequestParser::headerSection( string stringBuffer ) {
@@ -79,15 +83,14 @@ void RequestParser::headerSection( string stringBuffer ) {
         size_t pos = stringBuffer.find(CRLF);
         string field = stringBuffer.substr(0, pos);
 
-        if (field == CRLF) break;
+        if (!field.length()) break;
         
         pos += 2;
         headerSection.parseField(field);
         stringBuffer = stringBuffer.substr(pos);
     }
-    // cout << "--------------------" << endl;
-    // headerSection.print();
-    // cout << "--------------------" << endl;
+
+    request.headers = &headerSection;
 }
 
 void RequestParser::fillRequestObject( ) {
@@ -103,11 +106,4 @@ void RequestParser::fillRequestObject( ) {
     buf[i] = 0; stringBuffer += buf;
 
     requestLine(stringBuffer);
-    // cout << stringBuffer << endl;
-    // string newStringBuffer = stringBuffer.substr(stringBuffer.find(CRLF) + 1, (stringBuffer.length() - stringBuffer.find(CRLF) - 1));
-    // cout << "----------TTTTT----------\n";
-    // cout << newStringBuffer << endl;
-    // requestLine(newStringBuffer, false);
-    // cout << stringBuffer;
-    // requestLine(buf, true);
 }
