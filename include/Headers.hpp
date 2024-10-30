@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/28 17:42:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/28 20:33:04 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/30 17:12:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,17 +19,21 @@
 
 using namespace std;
 
+#include <cctype>
+
 class Headers
 {
     string delimiters;
     string space;
 
-    map<string, string> mapp;
+    multimap<string, string> hash;
     
 public:
     Headers();
 
-    void parseField( string& field );
+    void parseFieldName( string& field );
+
+    void parseFieldValue( void );
 
     void print( );
     ~Headers();

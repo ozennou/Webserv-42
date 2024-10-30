@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/29 14:37:04 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 15:14:05 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ enum {
 
 class Uri
 {
+public:
     //Type Of The URI
     int type;
 
@@ -56,7 +57,7 @@ class Uri
     bool percentEncoded( string& str, size_t index );
 
     void extractQuery( size_t index );
-public:
+
     Uri( string& requestTarget );
     ~Uri( );
 };

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/29 14:46:26 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/30 14:24:19 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,15 +50,17 @@ void RequestParser::findCRLF( string& stringBuffer) {
 
 void RequestParser::requestLine( string& stringBuffer ) {
 
+    findCRLF(stringBuffer);
+
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
-    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw RequestParser::HttpRequestException("Invalid Request Line", 400);
+    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw RequestParser::HttpRequestException("Wrong Number of Spaces Than It Should Be", 400);
 
     string methode = requestLine.substr(0, requestLine.find(32));
     string targetURI = requestLine.substr(requestLine.find(32) + 1, (requestLine.find_last_of(32) - requestLine.find(32) - 1));
     string httpVersion = requestLine.substr(requestLine.find_last_of(32) + 1, (requestLine.length() - requestLine.find_last_of(32)));
 
-    if (methode.length() > 6 || methode.length() < 0) throw RequestParser::HttpRequestException("Invalid Methode", 400);
+    if (methode.length() > 6 || methode.length() <= 0) throw RequestParser::HttpRequestException("Invalid Methode", 400);
     if (!targetURI.length()) throw RequestParser::HttpRequestException("Invalid URI", 400);
     if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
     || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
@@ -69,15 +71,25 @@ void RequestParser::requestLine( string& stringBuffer ) {
     else if (methode == "DELETE") request.methode = DELETE;
     else throw RequestParser::HttpRequestException("Invalid Methode", 400);
 
-    Uri requestTarget(targetURI);
+    Uri *requestTarget = new Uri(targetURI);
 
-    request.uri = &requestTarget;
+    request.uri = requestTarget;
 
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
+    
+    cout << request.methode << endl;
+    if (request.uri->host.length()) cout << request.uri->host << endl;
+    if (request.uri->port.length()) cout << request.uri->port << endl;    
+    if (request.uri->path.length()) cout << request.uri->path << endl;
+    if (request.uri->query.length()) cout << request.uri->query << endl;
+    request.headers->print();
 }
 
 void RequestParser::headerSection( string stringBuffer ) {
-    Headers headerSection;
+
+    findCRLF(stringBuffer);
+    
+    Headers *headerSection = new Headers();
 
     while (1) {
         size_t pos = stringBuffer.find(CRLF);
@@ -86,11 +98,13 @@ void RequestParser::headerSection( string stringBuffer ) {
         if (!field.length()) break;
         
         pos += 2;
-        headerSection.parseField(field);
+        headerSection->parseFieldName(field);
         stringBuffer = stringBuffer.substr(pos);
     }
 
-    request.headers = &headerSection;
+    request.headers = headerSection;
+
+    headerSection->parseFieldValue();
 }
 
 void RequestParser::fillRequestObject( ) {

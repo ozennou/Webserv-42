@@ -53,15 +53,18 @@ int reading_request(int &client_fd, Clients &clients, fd_set &fdset) //add any p
 
         requestParser.fillRequestObject();
     } catch( RequestParser::HttpRequestException &e ) {
-        cout << e.message << ' ' << e.statusCode << endl; 
         if (e.statusCode < 0)
             return 1;
         else if (!e.statusCode)
         {
             logging("Client disconnected", INFO, NULL, 0);
             remove_client(clients, fdset, client_fd);
+        } else {
+            // cout << e.message << ' ' << e.statusCode << endl;
+            logging(e.message, ERROR, NULL, 0); 
         }
     }
+    exit(0);
     return 0;
 }
 

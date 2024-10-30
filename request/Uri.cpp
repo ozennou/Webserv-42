@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/29 14:37:38 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/29 21:19:20 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ bool Uri::isUnreserved( int c ) {
 }
 
 bool Uri::percentEncoded( string& str, size_t index ) {
+    if (str[index] != '%') return false;
+    
     if ((index + 2 < str.length()) && (isxdigit(str[index + 1]) && isxdigit(str[index + 2]))) {
         unsigned int x;
         stringstream stream;
@@ -42,7 +44,15 @@ bool Uri::percentEncoded( string& str, size_t index ) {
 }
 
 void Uri::extractQuery( size_t index ) {
-    query = requestTarget.substr(index + 1, requestTarget.length() - index + 1);
+    query = requestTarget.substr(index + 1, requestTarget.length() - (index + 1));
+    
+    for (size_t i = 0; i < requestTarget.length(); i++) {
+        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
+            && requestTarget[i] != ':' && requestTarget[i] != '/' && requestTarget[i] != '?') \
+        && !percentEncoded(requestTarget, i) \
+        && subDelimiters.find(requestTarget[i]) == string::npos)
+            throw RequestParser::HttpRequestException("Invalid Character found in Query", 400);
+    }
 }
 
 void Uri::extractPath( ) {
@@ -55,18 +65,15 @@ void Uri::extractPath( ) {
         type = ABSOLUTE;
         if (!port.length()) port = "80";
         if (!path.length()) path = "/";
-        // cout << "the host is= "<< host << endl;
-        // cout << "the port is= "<< port << endl;
     }
-    // cout << "the path is= "<< path << endl;
-    // cout << "the query is= "<< query << endl;
 }
 
 void Uri::originForm( ) {
     size_t i = 1;
     for (; i < requestTarget.length(); i++) {
-        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' && requestTarget[i] != ':') \
-        && (requestTarget[i] == '%' && !percentEncoded(requestTarget, i)) \
+        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
+            && requestTarget[i] != ':' && requestTarget[i] != '/') \
+        && !percentEncoded(requestTarget, i) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
             throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
         if (requestTarget[i] == '?')
@@ -95,9 +102,9 @@ void Uri::absoluteForm( ) {
         if (genDelimiters.find(requestTarget[i]) != string::npos)
             break;
         if (!isUnreserved(requestTarget[i]) \
-        && (requestTarget[i] == '%' && !percentEncoded(requestTarget, i)) \
+        && (!percentEncoded(requestTarget, i)) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
+            throw RequestParser::HttpRequestException("Invalid Character found in path in Host Absolut Form", 400);
     }
 
     host = requestTarget.substr(7, (i -  (7)));
@@ -117,10 +124,7 @@ void Uri::absoluteForm( ) {
             if (!isdigit(requestTarget[j]))
                 throw RequestParser::HttpRequestException("Invalid Character In the Port Number", 400);
         }
-
-        port = requestTarget.substr(i + 1, (j - i + 1));
-
-        if (!port.length()) throw RequestParser::HttpRequestException("No Port Found in absolut-form after ':'", 400);
+        if (j != i + 1) port = requestTarget.substr(i + 1, (j - (i + 1)));
 
         i = j;
         if (i == requestTarget.length()) return;
@@ -133,15 +137,17 @@ void Uri::absoluteForm( ) {
     if (requestTarget[i] == '/') {
         size_t j = i + 1;
         for (; j < requestTarget.length(); j++) {
-            if (genDelimiters.find(requestTarget[j]) != string::npos)
+            if (genDelimiters.find(requestTarget[j]) != string::npos \
+                && requestTarget[j] != '/')
                 break;
-            if ((!isUnreserved(requestTarget[j]) && requestTarget[j] != '@' && requestTarget[j] != ':') \
-            && (requestTarget[j] == '%' && !percentEncoded(requestTarget, j)) \
+            if ((!isUnreserved(requestTarget[j]) && requestTarget[j] != '@' && requestTarget[j] != ':' \
+                && requestTarget[j] != '/') \
+            && (!percentEncoded(requestTarget, j)) \
             && subDelimiters.find(requestTarget[j]) == string::npos)
                 throw RequestParser::HttpRequestException("Invalid character found in path", 400);
         }
 
-        path = requestTarget.substr(i ,j - i);
+        path = requestTarget.substr(i, j - i);
 
         i = j;
         if (i == requestTarget.length()) return;
