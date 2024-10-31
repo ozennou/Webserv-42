@@ -15,4 +15,4 @@ class Clients {
         int             get_sock_d(int client_d);
         void            remove_client(int client_d);
         void            clients_loop(Socket_map &sock_map);
-} ;
+};

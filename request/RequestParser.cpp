@@ -6,12 +6,12 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/30 14:24:19 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/10/31 15:13:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
-#include "../include/Headers.hpp"
+#include "../include/MessageHeaders.hpp"
 
 RequestParser::RequestParser( int socketFd ) {
     this->socketFd = socketFd;
@@ -89,7 +89,7 @@ void RequestParser::headerSection( string stringBuffer ) {
 
     findCRLF(stringBuffer);
     
-    Headers *headerSection = new Headers();
+    MessageHeaders *headerSection = new MessageHeaders();
 
     while (1) {
         size_t pos = stringBuffer.find(CRLF);

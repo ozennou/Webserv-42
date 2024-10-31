@@ -70,6 +70,7 @@ int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int 
     char    bf[1];
     int     lenght = recv(client_fd, bf, 1, 0);
 
+    // 
     if (lenght < 0)
         return 1;
     else if (!lenght)
@@ -107,6 +108,7 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
+    // add a vector related to each request/response or connection
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();

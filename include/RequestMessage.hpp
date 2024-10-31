@@ -1,40 +1,45 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Response.hpp                                       :+:      :+:    :+:   */
+/*   RequestMessage.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/30 21:10:15 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/30 21:37:18 by mlouazir         ###   ########.fr       */
+/*   Created: 2024/10/21 14:39:37 by mlouazir          #+#    #+#             */
+/*   Updated: 2024/10/29 14:45:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include <iostream>
+#include <map>
 
-#include "Headers.hpp"
-#include "RequestParser.hpp"
+#include "Uri.hpp"
+#include "MessageHeaders.hpp"
 
-using namespace std;
+// class Uri;
 
-class Response
+enum {
+    GET,
+    POST,
+    DELETE
+};
+
+class RequestMessage
 {
-    string responseMessage;
-
-    int statusCode;
-
-    string reasonPhrase;
-
-    Headers* headers;
-
-
-    void insertHeaders( );
+    // -> RequestMessage line
+    
 public:
-    Response();
+    int         methode;
+    Uri*        uri;
+    MessageHeaders*    headers;
+    //
 
-    void generateResponse( );
+    // -> header section
+    std::map<std::string, std::string> headerFields;
+    //
 
-    ~Response( );
+    RequestMessage();
+    ~RequestMessage();
 };

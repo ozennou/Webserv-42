@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Headers.cpp                                        :+:      :+:    :+:   */
+/*   MessageHeaders.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Headers.hpp"
+#include "../include/MessageHeaders.hpp"
 #include "../include/RequestParser.hpp"
 
-Headers::Headers( ) : delimiters(DELI), space(" \t") {
+MessageHeaders::MessageHeaders( ) : delimiters(DELI), space(" \t") {
 
 }
 
-void Headers::parseFieldName( string& field ) {
+void MessageHeaders::parseFieldName( string& field ) {
     size_t colonIndex = field.find(':');
 
     if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400);
@@ -36,7 +36,7 @@ void Headers::parseFieldName( string& field ) {
                                                     )));
 }
 
-void Headers::parseFieldValue( ) {
+void MessageHeaders::parseFieldValue( ) {
     for (multimap<string, string>::iterator it = hash.begin(); it != hash.end(); it++) {
         for (size_t i = 0; i < it->second.length(); i++) {
             int character = it->second[i];
@@ -47,12 +47,12 @@ void Headers::parseFieldValue( ) {
     }
 }
 
-void Headers::print( ) {
+void MessageHeaders::print( ) {
     for (multimap<string, string>::iterator i = hash.begin(); i != hash.end(); i++) {
         cout << i->first << "-"<< i->second << endl;
     }
 }
 
-Headers::~Headers( ) {
+MessageHeaders::~MessageHeaders( ) {
     cout << "Im out" << endl;
 }

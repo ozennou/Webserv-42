@@ -1,40 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Headers.hpp                                        :+:      :+:    :+:   */
+/*   ResponseMessage.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/28 17:42:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/30 17:12:08 by mlouazir         ###   ########.fr       */
+/*   Created: 2024/10/30 21:10:15 by mlouazir          #+#    #+#             */
+/*   Updated: 2024/10/31 15:13:00 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <map>
 #include <iostream>
 
-#define DELI "\"(),/:;<=>?@[\\]{}"
+#include "MessageHeaders.hpp"
+#include "RequestParser.hpp"
 
 using namespace std;
 
-#include <cctype>
-
-class Headers
+class ResponseMessage
 {
-    string delimiters;
-    string space;
+    string responseMessage;
 
-    multimap<string, string> hash;
-    
+    int statusCode;
+
+    string reasonPhrase;
+
+    MessageHeaders* headers;
+
+
+    void insertHeaders( );
 public:
-    Headers();
+    ResponseMessage();
 
-    void parseFieldName( string& field );
+    // void generateResponse( );
 
-    void parseFieldValue( void );
-
-    void print( );
-    ~Headers();
+    ~ResponseMessage( );
 };

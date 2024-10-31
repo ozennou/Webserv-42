@@ -1,45 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Request.hpp                                        :+:      :+:    :+:   */
+/*   MessageHeaders.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/21 14:39:37 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/29 14:45:29 by mlouazir         ###   ########.fr       */
+/*   Created: 2024/10/28 17:42:56 by mlouazir          #+#    #+#             */
+/*   Updated: 2024/10/30 17:12:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <iostream>
 #include <map>
+#include <iostream>
 
-#include "Uri.hpp"
-#include "Headers.hpp"
+#define DELI "\"(),/:;<=>?@[\\]{}"
 
-// class Uri;
+using namespace std;
 
-enum {
-    GET,
-    POST,
-    DELETE
-};
+#include <cctype>
 
-class Request
+class MessageHeaders
 {
-    // -> request line
+    string delimiters;
+    string space;
+
+    multimap<string, string> hash;
     
 public:
-    int         methode;
-    Uri*        uri;
-    Headers*    headers;
-    //
+    MessageHeaders();
 
-    // -> header section
-    std::map<std::string, std::string> headerFields;
-    //
+    void parseFieldName( string& field );
 
-    Request();
-    ~Request();
+    void parseFieldValue( void );
+
+    void print( );
+    ~MessageHeaders();
 };

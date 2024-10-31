@@ -1,33 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Response.cpp                                       :+:      :+:    :+:   */
+/*   Bond.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/30 21:10:13 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/30 21:37:49 by mlouazir         ###   ########.fr       */
+/*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
+/*   Updated: 2024/10/31 14:48:16 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/Response.hpp"
+#pragma once
 
-Response::Response( ) : headers(NULL) {
+#include <iostream>
 
-}
-
-void Response::insertHeaders( ) {
-    if (!headers) return ;
-}
-
-void Response::generateResponse( ) {
-    string statusLine = "HTTP/1.1 ";
-    statusLine += statusCode;
-    statusLine += " ";
-    statusLine += reasonPhrase;
-    statusLine += CRLF;
-}
-
-Response::~Response( ) {
-    
-}
+class Bond
+{
+private:
+    /* data */
+public:
+    Bond(/* args */);
+    ~Bond();
+};
