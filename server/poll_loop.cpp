@@ -1,4 +1,13 @@
 #include <header.hpp>
+#include "../include/RequestMachine.hpp"
+#include "../include/Bond.hpp"
+
+Bond* getBond( vector<Bond>& bonds, int clientFd ) {
+    for (vector<Bond>::iterator it = bonds.begin(); it != bonds.end(); it++) {
+        if ((it)->getClientFd() == clientFd) return &(*it);
+    }
+    return NULL;
+}
 
 struct pollfd *init_poll_struct(vector<int> sockets, int &size, int &max_size)
 {
@@ -46,15 +55,16 @@ void add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
     }
 }
 
-int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, int &max_size)
+int newconnection2(Clients &clients, vector<Bond> &bonds, int &fd, struct pollfd **pfds, int &size, int &max_size)
 {
     sockaddr_storage sa;
     socklen_t t = sizeof(sa);
     int newFd = accept(fd, (sockaddr*)&sa, &t);
     if (newFd < 0)
         return 1;
-    if (sa.ss_family == AF_INET)
+    if (sa.ss_family == AF_INET) {
         logging("Accepted ipv4 new connection", INFO, NULL, 0);
+    }
     else
     {
         close(newFd);
@@ -62,28 +72,45 @@ int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, i
     }
     add_client(pfds, newFd, size, max_size);
     clients.add_client(newFd, fd);
+    bonds.push_back((newFd));
     return 0;
 }
 
-int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int &i)
+int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, struct pollfd *pfds, int &i)
 {
-    char    bf[1];
-    int     lenght = recv(client_fd, bf, 1, 0);
+    cout << "Test" << endl;
+    // I will assume for now that the client will not send very large requests
+    Bond    *bond = getBond(bonds, client_fd);
 
-    // 
-    if (lenght < 0)
-        return 1;
-    else if (!lenght)
-    {
-        logging("Client disconnected", INFO, NULL, 0);
-        pfds[i].fd = -1;
-        clients.remove_client(i);
-        close(client_fd);
-    }
-    else
-    {
-        // cout << bf << endl;;    // reding the request part
-        (void)bf;
+    if (bond) {
+        try {
+            // client->initParcing();
+            char buf[5160];
+
+            size_t i = recv(client_fd, buf, 5160 - 1, 0);
+            cout << i << endl;
+            if (i <= 0) {
+                cout << "i=" << i << endl;
+                if (i == 0){
+                    pfds[i].fd = -1;
+                    clients.remove_client(i);
+                    close(client_fd);
+                }
+                return 0;
+            }
+            cout << i << endl;
+            buf[i] = 0;
+            cout << buf << endl;
+        }
+        catch(const RequestParser::HttpRequestException& e) {
+            if (e.statusCode == 0)
+                logging("Client Disconnected", ERROR, NULL, 0);
+            else if (e.statusCode == -1)
+                return 1;
+            else
+                logging(e.what(), ERROR, NULL, 0);
+        }
+        
     }
     return 0;
 }
@@ -109,6 +136,7 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
     // add a vector related to each request/response or connection
+    vector<Bond>  bonds;
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
@@ -133,9 +161,9 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                 if (pfds[i].revents & POLLIN)
                 {
                     if (find(sockets.begin(), sockets.end(), fd) != sockets.end())
-                        newconnection2(clients, fd, &pfds, size, max_size);
+                        newconnection2(clients, bonds, fd, &pfds, size, max_size);
                     else
-                        reading_request2(fd, clients, pfds, i);
+                        reading_request2(fd, clients, bonds, pfds, i);
                 } else if (pfds[i].revents & POLLOUT)
                 {
                     sending_response2(fd, clients, sock_map);

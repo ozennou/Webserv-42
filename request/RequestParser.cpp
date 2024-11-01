@@ -6,14 +6,14 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/31 15:13:10 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 15:42:48 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
 
-RequestParser::RequestParser( int socketFd ) {
+RequestParser::RequestParser( int socketFd, RequestMessage* requestMessage ) : requestMessage(requestMessage) {
     this->socketFd = socketFd;
     size = 5160;
 }
@@ -66,23 +66,23 @@ void RequestParser::requestLine( string& stringBuffer ) {
     || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
         throw RequestParser::HttpRequestException("Invalid HTTP-VERSION", 400);
 
-    if (methode == "GET") request.methode = GET;
-    else if (methode == "POST") request.methode = POST;
-    else if (methode == "DELETE") request.methode = DELETE;
+    if (methode == "GET") requestMessage->methode = GET;
+    else if (methode == "POST") requestMessage->methode = POST;
+    else if (methode == "DELETE") requestMessage->methode = DELETE;
     else throw RequestParser::HttpRequestException("Invalid Methode", 400);
 
-    Uri *requestTarget = new Uri(targetURI);
+    Uri* requestTarget = new Uri(targetURI);
 
-    request.uri = requestTarget;
+    requestMessage->uri = requestTarget;
 
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
     
-    cout << request.methode << endl;
-    if (request.uri->host.length()) cout << request.uri->host << endl;
-    if (request.uri->port.length()) cout << request.uri->port << endl;    
-    if (request.uri->path.length()) cout << request.uri->path << endl;
-    if (request.uri->query.length()) cout << request.uri->query << endl;
-    request.headers->print();
+    cout << requestMessage->methode << endl;
+    if (requestMessage->uri->host.length()) cout << requestMessage->uri->host << endl;
+    if (requestMessage->uri->port.length()) cout << requestMessage->uri->port << endl;    
+    if (requestMessage->uri->path.length()) cout << requestMessage->uri->path << endl;
+    if (requestMessage->uri->query.length()) cout << requestMessage->uri->query << endl;
+    requestMessage->headers->print();
 }
 
 void RequestParser::headerSection( string stringBuffer ) {
@@ -102,12 +102,12 @@ void RequestParser::headerSection( string stringBuffer ) {
         stringBuffer = stringBuffer.substr(pos);
     }
 
-    request.headers = headerSection;
+    requestMessage->headers = headerSection;
 
     headerSection->parseFieldValue();
 }
 
-void RequestParser::fillRequestObject( ) {
+void RequestParser::init( ) {
     int i;
     char buf[size];
     string stringBuffer;

@@ -13,12 +13,9 @@
 #pragma once
 
 #include <iostream>
-#include <map>
 
 #include "Uri.hpp"
 #include "MessageHeaders.hpp"
-
-// class Uri;
 
 enum {
     GET,
@@ -36,10 +33,6 @@ public:
     MessageHeaders*    headers;
     //
 
-    // -> header section
-    std::map<std::string, std::string> headerFields;
-    //
-
-    RequestMessage();
-    ~RequestMessage();
+    RequestMessage( );
+    ~RequestMessage( );
 };

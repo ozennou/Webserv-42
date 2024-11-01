@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/31 15:07:49 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 15:42:15 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ class RequestParser
     //
 
     // The RequestMessage Object
-    RequestMessage request;
+    RequestMessage* requestMessage;
     //
 
     // The Socket Fd To read from
@@ -50,9 +50,9 @@ class RequestParser
 
     void headerSection( string stringBuffer );
 public:
-    RequestParser( int socketFd );
+    RequestParser( int socketFd, RequestMessage* requestMessage );
 
-    void fillRequestObject();
+    void init( void );
     
     // Exception Class
     class HttpRequestException : public exception

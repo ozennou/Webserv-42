@@ -1,37 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Bond.hpp                                           :+:      :+:    :+:   */
+/*   Bond.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 15:30:21 by mlouazir         ###   ########.fr       */
+/*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
+/*   Updated: 2024/11/01 15:36:11 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#include "../include/Bond.hpp"
 
-#include <iostream>
+Bond::Bond( int clientFd ) : clientFd(clientFd), requestMachine(clientFd) {
 
-#include "RequestMachine.hpp"
+}
 
-#include "ResponseMachine.hpp"
+int Bond::getClientFd( ) {
+    return clientFd;
+}
 
-class Bond
-{
-private:
-    int clientFd;
+void Bond::initParcing( ) {
+    requestMachine.initFromLastPoint();
+}
+
+
+Bond::~Bond( ) {
     
-    RequestMachine requestMachine;
-
-    // ResponseMachine
-public:
-    Bond( int clientFd );
-
-    int getClientFd( void );
-
-    void initParcing( void );
-
-    ~Bond( );
-};
+}
