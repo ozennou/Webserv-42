@@ -1,5 +1,4 @@
 #include <header.hpp>
-#include "../include/RequestMachine.hpp"
 #include "../include/Bond.hpp"
 
 Bond* getBond( vector<Bond>& bonds, int clientFd ) {
@@ -78,33 +77,20 @@ int newconnection2(Clients &clients, vector<Bond> &bonds, int &fd, struct pollfd
 
 int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, struct pollfd *pfds, int &i)
 {
-    cout << "Test" << endl;
     // I will assume for now that the client will not send very large requests
     Bond    *bond = getBond(bonds, client_fd);
 
     if (bond) {
         try {
-            // client->initParcing();
-            char buf[5160];
-
-            size_t i = recv(client_fd, buf, 5160 - 1, 0);
-            cout << i << endl;
-            if (i <= 0) {
-                cout << "i=" << i << endl;
-                if (i == 0){
-                    pfds[i].fd = -1;
-                    clients.remove_client(i);
-                    close(client_fd);
-                }
-                return 0;
-            }
-            cout << i << endl;
-            buf[i] = 0;
-            cout << buf << endl;
+            bond->initParcing();
         }
         catch(const RequestParser::HttpRequestException& e) {
-            if (e.statusCode == 0)
+            if (e.statusCode == 0) {
                 logging("Client Disconnected", ERROR, NULL, 0);
+                pfds[i].fd = -1;
+                clients.remove_client(i);
+                close(client_fd);
+            }
             else if (e.statusCode == -1)
                 return 1;
             else
@@ -115,21 +101,22 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, stru
     return 0;
 }
 
-int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
+int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Socket_map &sock_map)
 {
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0)   // used for the client that already desconnected from the same iteration
         return 1;
-    vector<Server> srv = sock_map.get_servers(sock_d);
-        const char *response =
-        "HTTP/1.1 200 OK\r\n"        
-        "Content-Type: text/html\r\n"
-        "Content-Length: 0\r\n"      
-        "\r\n";                      
+    
+    // vector<Server> srv = sock_map.get_servers(sock_d);
+    //     const char *response =
+    //     "HTTP/1.1 200 OK\r\n"        
+    //     "Content-Type: text/html\r\n"
+    //     "Content-Length: 0\r\n"      
+    //     "\r\n";                      
 
-    int result = send(client_fd, response, strlen(response), 0);
-    if (result < 0)
-        return 1;
+    // int result = send(client_fd, response, strlen(response), 0);
+    // if (result < 0)
+    //     return 1;
     return 0;
 }
 
@@ -166,7 +153,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                         reading_request2(fd, clients, bonds, pfds, i);
                 } else if (pfds[i].revents & POLLOUT)
                 {
-                    sending_response2(fd, clients, sock_map);
+                    sending_response2(clients, bonds, fd, sock_map);
                 }
 
             }

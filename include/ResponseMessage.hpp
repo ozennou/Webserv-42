@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/30 21:10:15 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/31 15:13:00 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 20:55:36 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,13 @@ using namespace std;
 
 class ResponseMessage
 {
-    string responseMessage;
-
     int statusCode;
 
     string reasonPhrase;
 
     MessageHeaders* headers;
 
+    // Payload
 
     void insertHeaders( );
 public:

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 15:30:21 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 21:01:01 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,9 @@
 class Bond
 {
 private:
+
+    int state;
+
     int clientFd;
     
     RequestMachine requestMachine;

@@ -6,11 +6,12 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 15:42:15 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 21:40:41 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
+#ifndef REQ_PARCER
+#define REQ_PARCER
 
 #define CRLF "\r\n"
 
@@ -22,10 +23,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "RequestMessage.hpp"
 #include "Uri.hpp"
 
-class RequestMessage;
+#include "RequestMessage.hpp"
+
+#include "RequestMachine.hpp"
 
 using namespace std;
 
@@ -62,7 +64,8 @@ public:
     public:
         string message;
         int statusCode;
-        HttpRequestException( string message , int statusCode );
+        int state;
+        HttpRequestException( string message , int statusCode, int state );
         const char* what() const throw();
         ~HttpRequestException() throw();
     };
@@ -70,3 +73,5 @@ public:
 
     ~RequestParser( );
 };
+
+#endif

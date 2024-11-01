@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/10/29 21:19:20 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 21:16:22 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ void Uri::extractQuery( size_t index ) {
             && requestTarget[i] != ':' && requestTarget[i] != '/' && requestTarget[i] != '?') \
         && !percentEncoded(requestTarget, i) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in Query", 400);
+            throw RequestParser::HttpRequestException("Invalid Character found in Query", 400, BAD);
     }
 }
 
@@ -75,7 +75,7 @@ void Uri::originForm( ) {
             && requestTarget[i] != ':' && requestTarget[i] != '/') \
         && !percentEncoded(requestTarget, i) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
+            throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400, BAD);
         if (requestTarget[i] == '?')
             break;
     }
@@ -86,15 +86,15 @@ void Uri::originForm( ) {
 void Uri::absoluteForm( ) {
     size_t colonIndex = requestTarget.find(':');
 
-    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("':' not found in absolute-fome URI", 400);
-    if (colonIndex != 4 || requestTarget.compare(0, 4, "http")) throw RequestParser::HttpRequestException("Invalid scheme received for the absolut-form", 400);
+    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("':' not found in absolute-fome URI", 400, BAD);
+    if (colonIndex != 4 || requestTarget.compare(0, 4, "http")) throw RequestParser::HttpRequestException("Invalid scheme received for the absolut-form", 400, BAD);
 
     size_t i = 4;
 
     if ((i + 2 >= requestTarget.length()) \
     || requestTarget[i + 1] != '/' \
     || requestTarget[i + 2] != '/')
-        throw RequestParser::HttpRequestException("No // found after the scheme", 400);
+        throw RequestParser::HttpRequestException("No // found after the scheme", 400, BAD);
     
     i += 3;
 
@@ -104,17 +104,17 @@ void Uri::absoluteForm( ) {
         if (!isUnreserved(requestTarget[i]) \
         && (!percentEncoded(requestTarget, i)) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in path in Host Absolut Form", 400);
+            throw RequestParser::HttpRequestException("Invalid Character found in path in Host Absolut Form", 400, BAD);
     }
 
     host = requestTarget.substr(7, (i -  (7)));
 
-    if (!host.length()) throw RequestParser::HttpRequestException("No Host Found in absolut-form", 400);
+    if (!host.length()) throw RequestParser::HttpRequestException("No Host Found in absolut-form", 400, BAD);
 
     if (i == requestTarget.length()) return ;
 
     if ((requestTarget[i] != '/') && (requestTarget[i] != '?') && (requestTarget[i] != ':'))
-        throw RequestParser::HttpRequestException("Invalid delimiter after host", 400);
+        throw RequestParser::HttpRequestException("Invalid delimiter after host", 400, BAD);
     
     if (requestTarget[i] == ':') {
         size_t j = i + 1;
@@ -122,7 +122,7 @@ void Uri::absoluteForm( ) {
             if (genDelimiters.find(requestTarget[j]) != string::npos)
                 break;
             if (!isdigit(requestTarget[j]))
-                throw RequestParser::HttpRequestException("Invalid Character In the Port Number", 400);
+                throw RequestParser::HttpRequestException("Invalid Character In the Port Number", 400, BAD);
         }
         if (j != i + 1) port = requestTarget.substr(i + 1, (j - (i + 1)));
 
@@ -130,7 +130,7 @@ void Uri::absoluteForm( ) {
         if (i == requestTarget.length()) return;
 
         if (requestTarget[i] != '/' && requestTarget[i] != '?')
-            throw RequestParser::HttpRequestException("Invalid delimiter after port", 400);
+            throw RequestParser::HttpRequestException("Invalid delimiter after port", 400, BAD);
 
     }
 
@@ -144,7 +144,7 @@ void Uri::absoluteForm( ) {
                 && requestTarget[j] != '/') \
             && (!percentEncoded(requestTarget, j)) \
             && subDelimiters.find(requestTarget[j]) == string::npos)
-                throw RequestParser::HttpRequestException("Invalid character found in path", 400);
+                throw RequestParser::HttpRequestException("Invalid character found in path", 400, BAD);
         }
 
         path = requestTarget.substr(i, j - i);
@@ -152,7 +152,7 @@ void Uri::absoluteForm( ) {
         i = j;
         if (i == requestTarget.length()) return;
 
-        if (requestTarget[i] != '?') throw RequestParser::HttpRequestException("Invalid character after path", 400);
+        if (requestTarget[i] != '?') throw RequestParser::HttpRequestException("Invalid character after path", 400, BAD);
     }
 
     if (requestTarget[i] == '?') extractQuery(i);

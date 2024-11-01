@@ -20,14 +20,14 @@ MessageHeaders::MessageHeaders( ) : delimiters(DELI), space(" \t") {
 void MessageHeaders::parseFieldName( string& field ) {
     size_t colonIndex = field.find(':');
 
-    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400);
-    if (!colonIndex) throw RequestParser::HttpRequestException("no field name found", 400);
+    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400, BAD);
+    if (!colonIndex) throw RequestParser::HttpRequestException("no field name found", 400, BAD);
 
     size_t i = 0;
     for (; i < colonIndex; i++) {
         if (delimiters.find(field[i]) != string::npos \
         || space.find(field[i]) != string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character Found in the field-name", 400);
+            throw RequestParser::HttpRequestException("Invalid Character Found in the field-name", 400, BAD);
     }
     
     hash.insert(make_pair<string, string>(field.substr(0, colonIndex), \
@@ -42,7 +42,7 @@ void MessageHeaders::parseFieldValue( ) {
             int character = it->second[i];
             if ((character < 0 || character > 255) \
             || (!isprint(character) && space.find(character) == string::npos))
-                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400);
+                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400, BAD);
         }
     }
 }

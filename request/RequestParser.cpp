@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 15:42:48 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/01 21:16:41 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,10 @@ RequestParser::RequestParser( int socketFd, RequestMessage* requestMessage ) : r
     size = 5160;
 }
 
-RequestParser::HttpRequestException::HttpRequestException( string message, int statusCode ) {
+RequestParser::HttpRequestException::HttpRequestException( string message, int statusCode, int state) {
     this->message = message;
     this->statusCode = statusCode;
+    this->state = state;
 }
 
 const char* RequestParser::HttpRequestException::what( void ) const throw() {
@@ -54,22 +55,22 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
-    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw RequestParser::HttpRequestException("Wrong Number of Spaces Than It Should Be", 400);
+    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw RequestParser::HttpRequestException("Wrong Number of Spaces Than It Should Be", 400, BAD);
 
     string methode = requestLine.substr(0, requestLine.find(32));
     string targetURI = requestLine.substr(requestLine.find(32) + 1, (requestLine.find_last_of(32) - requestLine.find(32) - 1));
     string httpVersion = requestLine.substr(requestLine.find_last_of(32) + 1, (requestLine.length() - requestLine.find_last_of(32)));
 
-    if (methode.length() > 6 || methode.length() <= 0) throw RequestParser::HttpRequestException("Invalid Methode", 400);
-    if (!targetURI.length()) throw RequestParser::HttpRequestException("Invalid URI", 400);
+    if (methode.length() > 6 || methode.length() <= 0) throw RequestParser::HttpRequestException("Invalid Methode", 400, BAD);
+    if (!targetURI.length()) throw RequestParser::HttpRequestException("Invalid URI", 400, BAD);
     if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
     || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
-        throw RequestParser::HttpRequestException("Invalid HTTP-VERSION", 400);
+        throw RequestParser::HttpRequestException("Invalid HTTP-VERSION", 400, BAD);
 
     if (methode == "GET") requestMessage->methode = GET;
     else if (methode == "POST") requestMessage->methode = POST;
     else if (methode == "DELETE") requestMessage->methode = DELETE;
-    else throw RequestParser::HttpRequestException("Invalid Methode", 400);
+    else throw RequestParser::HttpRequestException("Invalid Methode", 400, BAD);
 
     Uri* requestTarget = new Uri(targetURI);
 
@@ -114,8 +115,8 @@ void RequestParser::init( ) {
 
     i = recv(socketFd, buf, size - 1, 0);
 
-    if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
-    if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", 1);
+    if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0, GOOD);
+    if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1, GOOD);
 
     buf[i] = 0; stringBuffer += buf;
 
