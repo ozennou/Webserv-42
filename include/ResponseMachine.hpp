@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 16:13:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 12:27:06 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 14:51:30 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,14 @@
 
 class ResponseMachine
 {
-    ResponseMessage* responseMessage;
+    ResponseMessage*    responseMessage;
 
-    ResponseGenerator responseGenerator;
+    ResponseGenerator   responseGenerator;
 public:
-    ResponseMachine();
-    ~ResponseMachine();
+    ResponseMachine( );
+
+    void    setRequestState( int requestState, int statusCode );
+
+    void    generateResponse();
+    ~ResponseMachine( );
 };

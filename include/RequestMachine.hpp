@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:19:07 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 11:39:42 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 14:17:05 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ class RequestMachine
 {
 private:
 
-    RequestMessage *requestMessage;
+    RequestMessage* requestMessage;
 
     RequestParser requestParser;
 public:

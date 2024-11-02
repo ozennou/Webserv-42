@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 11:44:47 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 14:52:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,12 +25,15 @@ void Bond::initParcer( ) {
     }
     catch(const RequestParser::HttpRequestException& e) {
         requestState = BAD;
+        responseMachine.setRequestState(requestState, e.statusCode);
         return ;
     }
     requestState = GOOD;
+    responseMachine.setRequestState(requestState, 0);
 }
 
 void Bond::initBuilder( ) {
+    responseMachine.generateResponse();
 }
 
 int Bond::getRequestState( ) {

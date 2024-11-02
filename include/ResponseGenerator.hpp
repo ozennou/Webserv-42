@@ -6,13 +6,15 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 12:26:19 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 14:50:21 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "ResponseMessage.hpp"
+
+#include <map>
 
 class ResponseGenerator
 {
@@ -21,8 +23,14 @@ class ResponseGenerator
     int statusCode;
 
     ResponseMessage* responseMessage;
+
+    map<int, string> errorHashMap;
 public:
-    ResponseGenerator( int requestState, int statusCode, ResponseMessage* responseMessage );
+    ResponseGenerator( ResponseMessage* responseMessage );
+
+    void setRequestState( int requestState, int statusCode );
+
+    void generateResponse();
 
     ~ResponseGenerator();
 };
