@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:19:07 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 14:17:05 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 15:12:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,9 @@ class RequestParser;
 
 #include "RequestParser.hpp"
 
-#include "RequestMessage.hpp"
-
 class RequestMachine
 {
 private:
-
-    RequestMessage* requestMessage;
 
     RequestParser requestParser;
 public:

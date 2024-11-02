@@ -108,6 +108,7 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Soc
         return 1;
     Bond* bond = getBond(bonds, client_fd);
     if (bond->getRequestState() == PROCESSING) return 0;
+    cout << "Hello" << endl;
     bond->initBuilder();
     // vector<Server> srv = sock_map.get_servers(sock_d);
     //     const char *response =

@@ -25,6 +25,8 @@
 #define POLL_TIMEOUT 10000
 #define LOGS true
 
+#define CRLF "\r\n"
+
 enum {
     BAD,
     GOOD,
