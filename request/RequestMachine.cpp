@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:47:46 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 21:16:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 11:51:34 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,5 +27,5 @@ void RequestMachine::initFromLastPoint( void ) {
 }
 
 RequestMachine::~RequestMachine( ) {
-    
+    delete requestMessage;
 }

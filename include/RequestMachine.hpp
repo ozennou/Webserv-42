@@ -6,24 +6,17 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:19:07 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 21:39:31 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 11:39:42 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQ_MACHI
-#define REQ_MACHI
-// #pragma once
+#pragma once
+
+class RequestParser;
 
 #include "RequestParser.hpp"
 
 #include "RequestMessage.hpp"
-
-enum {
-    BAD,
-    GOOD,
-    PROCESSING,
-    FINISEHD
-};
 
 class RequestMachine
 {
@@ -39,5 +32,3 @@ public:
 
     ~RequestMachine( );
 };
-
-#endif

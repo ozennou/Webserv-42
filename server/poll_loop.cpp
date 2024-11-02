@@ -82,7 +82,7 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, stru
 
     if (bond) {
         try {
-            bond->initParcing();
+            bond->initParcer();
         }
         catch(const RequestParser::HttpRequestException& e) {
             if (e.statusCode == 0) {
@@ -106,7 +106,9 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Soc
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0)   // used for the client that already desconnected from the same iteration
         return 1;
-    
+    Bond* bond = getBond(bonds, client_fd);
+    if (bond->getRequestState() == PROCESSING) return 0;
+    bond->initBuilder();
     // vector<Server> srv = sock_map.get_servers(sock_d);
     //     const char *response =
     //     "HTTP/1.1 200 OK\r\n"        

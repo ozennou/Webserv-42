@@ -6,12 +6,11 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/01 21:40:41 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/02 11:27:38 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef REQ_PARCER
-#define REQ_PARCER
+#pragma once
 
 #define CRLF "\r\n"
 
@@ -26,8 +25,6 @@
 #include "Uri.hpp"
 
 #include "RequestMessage.hpp"
-
-#include "RequestMachine.hpp"
 
 using namespace std;
 
@@ -73,5 +70,3 @@ public:
 
     ~RequestParser( );
 };
-
-#endif

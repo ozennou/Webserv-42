@@ -25,6 +25,13 @@
 #define POLL_TIMEOUT 10000
 #define LOGS true
 
+enum {
+    BAD,
+    GOOD,
+    PROCESSING,
+    FINISEHD
+};
+
 using namespace std;
 
 class Server;
