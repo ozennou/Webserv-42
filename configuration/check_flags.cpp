@@ -3,22 +3,19 @@
 string check_flags(int ac, char **av)
 {
     string  res;
-    size_t  i = 1;
+    int     i = 1;
     int     d1 = 0, d2 = 0;
     if (ac == 1)
     {
         logging_file("/dev/stderr", 1);
         return DEFAULT_CONF;
     }
-    while (av[i])
+    while (i < ac)
     {
         string tmp(av[i]);
-        if (tmp == "-c")
+        if (tmp != "-l" && tmp != "-h")
         {
-            if (!av[i + 1] || d1)
-                throw logic_error("Error: option \"-c\" requires file name");
-            res = av[i + 1];
-            i++;
+            res = av[i];
             d1 = 1;
         }
         else if (tmp == "-l")

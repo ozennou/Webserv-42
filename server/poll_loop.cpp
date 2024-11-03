@@ -48,8 +48,8 @@ int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
             struct pollfd *tmp = new(nothrow) struct pollfd[max_size * 2];
             if (!tmp)
                 return 1;
-            for (int i = 0; i < size; i++)
-                tmp[i] = (*pfds)[i];
+            for (int j = 0; j < size; j++)
+                tmp[j] = (*pfds)[j];
             delete[] (*pfds);
             max_size *= 2;
             (*pfds) = tmp;
@@ -123,6 +123,7 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
+    (void)srvs;
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
