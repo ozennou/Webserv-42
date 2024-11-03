@@ -1,11 +1,13 @@
 #include <header.hpp>
 #include "../include/Bond.hpp"
 
-Bond* getBond( vector<Bond>& bonds, int clientFd ) {
-    for (vector<Bond>::iterator it = bonds.begin(); it != bonds.end(); it++) {
-        if ((it)->getClientFd() == clientFd) return &(*it);
+vector<Bond>::iterator getBond( vector<Bond>& bonds, int clientFd ) {
+    vector<Bond>::iterator it = bonds.begin();
+    for (; it != bonds.end(); it++) {
+        if ((it)->getClientFd() == clientFd) return it;
     }
-    return NULL;
+    it = bonds.end();
+    return it;
 }
 
 struct pollfd *init_poll_struct(vector<int> sockets, int &size, int &max_size)
@@ -71,16 +73,16 @@ int newconnection2(Clients &clients, vector<Bond> &bonds, int &fd, struct pollfd
     }
     add_client(pfds, newFd, size, max_size);
     clients.add_client(newFd, fd);
-    bonds.push_back((newFd));
+    bonds.push_back(newFd);
     return 0;
 }
 
 int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, struct pollfd *pfds, int &i)
 {
-    // I will assume for now that the client will not send very large requests
-    Bond    *bond = getBond(bonds, client_fd);
+    vector<Bond>::iterator    bond = getBond(bonds, client_fd);
 
-    if (bond) {
+    if (bond == bonds.end()) return 1;
+
         try {
             bond->initParcer();
         }
@@ -89,6 +91,7 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, stru
                 logging("Client Disconnected", ERROR, NULL, 0);
                 pfds[i].fd = -1;
                 clients.remove_client(i);
+                bonds.erase(bond);
                 close(client_fd);
             }
             else if (e.statusCode == -1)
@@ -96,41 +99,30 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, stru
             else
                 logging(e.what(), ERROR, NULL, 0);
         }
-        
-    }
-    return 0;
+    return 1;
 }
 
 int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Socket_map &sock_map)
 {
     int sock_d = clients.get_sock_d(client_fd);
-    if (sock_d < 0)   // used for the client that already desconnected from the same iteration
+    if (sock_d < 0)
         return 1;
-    Bond* bond = getBond(bonds, client_fd);
+    vector<Bond>::iterator    bond = getBond(bonds, client_fd);
     if (bond->getRequestState() == PROCESSING) return 0;
-    cout << "Hello" << endl;
     bond->initBuilder();
-    // vector<Server> srv = sock_map.get_servers(sock_d);
-    //     const char *response =
-    //     "HTTP/1.1 200 OK\r\n"        
-    //     "Content-Type: text/html\r\n"
-    //     "Content-Length: 0\r\n"      
-    //     "\r\n";                      
 
-    // int result = send(client_fd, response, strlen(response), 0);
-    // if (result < 0)
-    //     return 1;
     return 0;
 }
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
-    // add a vector related to each request/response or connection
     vector<Bond>  bonds;
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
     struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
+
+    bonds.reserve(size);
     while (true)
     {
         int f = poll(pfds, size, POLL_TIMEOUT);

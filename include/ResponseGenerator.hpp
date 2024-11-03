@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 15:25:20 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/03 13:17:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class ResponseGenerator
     MessageHeaders* headers;
     //
 
-    // Buffer
+    // // Buffer
     string  responseBuffer;
 
     // 
@@ -38,6 +38,7 @@ class ResponseGenerator
     //
     int clientFd;
 public:
+    
     ResponseGenerator( int clientFd );
 
     void setRequestState( int requestState, int statusCode );
