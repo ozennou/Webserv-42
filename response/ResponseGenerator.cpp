@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/03 15:57:18 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/03 16:02:58 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void ResponseGenerator::generateResponse( ) {
         stream << " OK";
         stream << CRLF;
         responseBuffer += stream.str();
-        cout << responseBuffer << endl;
+        // cout << responseBuffer << endl;
         send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
     }
 }

@@ -110,7 +110,6 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Soc
     vector<Bond>::iterator    bond = getBond(bonds, client_fd);
     if (bond->getRequestState() == PROCESSING) return 0;
     bond->initBuilder();
-
     return 0;
 }
 
@@ -147,10 +146,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                     else
                         reading_request2(fd, clients, bonds, pfds, i);
                 } else if (pfds[i].revents & POLLOUT)
-                {
                     sending_response2(clients, bonds, fd, sock_map);
-                }
-
             }
         }
     }
