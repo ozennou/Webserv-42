@@ -110,3 +110,34 @@ void Server::ready_server(void)
     if (!server_names.size())
         this->addServerName("");
 }
+
+map<string, string> &Server::getMimeTypes()
+{
+    return mime_types;
+}
+
+map<string, string>::iterator	Server::getMimeType(string &ext)
+{
+    map<string, string>::iterator res = mime_types.find(ext);
+    if (res == mime_types.end())
+        logging("Mime type not found in the map", ERROR, NULL, 0); //ril
+    return res;
+}
+
+void	Server::printMimeType() //ril
+{
+    for (map<string, string>::iterator i = mime_types.begin(); i != mime_types.end(); i++)
+    {
+        cout << YELLOW << i->first << RESET << ": " << i->second << endl;
+    }
+}
+
+map<string, string>::iterator Server::MimeEnd()
+{
+    return mime_types.end();
+}
+
+void	Server::setMimeType(string &ext, string &type)
+{
+    mime_types.insert(pair<string, string>(ext, type));
+}
