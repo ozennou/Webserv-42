@@ -141,3 +141,19 @@ void	Server::setMimeType(string &ext, string &type)
 {
     mime_types.insert(pair<string, string>(ext, type));
 }
+
+void	Server::sort_location()
+{
+    vector<Location>    tmp;
+    while (locations.size()) {
+        vector<Location>::iterator max = locations.begin();
+        for (vector<Location>::iterator i = locations.begin(); i != locations.end(); i++)
+        {
+            if (max->getRoute().length() < i->getRoute().length())
+                max = i;
+        }
+        tmp.push_back(*max);
+        locations.erase(max);
+    }
+    locations = tmp;
+}

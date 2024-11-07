@@ -86,7 +86,6 @@ int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int 
     char    bf[1024];
     int     lenght = recv(client_fd, bf, 1024, 0);
 
-    // cout << "test=" << lenght << endl;
     if (lenght < 0)
         return 1;
     else if (!lenght)
@@ -98,7 +97,7 @@ int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int 
     }
     else
     {
-        cout << bf << endl;;    // reding the request part
+        // cout << bf << endl;;    // reding the request part
         (void)bf;
     }
     return 0;
@@ -107,9 +106,6 @@ int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int 
 int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 {
     int sock_d = clients.get_sock_d(client_fd);
-    vector<Server> srv = sock_map.get_servers(sock_d);
-    if (sock_d < 0)   // used for the client that already desconnected from the same iteration
-        return 1;
 
         const char *response =
         "HTTP/1.1 200 OK\r\n"        
@@ -123,6 +119,9 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
     if (result < 0)
         return 1;
     return 0;
+    vector<Server> srv = sock_map.get_servers(sock_d);
+    if (sock_d < 0)   // used for the client that already desconnected from the same iteration
+        return 1;
 }
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)

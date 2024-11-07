@@ -161,6 +161,7 @@ vector<Server>  parsing(vector<pair<int, string> > tokens)
         srv = parsing_server(i, tokens.end());
         srv.ready_server();
         srv.set_index(index++);
+        srv.sort_location();
         res.push_back(srv);
     }
     return res;

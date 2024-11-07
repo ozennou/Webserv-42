@@ -55,4 +55,5 @@ class Server {
 
 		void	ready_server(void);
 		bool	isValidIPv4(const string& ip);
+		void	sort_location();
 } ;
