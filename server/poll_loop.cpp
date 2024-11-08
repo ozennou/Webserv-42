@@ -1,11 +1,22 @@
 #include <header.hpp>
 
+void    close_all_fd(vector<int> fds)
+{
+    for (vector<int>::iterator i = fds.begin(); i != fds.end(); i++)
+        close(*i);
+}
+
 struct pollfd *init_poll_struct(vector<int> sockets, int &size, int &max_size)
 {
     size = sockets.size();
     while (max_size < size)
         max_size *= 2;
-    struct pollfd *pfds = new struct pollfd[max_size];
+    struct pollfd *pfds = new(nothrow) struct pollfd[max_size];
+    if (!pfds)
+    {
+        close_all_fd(sockets);
+        throw bad_alloc();
+    }
     for (unsigned long i = 0; i < sockets.size(); i++)
     {
         pfds[i].fd = sockets[i];
@@ -15,9 +26,10 @@ struct pollfd *init_poll_struct(vector<int> sockets, int &size, int &max_size)
     return pfds;
 }
 
-void add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
+int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
 {
     int i;
+
     for (i = 0; i < size; i++)
     {
         if ((*pfds)[i].fd == -1)
@@ -33,9 +45,11 @@ void add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
     {
         if (size >= max_size)
         {
-            struct pollfd *tmp = new struct pollfd[max_size * 2];
-            for (int i = 0; i < size; i++)
-                tmp[i] = (*pfds)[i];
+            struct pollfd *tmp = new(nothrow) struct pollfd[max_size * 2];
+            if (!tmp)
+                return 1;
+            for (int j = 0; j < size; j++)
+                tmp[j] = (*pfds)[j];
             delete[] (*pfds);
             max_size *= 2;
             (*pfds) = tmp;
@@ -44,6 +58,7 @@ void add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
         (*pfds)[size].events = POLLIN | POLLOUT;
         (*pfds)[size++].revents = 0;
     }
+    return 0;
 }
 
 int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, int &max_size)
@@ -60,7 +75,8 @@ int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, i
         close(newFd);
         return 1;
     }
-    add_client(pfds, newFd, size, max_size);
+    if (add_client(pfds, newFd, size, max_size))
+        return 1;
     clients.add_client(newFd, fd);
     return 0;
 }
@@ -107,18 +123,24 @@ int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
+    (void)srvs;
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
     struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
+
     while (true)
     {
+        if (set_value(-1))
+        {
+            for (int i = 0; i < size; i++)
+                close(pfds[i].fd);
+            delete[] pfds;
+            exit(0);
+        }
         int f = poll(pfds, size, POLL_TIMEOUT);
         if (f < 0)
-        {
-            logging("poll fail: " + string(strerror(errno)), ERROR, NULL, 0);
             continue;
-        }
         else if (!f)
             continue;
         else

@@ -12,6 +12,7 @@ class Location {
         set<string>         cgi_ext; //Execute CGI based on certain file extension
         string              upload_path;
         unsigned int        cgi_timeout;
+        bool                exact; //exact location matching https://www.freecodecamp.org/news/the-nginx-handbook/
     public:
         Location();
         ~Location();
@@ -33,6 +34,9 @@ class Location {
 
         bool getDirListings() const;
         void setDirListings(bool newDirListings);
+
+        bool getExact() const;
+        void setExact(bool newExact);
 
         std::set<std::string> &getCgiExt();
         void addCgiExt(const std::string& cgiExt);

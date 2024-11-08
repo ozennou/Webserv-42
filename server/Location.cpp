@@ -2,6 +2,7 @@
 
 Location::Location() {
     dirlst = false;
+    exact = false;
     cgi_timeout = 60;  //https://www.baeldung.com/linux/nginx-timeouts#:~:text=NGINX%20fastcgi_*%20Timeouts&text=fastcgi_connect_timeout%20%E2%80%93%20maximum%20time%20to%20connect,FastCGI%20server%20response%20(default%2060)
 }
 
@@ -66,6 +67,14 @@ bool Location::getDirListings() const {
 
 void Location::setDirListings(bool newDirListings) {
     dirlst = newDirListings;
+}
+
+bool Location::getExact() const {
+    return exact;
+}
+
+void Location::setExact(bool newExact) {
+    exact = newExact;
 }
 
 std::set<std::string> &Location::getCgiExt() {

@@ -50,6 +50,7 @@ Location    parse_location(vector<pair<int, string> >::iterator &i, vector<pair<
 //Logs.cpp
 void    logging(const string& msg, int level, Server *srv, int port);
 string  logging_file(const char *input, int opt);
+int     set_value(int i);
 
 //init_servers.cpp
 void    init_servers(vector<Server> &servers, Socket_map &sock_map);
