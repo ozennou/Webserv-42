@@ -68,6 +68,35 @@ void    parse_body_size(vector<pair<int, string> >::iterator &i, Server &srv)
     i++;
 }
 
+void    parse_mime_types_file(vector<pair<int, string> >::iterator &i, Server &srv)
+{
+    i += 2;
+    ifstream mime_file(i->second);
+    vector<pair<int, string> > tokens;
+    if (!mime_file.is_open())
+        throw logic_error("Error: opening mime types file: " + i->second);
+    tokens = tokenizer(mime_file);
+    mime_file.close();
+    vector<pair<int, string> >::iterator end = tokens.end();
+    for (vector<pair<int, string> >::iterator it = tokens.begin(); it != end; it++)
+    {
+        string ext, type;
+        if (it == end || (it->first != TOKEN && it->first != TOKEN_IN_QUOTES))
+            throw logic_error("Error: mime type format 'ext: type;'1");
+        ext = (it++)->second;
+        if (it == end || it->first != COLON)
+            throw logic_error("Error: mime type format 'ext: type;'2");
+        if ((++it) == end || (it->first != TOKEN && it->first != TOKEN_IN_QUOTES))
+            throw logic_error("Error: mime type format 'ext: type;'3");
+        type = (it++)->second;
+        if (it == end || it->first != SEMICOLON)
+            throw logic_error("Error: mime type format 'ext: type;'4");
+        srv.setMimeType(ext, type);
+    }
+    // srv.printMimeType();  //ril
+    i++;
+}
+
 int    parse_directive(vector<pair<int, string> >::iterator &i, vector<pair<int, string> >::iterator end, Server &srv)
 {
     if (i->first != TOKEN)
@@ -94,6 +123,10 @@ int    parse_directive(vector<pair<int, string> >::iterator &i, vector<pair<int,
         Location lct = parse_location(i, end);
         lct.ready_location();
         srv.addLocation(lct);
+    }
+    else if (i->second == "mime_types")
+    {
+        parse_mime_types_file(i, srv);
     }
     else
         throw logic_error("Error: directive not found :" + i->second);
@@ -128,6 +161,7 @@ vector<Server>  parsing(vector<pair<int, string> > tokens)
         srv = parsing_server(i, tokens.end());
         srv.ready_server();
         srv.set_index(index++);
+        srv.sort_location();
         res.push_back(srv);
     }
     return res;

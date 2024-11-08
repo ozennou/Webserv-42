@@ -6,7 +6,7 @@ enum {
     OPEN_BRACKET,
     CLOSE_BRACKET,
     SEMICOLON,
-    COLON,
+    COLON, //:
     SINGLE_QUOTE,
     DOUBLE_QUOTE,
     COMMA,

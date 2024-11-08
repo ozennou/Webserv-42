@@ -9,6 +9,7 @@ void printf_locations(vector<Location> &locations) {
     {
         cout << GREEN << "----------------------" << "LOCATION " << m++ << "------------------------------" << RESET << endl;
         cout << "Route : " << it->getRoute() << endl;
+        cout << "Exact match: " << it->getExact() << endl;
         cout << "Methods : ";
         for (it2 = it->getMethods().begin(); it2 != it->getMethods().end(); it2++)
             cout << *it2 << " ";

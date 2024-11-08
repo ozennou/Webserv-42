@@ -58,3 +58,12 @@ void    logging(const string& msg, int level, Server *srv, int port)
     }
     out.close();
 }
+
+int set_value(int i)
+{
+    static int m = 0;
+    if (i == -1)
+        return m;
+    m = 1;
+    return m;
+}

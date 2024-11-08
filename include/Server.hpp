@@ -16,6 +16,8 @@ class Server {
 		map<int, string>	error_pages;
 		vector<Location>	locations;
 		vector<int>			sockets;
+		map<string, string>	mime_types;
+
 	public:
 		Server();
 		~Server();
@@ -23,28 +25,35 @@ class Server {
 		void	set_index(const int &_index);
 		const int &get_index(void);
 
-		std::string getHostname() const;
-		void setHostname(const std::string& _hostname);
+		string getHostname() const;
+		void setHostname(const string& _hostname);
 
-		std::set<int> &getPorts();
+		set<int> &getPorts();
 		void addPort(int port);
 		void removePort(int port);
 
 		size_t getBodySize() const;
 		void setBodySize(size_t _bodySize);
 
-		std::set<std::string> &getServerNames();
-		void addServerName(const std::string& serverName);
-		void removeServerName(const std::string& serverName);
+		set<string> &getServerNames();
+		void addServerName(const string& serverName);
+		void removeServerName(const string& serverName);
 
-		std::map<int, std::string> &getErrorPages();
-		std::string getErrorPage(int errorCode) const;
-		void setErrorPage(int errorCode, const std::string& errorPage);
+		map<int, string> &getErrorPages();
+		string getErrorPage(int errorCode) const;
+		void setErrorPage(int errorCode, const string& errorPage);
 		void removeErrorPage(int errorCode);
 
-		std::vector<Location> &getLocations();
+		map<string, string> &getMimeTypes();
+		map<string, string>::iterator getMimeType(string &ext);
+		map<string, string>::iterator MimeEnd();
+		void	setMimeType(string &ext, string &type);
+		void	printMimeType(); //ril
+		
+		vector<Location> &getLocations();
 		void addLocation(const Location& location);
 
 		void	ready_server(void);
 		bool	isValidIPv4(const string& ip);
+		void	sort_location();
 } ;

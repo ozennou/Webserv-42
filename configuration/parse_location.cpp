@@ -43,6 +43,17 @@ void    parse_directive(vector<pair<int, string> >::iterator &i, vector<pair<int
             throw logic_error("Error: invalid DIRLST option :" + i->second);
         i++;
     }
+    else if (i->second == "EXACT")
+    {
+        check_equal(i);
+        if (i->second == "on" || i->second == "yes" || i->second == "y")
+            res.setExact(true);
+        else if (i->second == "off" || i->second == "no" || i->second == "n")
+            res.setExact(false);
+        else
+            throw logic_error("Error: invalid EXACT option :" + i->second);
+        i++;
+    }
     else if (i->second == "UPLOAD")
     {
         check_equal(i);
