@@ -6,13 +6,13 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 15:47:57 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/07 12:21:34 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Bond.hpp"
 
-Bond::Bond( int clientFd ) : requestState(-1), responseState(-1), clientFd(clientFd), requestMachine(clientFd), responseMachine(clientFd) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd) {
 }
 
 int Bond::getClientFd( ) {
@@ -21,28 +21,25 @@ int Bond::getClientFd( ) {
 
 void Bond::initParcer( ) {
     try {
-        requestMachine.initFromLastPoint();
+        requestParser.init();
     }
-    catch(const RequestParser::HttpRequestException& e) {
-        requestState = BAD;
-        responseMachine.setRequestState(requestState, e.statusCode);
-        return ;
+    catch(RequestParser::HttpRequestException& e) {
+        if (e.statusCode > 0) {
+            logging(e.message, WARNING, NULL, 0);
+            responseGenerator.setException(&e);
+            return ;
+        }
+        throw e;
     }
-    requestState = GOOD;
-    responseMachine.setRequestState(requestState, 0);
 }
 
 void Bond::initBuilder( ) {
-    responseMachine.generateResponse();
+    responseGenerator.generateResponse();
 }
 
-int Bond::getRequestState( ) {
-    return requestState;
-}
-
-int Bond::getResponseState( ) {
-    return responseState;
-}
+// void Bond::getPayLoadFromParser( ) {
+//     responseGenerator.setPayLoad(requestParser.getPayLoad());
+// }
 
 Bond::~Bond( ) {
     

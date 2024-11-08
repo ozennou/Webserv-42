@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 15:26:41 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/04 20:41:51 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,37 +16,28 @@
 
 #include <iostream>
 
-#include "RequestMachine.hpp"
+#include "RequestParser.hpp"
 
-#include "ResponseMachine.hpp"
+#include "ResponseGenerator.hpp"
 
 class Bond
 {
 private:
-
-    int requestState;
-
-    int responseState;
-
     int clientFd;
-    
-    RequestMachine requestMachine;
 
-    ResponseMachine responseMachine;
+    RequestParser requestParser;
+
+    ResponseGenerator responseGenerator;
 public:
-    Bond( int clientFd );
+    Bond( int clientFd, int socketFd, Socket_map& socket_map );
 
     int getClientFd( void );
-
-    int getRequestState( void );
-
-    int getResponseState( void );
 
     void initParcer( void );
 
     void initBuilder( void );
 
-    // void reset( );
+    // void getPayLoadFromParser( void );
 
     ~Bond( );
 };

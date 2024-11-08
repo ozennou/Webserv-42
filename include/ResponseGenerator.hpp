@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/03 13:17:10 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:01:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,22 +16,26 @@
 #include <header.hpp>
 
 #include "MessageHeaders.hpp"
+#include "RequestParser.hpp"
+
+class RequestParser;
 
 class ResponseGenerator
 {
     // Response Component
-    int statusCode;
+    // int statusCode;
 
     string reasonPhrase;
 
     MessageHeaders* headers;
     //
 
+    RequestParser::HttpRequestException* exception;
+
     // // Buffer
     string  responseBuffer;
 
-    // 
-    int requestState;
+    string payload;
 
     map<int, string> errorHashMap;
 
@@ -41,7 +45,7 @@ public:
     
     ResponseGenerator( int clientFd );
 
-    void setRequestState( int requestState, int statusCode );
+    void setException( RequestParser::HttpRequestException* exception );
 
     void generateResponse();
 

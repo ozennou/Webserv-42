@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/02 15:17:19 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/05 11:45:04 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,9 @@ enum {
 class RequestParser
 {
     // The RequestMessage Object
-    int         methode;
-    Uri*        uri;
-    MessageHeaders*    headers;
+    int                 methode;
+    Uri                 uri;
+    MessageHeaders      headers;
     //
 
     // Tools only
@@ -46,8 +46,9 @@ class RequestParser
     // char buf[size];
     //
 
+    string  payload;
     // The Socket Fd To read from
-    int socketFd;
+    int clientFd;
     //
 
     void findCRLF( string& stringBuffer);
@@ -55,22 +56,26 @@ class RequestParser
     void requestLine( string& bufferString );
 
     void headerSection( string stringBuffer );
+
+    void checkTargetUri( Server& server );
 public:
-    RequestParser( int socketFd );
+    RequestParser( int clientFd, int socketFd, Socket_map& socket_map );
 
     void init( void );
+
     
     // Exception Class
     class HttpRequestException : public exception
     {
-
-        // could need a code here to identify the cause of the exception
     public:
         string message;
         int statusCode;
-        int state;
-        HttpRequestException( string message , int statusCode, int state );
+
+        HttpRequestException( const HttpRequestException& obj ) ;
+        HttpRequestException( string message , int statusCode );
+
         const char* what() const throw();
+
         ~HttpRequestException() throw();
     };
     //

@@ -14,26 +14,58 @@
 #include "../include/RequestParser.hpp"
 
 MessageHeaders::MessageHeaders( ) : delimiters(DELI), space(" \t") {
-
 }
 
-void MessageHeaders::parseFieldName( string& field ) {
+void MessageHeaders::parseFieldName( string& field, Uri& uri ) {
     size_t colonIndex = field.find(':');
 
-    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400, BAD);
-    if (!colonIndex) throw RequestParser::HttpRequestException("no field name found", 400, BAD);
+    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400);
+    if (!colonIndex) throw RequestParser::HttpRequestException("no field name found", 400);
 
     size_t i = 0;
     for (; i < colonIndex; i++) {
         if (delimiters.find(field[i]) != string::npos \
         || space.find(field[i]) != string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character Found in the field-name", 400, BAD);
+            throw RequestParser::HttpRequestException("Invalid Character Found in the field-name", 400);
     }
-    
-    hash.insert(make_pair<string, string>(field.substr(0, colonIndex), \
-                                        field.substr( field.find_first_not_of(space, colonIndex + 1), \
-                                                    field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1\
-                                                    )));
+
+    string fieldName = field.substr(0, colonIndex); stolower(fieldName);
+    string fieldValue;
+    if (colonIndex != field.length() - 1)
+        fieldValue = field.substr( field.find_first_not_of(space, colonIndex + 1), \
+                                                    field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1);
+
+    // cout << "fieldName= " << fieldName << endl;
+    // cout << "fieldValue= " << fieldValue << endl;
+    // The Field Value Was Host
+    if (uri.type == ORIGIN \
+        && fieldName == "host" && fieldValue.length()) {
+        string subDelimiters = SUB_DELIM;
+
+        for (size_t i = 0; i < fieldValue.length(); i++) {
+            if (fieldValue[i] != ':')
+                break;
+            if (!isUnreserved(fieldValue[i]) \
+            && !percentEncoded(fieldValue, i) \
+            && subDelimiters.find(fieldValue[i]) == string::npos)
+                throw RequestParser::HttpRequestException("Invalid Char Found In Host field-value", 400);
+        }
+        if (fieldValue.find(':') == string::npos) uri.host = fieldValue;
+        else uri.host = fieldValue.substr(0, fieldValue.find(':'));
+
+        // If It Contains A Port Number
+        if (fieldValue.find(':') != string::npos \
+        && fieldValue.find(':') != fieldValue.length() - 1) {
+            stringstream ss;
+            // for (size_t i = fieldValue.find(':') + 1; i < fieldValue.length(); i++) {
+            ss << fieldValue.substr(fieldValue.find(':') + 1, fieldValue.length() - (fieldValue.find(':') + 1));
+            // }
+            ss >> uri.port;
+            if (ss.fail() || uri.port < 0 || uri.port > 65535) throw RequestParser::HttpRequestException("Invalid Port Number", 400);
+        }
+    }
+
+    hash.insert(make_pair<string, string>(fieldName, fieldValue));
 }
 
 void MessageHeaders::parseFieldValue( ) {
@@ -42,7 +74,7 @@ void MessageHeaders::parseFieldValue( ) {
             int character = it->second[i];
             if ((character < 0 || character > 255) \
             || (!isprint(character) && space.find(character) == string::npos))
-                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400, BAD);
+                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400);
         }
     }
 }
@@ -53,6 +85,12 @@ void MessageHeaders::print( ) {
     }
 }
 
+map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
+    map<string, string>::iterator it = hash.find("Transfer-Encoding");
+    if (it == hash.end()) it = hash.find("Content-Length");
+    if (it == hash.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
+    return it;
+}
+
 MessageHeaders::~MessageHeaders( ) {
-    cout << "Im out" << endl;
 }

@@ -15,6 +15,8 @@
 #include <map>
 #include <iostream>
 
+#include "Uri.hpp"
+
 #define DELI "\"(),/:;<=>?@[\\]{}"
 
 using namespace std;
@@ -29,12 +31,14 @@ class MessageHeaders
     multimap<string, string> hash;
     
 public:
-    MessageHeaders();
+    MessageHeaders( );
 
-    void parseFieldName( string& field );
+    void parseFieldName( string& field, Uri& uri);
 
     void parseFieldValue( void );
 
+    map<string, string>::iterator findContentHeaders( );
+
     void print( );
-    ~MessageHeaders();
+    ~MessageHeaders( );
 };

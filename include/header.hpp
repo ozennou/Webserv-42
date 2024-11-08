@@ -26,6 +26,8 @@
 #define LOGS true
 
 #define CRLF "\r\n"
+#define GEN_DELIM ":/?#[]@"
+#define SUB_DELIM "!$&'()*+,;="
 
 enum {
     BAD,
@@ -43,6 +45,12 @@ class Clients;
 
 //printf_server.cpp
 void print_servers(vector<Server> &);
+
+void stolower( string& s );
+
+bool isUnreserved( int c );
+
+bool percentEncoded( string& str, size_t index );
 
 //check_config_file.cpp
 vector<Server>    check_config_file(string path);
