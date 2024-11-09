@@ -33,9 +33,9 @@ class MessageHeaders
 public:
     MessageHeaders( );
 
-    void parseFieldName( string& field, Uri& uri);
+    void storeField( string& field, Uri& uri);
 
-    void parseFieldValue( void );
+    void parceFieldValue( void );
 
     map<string, string>::iterator findContentHeaders( );
 

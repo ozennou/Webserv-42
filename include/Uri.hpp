@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/07 17:01:38 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/09 14:22:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,10 +29,10 @@ enum {
 class Uri
 {
 public:
+    int socketFd;
 
     Socket_map* socket_map;
 
-    int socketFd;
     //Type Of The URI
     int type;
 
@@ -54,7 +54,9 @@ public:
 
     void normalizePath( );
     
-    Server checkHostInfo( );
+    Server getHostServer( );
+
+    void matchURI( Server& server );
 
     // void decodePercentEncoding();
 

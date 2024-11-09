@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/05 11:45:04 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/09 14:19:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ enum {
 class RequestParser
 {
     // The RequestMessage Object
-    int                 methode;
+    int                 method;
     Uri                 uri;
     MessageHeaders      headers;
     //
@@ -57,7 +57,6 @@ class RequestParser
 
     void headerSection( string stringBuffer );
 
-    void checkTargetUri( Server& server );
 public:
     RequestParser( int clientFd, int socketFd, Socket_map& socket_map );
 

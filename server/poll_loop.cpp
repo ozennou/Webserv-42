@@ -131,6 +131,7 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Soc
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
+    (void)srvs;
     vector<Bond>  bonds;
     Clients       clients;
     int           size, fd, max_size = 1;

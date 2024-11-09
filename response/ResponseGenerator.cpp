@@ -6,19 +6,19 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/07 16:01:18 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/08 14:49:53 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/ResponseGenerator.hpp"
 
-ResponseGenerator::ResponseGenerator( int clientFd ) : clientFd(clientFd), exception(NULL) {
+ResponseGenerator::ResponseGenerator( int clientFd ) : exception(NULL), clientFd(clientFd) {
     errorHashMap.insert(make_pair<int, string>(404, " Resource Not Found"));
     errorHashMap.insert(make_pair<int, string>(400, " Bad Request"));
 }
 
-void ResponseGenerator::setException( RequestParser::HttpRequestException* exception ) {
-    this->exception = new RequestParser::HttpRequestException(*exception);
+void ResponseGenerator::setException( RequestParser::HttpRequestException* exc ) {
+    this->exception = new RequestParser::HttpRequestException(*exc);
 }
 
 void ResponseGenerator::generateResponse( ) {

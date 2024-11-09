@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/08 14:27:44 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/09 14:22:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,37 +53,6 @@ void RequestParser::findCRLF( string& stringBuffer ) {
     }
 }
 
-void RequestParser::requestLine( string& stringBuffer ) {
-
-    findCRLF(stringBuffer);
-
-    string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
-
-    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Bad Request", 400);
-
-    string methode = requestLine.substr(0, requestLine.find(32));
-    string targetURI = requestLine.substr(requestLine.find(32) + 1, (requestLine.find_last_of(32) - requestLine.find(32) - 1));
-    string httpVersion = requestLine.substr(requestLine.find_last_of(32) + 1, (requestLine.length() - requestLine.find_last_of(32)));
-
-    if (methode.length() > 6 || methode.length() <= 0) throw RequestParser::HttpRequestException("Bad Request", 400);
-    if (!targetURI.length()) throw RequestParser::HttpRequestException("Bad Request", 400);
-    if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
-    || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
-        throw RequestParser::HttpRequestException("Bad Request", 400);
-
-
-    if (methode == "GET") this->methode = GET;
-    else if (methode == "POST") this->methode = POST;
-    else if (methode == "DELETE") this->methode = DELETE;
-    else throw RequestParser::HttpRequestException("Bad Request", 400);
-
-    uri.extractPath(targetURI);
-
-    uri.normalizePath();
-
-    headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
-}
-
 void RequestParser::headerSection( string stringBuffer ) {
 
     findCRLF(stringBuffer);
@@ -95,38 +64,38 @@ void RequestParser::headerSection( string stringBuffer ) {
         if (!field.length()) break;
         
         pos += 2;
-        headers.parseFieldName(field, uri);
+        headers.storeField(field, uri);
         stringBuffer = stringBuffer.substr(pos);
     }
 
-    headers.parseFieldValue();
+    headers.parceFieldValue();
 }
 
-void RequestParser::checkTargetUri( Server& server ) {
-    Location location;
-    vector<Location> locations = server.getLocations();
+void RequestParser::requestLine( string& stringBuffer ) {
 
-    // Getting the exact path Of the resource
-    for (vector<Location>::iterator it = locations.begin(); it != locations.end(); it++) {
-        if ((uri.path == it->getRoute()) \
-        || ((!uri.path.rfind(it->getRoute(), 0)) \
-            && (it->getRoute().length() > location.getRoute().length()) \
-            && (uri.path[it->getRoute().length()] == '/' || it->getRoute()[it->getRoute().length() - 1] == '/'))) {
-            location = *it;
-        }
-    }
+    findCRLF(stringBuffer);
 
-    if (!location.getRoute().length()) throw RequestParser::HttpRequestException("Not Found", 404);
+    string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
-    uri.path.insert(0, location.getRoot());
+    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Bad Request", 400);
 
-    // Verifying Methods
-    set<string> methodsAllowed = location.getMethods();
+    string requestMethod = requestLine.substr(0, requestLine.find(32));
+    string targetURI = requestLine.substr(requestLine.find(32) + 1, (requestLine.find_last_of(32) - requestLine.find(32) - 1));
+    string httpVersion = requestLine.substr(requestLine.find_last_of(32) + 1, (requestLine.length() - requestLine.find_last_of(32)));
 
-    if ((methode == GET && methodsAllowed.find("GET") == methodsAllowed.end()) \
-    || (methode == POST && methodsAllowed.find("POST") == methodsAllowed.end()) \
-    || (methode == DELETE && methodsAllowed.find("DELETE") == methodsAllowed.end()))
-        throw RequestParser::HttpRequestException("Method Not Allowed", 405);
+    if (requestMethod.length() > 6 || requestMethod.length() <= 0) throw RequestParser::HttpRequestException("Bad Request", 400);
+    if (!targetURI.length()) throw RequestParser::HttpRequestException("Bad Request", 400);
+    if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
+    || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
+        throw RequestParser::HttpRequestException("Bad Request", 400);
+
+
+    if (requestMethod == "GET") this->method = GET;
+    else if (requestMethod == "POST") this->method = POST;
+    else if (requestMethod == "DELETE") this->method = DELETE;
+    else throw RequestParser::HttpRequestException("Bad Request", 400);
+
+    uri.extractPath(targetURI);
 }
 
 void RequestParser::init( ) {
@@ -143,14 +112,15 @@ void RequestParser::init( ) {
 
     requestLine(stringBuffer);
     
-    Server server = uri.checkHostInfo();
+    headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
 
-    checkTargetUri(server);
+    Server server = uri.getHostServer();
 
+    uri.matchURI(server);
 
-    if (methode == GET) cout << "GET" << endl;
-    else if (methode == POST) cout << "POST" << endl;
-    else if (methode == DELETE) cout << "DELETE" << endl;
+    if (method == GET) cout << "GET" << endl;
+    else if (method == POST) cout << "POST" << endl;
+    else if (method == DELETE) cout << "DELETE" << endl;
     else cout << "No Header Found" << endl;
 
     if (uri.host.length()) cout << "Host= "<< uri.host << endl;

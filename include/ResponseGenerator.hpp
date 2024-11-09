@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/04 17:01:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/08 14:48:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class ResponseGenerator
 
     string reasonPhrase;
 
-    MessageHeaders* headers;
+    // MessageHeaders* headers;
     //
 
     RequestParser::HttpRequestException* exception;

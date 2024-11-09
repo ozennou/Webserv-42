@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/07 17:24:00 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/09 14:22:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,35 +22,44 @@ Uri::~Uri( ) {
 
 }
 
-void stolower( string& s ) {
-    for (size_t i = 0; i < s.length(); i++) {
-        if (isalpha(s[i])) s[i] = tolower(s[i]);
+void Uri::matchURI( Server& server ) {
+    Location location;
+    vector<Location> locations = server.getLocations();
+    vector<Location>::iterator it = locations.begin();
+
+    // Get the route that is at least equal to the uri.path
+    for (; it->getRoute().size() > path.size(); it++) {
     }
-}
 
-bool isUnreserved( int c ) {
-    return isdigit(c) || isalpha(c) || c == '-' || c == '.' || c == '_' || c == '~';
-}
-
-bool percentEncoded( string& str, size_t index ) {
-    if (str[index] != '%') return false;
+    // Getting the path Of the resource
+    for (; it != locations.end(); it++) {
+        // If the exact mode is ON
+        if (it->getExact() && path == it->getRoute()) {
+            location = *it;
+            break;
+        }
+        else if (!it->getExact() && (!path.rfind(it->getRoute(), 0)) \
+            && (it->getRoute().length() > location.getRoute().length())) {
+            location = *it;
+        }
+    }
     
-    if ((index + 2 < str.length()) && (isxdigit(str[index + 1]) && isxdigit(str[index + 2]))) {
-        unsigned int x;
-        stringstream stream;
-        string percentHex = str.substr(index + 1, 3);
-        
-        stream << hex << percentHex; // Should Check More What Is Hex HERE
-        stream >> x;
+    if (!location.getRoute().length()) throw RequestParser::HttpRequestException("Not Found", 404);
 
-        str.erase(index, 3);
-        str.insert(index, 1, x);
-        return true;
-    }
-    return false;
+    path.insert(0, location.getRoot());
+
+    // will work on the resource validity side
+
+    // Verifying Methods
+//     set<string> methodsAllowed = location.getMethods();
+
+//     if ((method == GET && methodsAllowed.find("GET") == methodsAllowed.end()) \
+//     || (method == POST && methodsAllowed.find("POST") == methodsAllowed.end()) \
+//     || (method == DELETE && methodsAllowed.find("DELETE") == methodsAllowed.end()))
+//         throw RequestParser::HttpRequestException("Method Not Allowed", 405);
 }
 
-Server Uri::checkHostInfo( ) {
+Server Uri::getHostServer( ) {
     vector<Server> servers = socket_map->get_servers(socketFd);
 
     if (!host.length()) return *(servers.begin());
@@ -65,6 +74,46 @@ Server Uri::checkHostInfo( ) {
     return *(servers.begin());
 }
 
+void Uri::normalizePath( ) {
+    size_t j;
+
+    // /./././././././././
+    for (size_t i = 0; i < path.length(); i++) {
+        if ((path[i] == '.' && (i > 0 && path[i - 1] == '/')) && ((i + 1 == path.length()) || (i + 1 < path.length() && path[i + 1] == '/')))
+            path.erase(i, 1);
+    }
+    
+    // /////a/////a//////b////n
+    for (size_t i = 0; i < path.length(); i++) {
+        j = i;
+        for (; j < path.length() && path[j] == '/'; j++) {
+        }
+        
+        if (j != i && path[i] == '/') path.erase(i + 1, (j - (i + 1)));
+    }
+
+    // /.. Bad Request /b1/../a1
+    for (size_t i = 0; i < path.length(); i++) {
+        if ((path[i] == '.' && (i > 0 && path[i - 1] == '/')) \
+        && (i + 1 < path.length() && path[i + 1] == '.') \
+        && ((i + 2 == path.length()) || (i + 2 < path.length() && path[i + 2] == '/'))) {
+            
+            if (i == 1 && path[0] == '/') throw RequestParser::HttpRequestException("Bad Request", 400);
+
+            int a = i - 2;
+            for (; a > 0; a--)
+                if (path[a] == '/') break;
+
+            if (a == -1) a = 0;
+            
+            path = path.erase(a + 1, (i + 2) - a);
+            i = 0;
+        }
+    }
+
+    if (!path.length()) throw RequestParser::HttpRequestException("Bad Request", 400);
+}
+
 void Uri::extractQuery( size_t index ) {
     query = requestTarget.substr(index + 1, requestTarget.length() - (index + 1));
     
@@ -75,52 +124,6 @@ void Uri::extractQuery( size_t index ) {
         && subDelimiters.find(requestTarget[i]) == string::npos)
             throw RequestParser::HttpRequestException("Invalid Character found in Query", 400);
     }
-}
-
-void Uri::normalizePath( ) {
-    size_t j;
-
-    for (size_t i = 0; i < path.length(); i++) {
-        if (path[i] == '.' && (i > 0 && path[i - 1] != '.') && (i  + 1 < path.length() && path[i + 1] != '.'))
-            path.erase(i, 1);
-    }
-    
-    for (size_t i = 0; i < path.length(); i++) {
-        j = i;
-        for (; j < path.length() && path[j] == '/'; j++) {
-        }
-        
-        if (j != i && path[i] == '/') path.erase(i + 1, (j - (i + 1)));
-    }
-    cout << "After=" << path << endl;
-}
-
-void Uri::extractPath( string requestTarget ) {
-    this->requestTarget = requestTarget;
-    if (requestTarget[0] == '/') {
-        originForm();
-        type = ORIGIN;
-    }
-    else {
-        absoluteForm();
-        type = ABSOLUTE;
-        if (!path.length()) path = "/";
-    }
-}
-
-void Uri::originForm( ) {
-    size_t i = 1;
-    for (; i < requestTarget.length(); i++) {
-        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
-            && requestTarget[i] != ':' && requestTarget[i] != '/') \
-        && !percentEncoded(requestTarget, i) \
-        && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
-        if (requestTarget[i] == '?')
-            break;
-    }
-    path = requestTarget.substr(0, i);
-    if (i != requestTarget.length()) extractQuery(i);
 }
 
 void Uri::absoluteForm( ) {
@@ -200,4 +203,34 @@ void Uri::absoluteForm( ) {
     }
 
     if (requestTarget[i] == '?') extractQuery(i);
+}
+
+void Uri::originForm( ) {
+    size_t i = 1;
+    for (; i < requestTarget.length(); i++) {
+        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
+            && requestTarget[i] != ':' && requestTarget[i] != '/') \
+        && !percentEncoded(requestTarget, i) \
+        && subDelimiters.find(requestTarget[i]) == string::npos)
+            throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
+        if (requestTarget[i] == '?')
+            break;
+    }
+    path = requestTarget.substr(0, i);
+    if (i != requestTarget.length()) extractQuery(i);
+}
+
+void Uri::extractPath( string requestT ) {
+    this->requestTarget = requestT;
+    if (requestTarget[0] == '/') {
+        originForm();
+        type = ORIGIN;
+    }
+    else {
+        absoluteForm();
+        type = ABSOLUTE;
+        if (!path.length()) path = "/";
+    }
+
+    normalizePath();
 }

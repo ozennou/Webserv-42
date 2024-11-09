@@ -46,7 +46,7 @@ class Clients;
 //printf_server.cpp
 void print_servers(vector<Server> &);
 
-void stolower( string& s );
+string stolower( string s );
 
 bool isUnreserved( int c );
 
