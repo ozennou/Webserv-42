@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/09 14:22:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/12 15:53:24 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 
 #include "Socket_map.hpp"
 #include "Server.hpp"
+#include "Location.hpp"
 
 using namespace std;
 
@@ -33,41 +34,41 @@ public:
 
     Socket_map* socket_map;
 
-    //Type Of The URI
     int type;
 
-    // SUB_DELIM
     string subDelimiters;
 
-    // GEN_DELIM
     string genDelimiters;
 
     string requestTarget;
 
     string path;
-    string query; // The Query Can Stay as a string and passed to the CGI
+    string query;
 
     string host;
     int port;
 
-    void extractPath( string requestTarget );
+    void    extractPath( string requestTarget );
 
-    void normalizePath( );
+    void    normalizePath( );
     
-    Server getHostServer( );
+    Server  getHostServer( );
 
-    void matchURI( Server& server );
+    Location    matchURI( Server& server );
 
-    // void decodePercentEncoding();
+    bool    isRegularFile( );
 
-    void originForm();
-    void absoluteForm();
+    bool    isDirectory( );
 
-    // bool isUnreserved( int c );
-    // bool percentEncoded( string& str, size_t index );
+    void    originForm();
 
-    void extractQuery( size_t index );
+    void    absoluteForm();
+
+    void    extractQuery( size_t index );
 
     Uri( int socketFd, Socket_map& socket_map );
+
+    // Uri& operator=( Uri& obj );
+    
     ~Uri( );
 };

@@ -6,16 +6,17 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/09 14:22:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/12 17:01:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
 
-RequestParser::RequestParser( int clientFd, int socketFd, Socket_map& socket_map ) : uri(socketFd, socket_map) {
+RequestParser::RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond ) : bond(bond), uri(socketFd, socket_map) {
     this->clientFd = clientFd;
     size = 5160;
+    (void)bond;
 }
 
 RequestParser::HttpRequestException::HttpRequestException( string message, int statusCode ) {
@@ -53,6 +54,32 @@ void RequestParser::findCRLF( string& stringBuffer ) {
     }
 }
 
+int  RequestParser::getMethod( void ) {
+    return method;
+}
+
+Uri&  RequestParser::getUri( void ) {
+    return uri;
+}
+
+void RequestParser::resolveResource( Location& location ) {
+
+    // Either stat() failed, or the macro failed
+    if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
+
+    if (uri.isDirectory() && !location.getDirListings()) throw RequestParser::HttpRequestException("Directory Listing is off and the client is trying to access it", 403);
+
+    if (uri.isRegularFile()) {
+        if (method == GET) {
+            if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
+            set<string> set = location.getMethods();
+            if (set.find("GET") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
+        }
+    } else if (uri.isDirectory()) {
+        cout << "It is a directory" << endl;
+    }
+}
+
 void RequestParser::headerSection( string stringBuffer ) {
 
     findCRLF(stringBuffer);
@@ -77,23 +104,23 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
-    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Bad Request", 400);
+    if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Wrong Number Of Spaces", 400);
 
     string requestMethod = requestLine.substr(0, requestLine.find(32));
     string targetURI = requestLine.substr(requestLine.find(32) + 1, (requestLine.find_last_of(32) - requestLine.find(32) - 1));
     string httpVersion = requestLine.substr(requestLine.find_last_of(32) + 1, (requestLine.length() - requestLine.find_last_of(32)));
 
-    if (requestMethod.length() > 6 || requestMethod.length() <= 0) throw RequestParser::HttpRequestException("Bad Request", 400);
-    if (!targetURI.length()) throw RequestParser::HttpRequestException("Bad Request", 400);
+    if (requestMethod.length() > 6 || requestMethod.length() <= 0) throw RequestParser::HttpRequestException("Bad Method - Invalid Length", 400);
+    if (!targetURI.length()) throw RequestParser::HttpRequestException("Bad request-target - Length zero", 400);
     if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
     || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
-        throw RequestParser::HttpRequestException("Bad Request", 400);
+        throw RequestParser::HttpRequestException("Bad Http Version", 505);
 
 
     if (requestMethod == "GET") this->method = GET;
     else if (requestMethod == "POST") this->method = POST;
     else if (requestMethod == "DELETE") this->method = DELETE;
-    else throw RequestParser::HttpRequestException("Bad Request", 400);
+    else throw RequestParser::HttpRequestException("Invalid Method", 501);
 
     uri.extractPath(targetURI);
 }
@@ -116,22 +143,24 @@ void RequestParser::init( ) {
 
     Server server = uri.getHostServer();
 
-    uri.matchURI(server);
+    Location location = uri.matchURI(server);
 
-    if (method == GET) cout << "GET" << endl;
-    else if (method == POST) cout << "POST" << endl;
-    else if (method == DELETE) cout << "DELETE" << endl;
-    else cout << "No Header Found" << endl;
+    resolveResource(location);
 
-    if (uri.host.length()) cout << "Host= "<< uri.host << endl;
-    else cout << "Host Not Found" << endl;
+    // if (method == GET) cout << "GET" << endl;
+    // else if (method == POST) cout << "POST" << endl;
+    // else if (method == DELETE) cout << "DELETE" << endl;
+    // else cout << "No Header Found" << endl;
 
-    cout << "Port="<< uri.port << endl;
+    // if (uri.host.length()) cout << "Host= "<< uri.host << endl;
+    // else cout << "Host Not Found" << endl;
 
-    if (uri.path.length()) cout << "Path= "<< uri.path << endl;
+    // cout << "Port="<< uri.port << endl;
 
-    if (uri.query.length()) cout << uri.query << endl;
-    else cout << "No Query" << endl;
+    // if (uri.path.length()) cout << "Path= "<< uri.path << endl;
 
-    cout << "Resource URI= "<< uri.path << endl;
+    // if (uri.query.length()) cout << uri.query << endl;
+    // else cout << "No Query" << endl;
+
+    // cout << "Resource URI= "<< uri.path << endl;
 }

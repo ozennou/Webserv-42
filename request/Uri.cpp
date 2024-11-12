@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/09 14:22:28 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/12 15:53:16 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,16 +18,45 @@ Uri::Uri( int socketFd, Socket_map& socket_map ) : socketFd(socketFd), socket_ma
     port = 80;
 }
 
-Uri::~Uri( ) {
+// Uri& Uri::operator=( Uri& obj ) {
+//     if (this != &obj) {
+//         this->socketFd = obj.socketFd;
+//         this->socket_map = obj.socket_map;
+//         this->type = obj.type;
+//         this->subDelimiters = obj.subDelimiters;
+//         this->genDelimiters = obj.genDelimiters;
+//         this->requestTarget = obj.requestTarget;
+//         this->path = obj.path;
+//         this->query = obj.query;
+//         this->host = obj.host;
+//         this->port = obj.port;
+//     }
+//     return *this;
+// }
 
+Uri::~Uri( ) {
 }
 
-void Uri::matchURI( Server& server ) {
+bool    Uri::isRegularFile( ) {
+    struct stat path_stat;
+
+    if (stat(path.c_str(), &path_stat) == -1) return false;
+    return S_ISREG(path_stat.st_mode);
+}
+
+bool    Uri::isDirectory( ) {
+    struct stat path_stat;
+
+    if (stat(path.c_str(), &path_stat) == -1) return false;
+    return S_ISDIR(path_stat.st_mode);
+}
+
+Location Uri::matchURI( Server& server ) {
     Location location;
     vector<Location> locations = server.getLocations();
     vector<Location>::iterator it = locations.begin();
 
-    // Get the route that is at least equal to the uri.path
+    // Get the route that is at least equal to the path
     for (; it->getRoute().size() > path.size(); it++) {
     }
 
@@ -44,19 +73,10 @@ void Uri::matchURI( Server& server ) {
         }
     }
     
-    if (!location.getRoute().length()) throw RequestParser::HttpRequestException("Not Found", 404);
+    if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
 
     path.insert(0, location.getRoot());
-
-    // will work on the resource validity side
-
-    // Verifying Methods
-//     set<string> methodsAllowed = location.getMethods();
-
-//     if ((method == GET && methodsAllowed.find("GET") == methodsAllowed.end()) \
-//     || (method == POST && methodsAllowed.find("POST") == methodsAllowed.end()) \
-//     || (method == DELETE && methodsAllowed.find("DELETE") == methodsAllowed.end()))
-//         throw RequestParser::HttpRequestException("Method Not Allowed", 405);
+    return location;
 }
 
 Server Uri::getHostServer( ) {
@@ -98,7 +118,7 @@ void Uri::normalizePath( ) {
         && (i + 1 < path.length() && path[i + 1] == '.') \
         && ((i + 2 == path.length()) || (i + 2 < path.length() && path[i + 2] == '/'))) {
             
-            if (i == 1 && path[0] == '/') throw RequestParser::HttpRequestException("Bad Request", 400);
+            if (i == 1 && path[0] == '/') throw RequestParser::HttpRequestException("Invalid Path", 400);
 
             int a = i - 2;
             for (; a > 0; a--)
@@ -111,7 +131,7 @@ void Uri::normalizePath( ) {
         }
     }
 
-    if (!path.length()) throw RequestParser::HttpRequestException("Bad Request", 400);
+    if (!path.length()) throw RequestParser::HttpRequestException("Invalid Path", 400);
 }
 
 void Uri::extractQuery( size_t index ) {

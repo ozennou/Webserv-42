@@ -1,4 +1,4 @@
-#include <header.hpp>
+#include "header.hpp"
 #include "../include/Bond.hpp"
 
 vector<Bond>::iterator getBond( vector<Bond>& bonds, int clientFd ) {
@@ -125,7 +125,7 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Soc
     if (sock_d < 0)
         return 1;
     vector<Bond>::iterator bond = getBond(bonds, client_fd);
-    bond->initBuilder();
+    bond->initResponse();
     return 0;
 }
 

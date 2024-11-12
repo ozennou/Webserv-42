@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/09 14:11:51 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/12 17:01:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, this) {
 }
 
 int Bond::getClientFd( ) {
@@ -57,21 +57,33 @@ void Bond::initParcer( ) {
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
             logging(e.message, WARNING, NULL, 0);
+            responseGenerator.setException(&e);
             return ;
         }
-        responseGenerator.setException(&e);
         throw e;
     }
 }
 
-void Bond::initBuilder( ) {
+void Bond::initResponse( ) {
+    setPath();
     responseGenerator.generateResponse();
 }
 
-// void Bond::getPayLoadFromParser( ) {
-//     responseGenerator.setPayLoad(requestParser.getPayLoad());
-// }
+int Bond::getMethod( ) {
+    return GET;
+}
+
+Uri& Bond::getUri( ) {
+    return requestParser.getUri();
+}
 
 Bond::~Bond( ) {
+}
+
+void Bond::methodInfosGET( void ) {
     
+}
+
+void Bond::setPath( void ) {
+    // responseGenerator.setPath(requestParser.getPath());
 }

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/09 14:19:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/12 16:58:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,13 +17,15 @@
 #include <exception>
 #include <unistd.h>
 
-#include <header.hpp>
+#include "header.hpp"
 
 #include <sys/stat.h>
 #include <fcntl.h>
 
 #include "Uri.hpp"
 #include "MessageHeaders.hpp"
+
+class Bond;
 
 using namespace std;
 
@@ -35,21 +37,17 @@ enum {
 
 class RequestParser
 {
-    // The RequestMessage Object
+    Bond*    bond;
+
     int                 method;
     Uri                 uri;
     MessageHeaders      headers;
-    //
 
-    // Tools only
     size_t size;
-    // char buf[size];
-    //
 
     string  payload;
-    // The Socket Fd To read from
-    int clientFd;
-    //
+
+    int     clientFd;
 
     void findCRLF( string& stringBuffer);
 
@@ -57,12 +55,13 @@ class RequestParser
 
     void headerSection( string stringBuffer );
 
+    void resolveResource( Location& location );
+
 public:
-    RequestParser( int clientFd, int socketFd, Socket_map& socket_map );
+    RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond );
 
     void init( void );
 
-    
     // Exception Class
     class HttpRequestException : public exception
     {
@@ -79,5 +78,9 @@ public:
     };
     //
 
+    int getMethod( void );
+
+    Uri& getUri( void );
+    
     ~RequestParser( );
 };

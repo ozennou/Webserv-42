@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <unistd.h>
 #include <pwd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <errno.h>
@@ -20,6 +19,9 @@
 #include <fcntl.h>
 #include <sys/event.h>
 #include <sys/select.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #define DEFAULT_CONF "./config_file/default.conf"
 #define POLL_TIMEOUT 10000
