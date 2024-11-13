@@ -6,17 +6,17 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 17:01:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/13 15:00:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
 
-RequestParser::RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond ) : bond(bond), uri(socketFd, socket_map) {
+RequestParser::RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond ) : uri(socketFd, socket_map) {
+    this->bond = bond;
     this->clientFd = clientFd;
     size = 5160;
-    (void)bond;
 }
 
 RequestParser::HttpRequestException::HttpRequestException( string message, int statusCode ) {
@@ -55,7 +55,8 @@ void RequestParser::findCRLF( string& stringBuffer ) {
 }
 
 int  RequestParser::getMethod( void ) {
-    return method;
+    // cout << this << endl;
+    return this->method;
 }
 
 Uri&  RequestParser::getUri( void ) {
@@ -64,6 +65,7 @@ Uri&  RequestParser::getUri( void ) {
 
 void RequestParser::resolveResource( Location& location ) {
 
+    cout << "End Line" << uri.path << endl;
     // Either stat() failed, or the macro failed
     if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
@@ -147,7 +149,7 @@ void RequestParser::init( ) {
 
     resolveResource(location);
 
-    // if (method == GET) cout << "GET" << endl;
+    (void)bond;
     // else if (method == POST) cout << "POST" << endl;
     // else if (method == DELETE) cout << "DELETE" << endl;
     // else cout << "No Header Found" << endl;

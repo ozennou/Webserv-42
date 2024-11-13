@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 17:00:25 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/13 17:53:57 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,6 @@
 class RequestParser;
 
 class Bond;
-
-#include "Bond.hpp"
 
 class ResponseGenerator
 {
@@ -42,15 +40,19 @@ class ResponseGenerator
     int clientFd;
 public:
     
-    ResponseGenerator( int clientFd, Bond* bond );
+    ResponseGenerator( int clientFd );
 
     void setException( RequestParser::HttpRequestException* exception );
 
-    void generateResponse();
+    void setBondObject( Bond* bond );
 
-    void setPath( string path );
+    void generateMessageError( );
 
-    void getRequestUri( void );
+    void generateMessageValid( Uri& uri, string& contentType, string& fileBuffer );
+
+    void filterResponseType();
+
+    void GETResponse();
 
     ~ResponseGenerator();
 };

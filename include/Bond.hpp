@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 16:56:22 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/13 17:24:46 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,9 @@
 
 #include "ResponseGenerator.hpp"
 
+// #include "IBond.hpp"
+
+// class ResponseGenerator;
 class Bond
 {
 private:
@@ -37,14 +40,11 @@ public:
 
     void initResponse( void );
 
-    void setPath( void );
-
     void methodInfosGET( void );
 
     int getMethod( void );
 
     Uri& getUri( void );
-    // void getPayLoadFromParser( void );
 
     ~Bond( );
 };

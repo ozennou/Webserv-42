@@ -16,10 +16,6 @@ class Location {
     public:
         Location();
 
-        // Location( Location& obj );
-        
-        // Location& operator=( Location& obj );
-
         ~Location();
 
         std::string getRoute() const;

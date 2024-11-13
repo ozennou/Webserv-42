@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 17:01:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/13 17:24:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, this) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd) {
 }
 
 int Bond::getClientFd( ) {
@@ -65,8 +65,8 @@ void Bond::initParcer( ) {
 }
 
 void Bond::initResponse( ) {
-    setPath();
-    responseGenerator.generateResponse();
+    responseGenerator.setBondObject(this);
+    responseGenerator.filterResponseType();
 }
 
 int Bond::getMethod( ) {
@@ -82,8 +82,4 @@ Bond::~Bond( ) {
 
 void Bond::methodInfosGET( void ) {
     
-}
-
-void Bond::setPath( void ) {
-    // responseGenerator.setPath(requestParser.getPath());
 }
