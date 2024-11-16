@@ -6,14 +6,14 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/13 15:00:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/16 17:46:40 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
 
-RequestParser::RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond ) : uri(socketFd, socket_map) {
+RequestParser::RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond ) : uri(socketFd, socket_map) {
     this->bond = bond;
     this->clientFd = clientFd;
     size = 5160;
@@ -55,7 +55,6 @@ void RequestParser::findCRLF( string& stringBuffer ) {
 }
 
 int  RequestParser::getMethod( void ) {
-    // cout << this << endl;
     return this->method;
 }
 
@@ -65,7 +64,6 @@ Uri&  RequestParser::getUri( void ) {
 
 void RequestParser::resolveResource( Location& location ) {
 
-    cout << "End Line" << uri.path << endl;
     // Either stat() failed, or the macro failed
     if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
@@ -133,12 +131,12 @@ void RequestParser::init( ) {
     string stringBuffer;
 
     i = recv(clientFd, buf, size, 0);
-
+    
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
     buf[i] = 0; stringBuffer += buf;
-
+    
     requestLine(stringBuffer);
     
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
@@ -150,19 +148,4 @@ void RequestParser::init( ) {
     resolveResource(location);
 
     (void)bond;
-    // else if (method == POST) cout << "POST" << endl;
-    // else if (method == DELETE) cout << "DELETE" << endl;
-    // else cout << "No Header Found" << endl;
-
-    // if (uri.host.length()) cout << "Host= "<< uri.host << endl;
-    // else cout << "Host Not Found" << endl;
-
-    // cout << "Port="<< uri.port << endl;
-
-    // if (uri.path.length()) cout << "Path= "<< uri.path << endl;
-
-    // if (uri.query.length()) cout << uri.query << endl;
-    // else cout << "No Query" << endl;
-
-    // cout << "Resource URI= "<< uri.path << endl;
 }

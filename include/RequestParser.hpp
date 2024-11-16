@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/13 11:56:19 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/15 17:51:57 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ class RequestParser
     void resolveResource( Location& location );
 
 public:
-    RequestParser( int clientFd, int socketFd, Socket_map& socket_map, Bond* bond );
+    RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond );
 
     void init( void );
 

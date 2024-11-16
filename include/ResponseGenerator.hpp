@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/13 17:53:57 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/16 19:25:44 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,31 +24,33 @@ class Bond;
 
 class ResponseGenerator
 {
-    Bond*    bond;
-    string reasonPhrase;
+    int clientFd;
 
-    // MessageHeaders* headers;
-    //
+    size_t size;
+    
+    ifstream    *fileStream;
+    
+    Bond*       bond;
+
     RequestParser::HttpRequestException* exception;
 
-    string  responseBuffer;
+    map<int, string>& statusCodeMap;
 
-    string payload;
-
-    map<int, string> errorHashMap;
-
-    int clientFd;
 public:
     
-    ResponseGenerator( int clientFd );
+    ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
+
+    ResponseGenerator& operator=( const ResponseGenerator& obj );
 
     void setException( RequestParser::HttpRequestException* exception );
 
     void setBondObject( Bond* bond );
 
-    void generateMessageError( );
+    void generateErrorMessage( );
 
-    void generateMessageValid( Uri& uri, string& contentType, string& fileBuffer );
+    void generateValidMessage( Uri& uri, string& contentType, string& fileBuffer );
+
+    void completeMessage( );
 
     void filterResponseType();
 

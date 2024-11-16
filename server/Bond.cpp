@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/13 17:24:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/16 20:46:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map ) : clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
 }
 
 int Bond::getClientFd( ) {
@@ -52,6 +52,7 @@ int Bond::getClientFd( ) {
 
 void Bond::initParcer( ) {
     try {
+        setPhase(RESPONSE_READY);
         requestParser.init();
     }
     catch(RequestParser::HttpRequestException& e) {
@@ -65,6 +66,8 @@ void Bond::initParcer( ) {
 }
 
 void Bond::initResponse( ) {
+    if (phase == REQUEST_READY)  return ;
+
     responseGenerator.setBondObject(this);
     responseGenerator.filterResponseType();
 }
@@ -75,6 +78,26 @@ int Bond::getMethod( ) {
 
 Uri& Bond::getUri( ) {
     return requestParser.getUri();
+}
+
+string* Bond::getBuffer( ) {
+    return &buffer;
+}
+
+int Bond::getResponseState( ) {
+    return responseState;
+}
+
+void Bond::setResponseState( int statee ) {
+    this->responseState = statee;
+}
+
+int Bond::getPhase( ) {
+    return phase;
+}
+
+void Bond::setPhase( int statee ) {
+    this->phase = statee;
 }
 
 Bond::~Bond( ) {

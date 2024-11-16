@@ -71,7 +71,7 @@ int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
     return 0;
 }
 
-int newconnection2(Clients &clients, vector<Bond> &bonds, int &fd, struct pollfd **pfds, int &size, int &max_size, Socket_map& socket_map)
+int newconnection2(Clients &clients, vector<Bond> &bonds, map<int, string> &statusCodeMap, int &fd, struct pollfd **pfds, int &size, int &max_size, Socket_map& socket_map)
 {
     sockaddr_storage sa;
     socklen_t t = sizeof(sa);
@@ -89,17 +89,18 @@ int newconnection2(Clients &clients, vector<Bond> &bonds, int &fd, struct pollfd
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
-    bonds.push_back(Bond(newFd, fd, socket_map));
+    bonds.push_back(Bond(newFd, fd, socket_map, statusCodeMap));
     return 0;
 }
 
-int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, struct pollfd *pfds, int &i)
+int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struct pollfd *pfds, int &i)
 {
-    vector<Bond>::iterator    bond = getBond(bonds, client_fd);
+    vector<Bond>::iterator  bond = getBond(bonds, client_fd);
 
     if (bond == bonds.end()) return 1;
 
     try {
+        // logging("--", WARNING, NULL, 0);
         bond->initParcer();
     }
     catch(const RequestParser::HttpRequestException& e) {
@@ -118,19 +119,29 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds, stru
     return 1;
 }
 
-int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd, Socket_map &sock_map)
+int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd)
 {
     int sock_d = clients.get_sock_d(client_fd);
-    vector<Server> servers = sock_map.get_servers(sock_d);
-    if (sock_d < 0)
-        return 1;
+    if (sock_d < 0) return 1;
     vector<Bond>::iterator bond = getBond(bonds, client_fd);
+    // logging("++", WARNING, NULL, 0);
+
     bond->initResponse();
     return 0;
 }
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
+    map<int, string> statusCodeMap;
+
+    statusCodeMap.insert(make_pair<int, string>(505, "HTTP Version Not Supported"));
+    statusCodeMap.insert(make_pair<int, string>(501, "Not Implemented"));
+    statusCodeMap.insert(make_pair<int, string>(500, "Internal Server Error"));
+    statusCodeMap.insert(make_pair<int, string>(405, "Method Not Allowed"));
+    statusCodeMap.insert(make_pair<int, string>(404, "Not Found"));
+    statusCodeMap.insert(make_pair<int, string>(403, "Forbidden"));
+    statusCodeMap.insert(make_pair<int, string>(400, "Bad Request"));
+
     (void)srvs;
     vector<Bond>  bonds;
     Clients       clients;
@@ -138,6 +149,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     vector<int> sockets = sock_map.get_sockets();
     struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
 
+    bonds.reserve(255);
     while (true)
     {
         if (set_value(-1))
@@ -162,13 +174,13 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                 if (pfds[i].revents & POLLIN)
                 {
                     if (find(sockets.begin(), sockets.end(), fd) != sockets.end())
-                        newconnection2(clients, bonds, fd, &pfds, size, max_size, sock_map);
+                        newconnection2(clients, bonds, statusCodeMap, fd, &pfds, size, max_size, sock_map);
                     else
                         reading_request2(fd, clients, bonds, pfds, i);
                 } else if (pfds[i].revents & POLLOUT) {
-                    sending_response2(clients, bonds, fd, sock_map);
-                    pfds[i].events = POLLIN;
+                    sending_response2(clients, bonds, fd);
                 }
+
             }
         }
     }

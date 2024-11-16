@@ -35,10 +35,10 @@
 #define SUB_DELIM "!$&'()*+,;="
 
 enum {
-    BAD,
-    GOOD,
-    PROCESSING,
-    FINISEHD
+    OPEN,
+    CLOSED,
+    REQUEST_READY,
+    RESPONSE_READY
 };
 
 using namespace std;

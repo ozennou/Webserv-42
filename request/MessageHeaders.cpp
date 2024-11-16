@@ -19,11 +19,6 @@ MessageHeaders::MessageHeaders( ) : delimiters(DELI), space(" \t") {
 MessageHeaders::~MessageHeaders( ) {
 }
 
-void MessageHeaders::print( ) {
-    for (multimap<string, string>::iterator i = hash.begin(); i != hash.end(); i++) {
-        cout << i->first << "-"<< i->second << endl;
-    }
-}
 
 map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
     map<string, string>::iterator it = hash.find("Transfer-Encoding");
@@ -62,9 +57,6 @@ void MessageHeaders::storeField( string& field, Uri& uri ) {
         fieldValue = field.substr( field.find_first_not_of(space, colonIndex + 1), \
                                                     field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1);
 
-    // cout << "fieldName= " << fieldName << endl;
-    // cout << "fieldValue= " << fieldValue << endl;
-    // The Field Value Was Host
     if (uri.type == ORIGIN \
         && fieldName == "host" && fieldValue.length()) {
         string subDelimiters = SUB_DELIM;

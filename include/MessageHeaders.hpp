@@ -38,7 +38,6 @@ public:
     void parceFieldValue( void );
 
     map<string, string>::iterator findContentHeaders( );
-
-    void print( );
+    
     ~MessageHeaders( );
 };

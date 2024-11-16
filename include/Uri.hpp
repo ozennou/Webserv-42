@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 15:53:24 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/15 17:53:23 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ public:
     string host;
     int port;
 
-    void    extractPath( string requestTarget );
+    void    extractPath( string& requestTarget );
 
     void    normalizePath( );
     
@@ -60,13 +60,15 @@ public:
 
     bool    isDirectory( );
 
+    size_t    getResourceSize( );
+
     void    originForm();
 
     void    absoluteForm();
 
-    void    extractQuery( size_t index );
+    void    extractQuery( size_t& index );
 
-    Uri( int socketFd, Socket_map& socket_map );
+    Uri( int& socketFd, Socket_map& socket_map );
 
     // Uri& operator=( Uri& obj );
     

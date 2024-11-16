@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/12 15:53:16 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/15 17:57:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,25 +14,9 @@
 #include "../include/RequestParser.hpp"
 #include <set>
 
-Uri::Uri( int socketFd, Socket_map& socket_map ) : socketFd(socketFd), socket_map(&socket_map), subDelimiters(SUB_DELIM), genDelimiters(GEN_DELIM) {
+Uri::Uri( int& socketFd, Socket_map& socket_map ) : socketFd(socketFd), socket_map(&socket_map), subDelimiters(SUB_DELIM), genDelimiters(GEN_DELIM) {
     port = 80;
 }
-
-// Uri& Uri::operator=( Uri& obj ) {
-//     if (this != &obj) {
-//         this->socketFd = obj.socketFd;
-//         this->socket_map = obj.socket_map;
-//         this->type = obj.type;
-//         this->subDelimiters = obj.subDelimiters;
-//         this->genDelimiters = obj.genDelimiters;
-//         this->requestTarget = obj.requestTarget;
-//         this->path = obj.path;
-//         this->query = obj.query;
-//         this->host = obj.host;
-//         this->port = obj.port;
-//     }
-//     return *this;
-// }
 
 Uri::~Uri( ) {
 }
@@ -51,6 +35,13 @@ bool    Uri::isDirectory( ) {
     return S_ISDIR(path_stat.st_mode);
 }
 
+size_t    Uri::getResourceSize( ) {
+    struct stat path_stat;
+
+    if (stat(path.c_str(), &path_stat) == -1) RequestParser::HttpRequestException("Stat Failed When getting the size", 500);
+    return path_stat.st_size;
+}
+
 Location Uri::matchURI( Server& server ) {
     Location location;
     vector<Location> locations = server.getLocations();
@@ -60,15 +51,17 @@ Location Uri::matchURI( Server& server ) {
     for (; it->getRoute().size() > path.size(); it++) {
     }
 
+    string route;
     // Getting the path Of the resource
     for (; it != locations.end(); it++) {
+        route = it->getRoute();
         // If the exact mode is ON
-        if (it->getExact() && path == it->getRoute()) {
+        if (it->getExact() && path == route) {
             location = *it;
             break;
         }
-        else if (!it->getExact() && (!path.rfind(it->getRoute(), 0)) \
-            && (it->getRoute().length() > location.getRoute().length())) {
+        else if (!it->getExact() && (!path.rfind(route, 0)) \
+            && (route.length() > location.getRoute().length())) {
             location = *it;
         }
     }
@@ -134,7 +127,7 @@ void Uri::normalizePath( ) {
     if (!path.length()) throw RequestParser::HttpRequestException("Invalid Path", 400);
 }
 
-void Uri::extractQuery( size_t index ) {
+void Uri::extractQuery( size_t& index ) {
     query = requestTarget.substr(index + 1, requestTarget.length() - (index + 1));
     
     for (size_t i = 0; i < requestTarget.length(); i++) {
@@ -240,7 +233,7 @@ void Uri::originForm( ) {
     if (i != requestTarget.length()) extractQuery(i);
 }
 
-void Uri::extractPath( string requestT ) {
+void Uri::extractPath( string& requestT ) {
     this->requestTarget = requestT;
     if (requestTarget[0] == '/') {
         originForm();

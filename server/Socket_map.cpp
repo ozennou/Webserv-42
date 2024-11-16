@@ -53,7 +53,7 @@ vector<Server> Socket_map::get_servers(int sock_d)
         if (sock_d == i->second.first)
             return i->second.second;
     }
-    logging("socket descriptor not found in the sockets map: ", WARNING, NULL, 0);
+    // logging("socket descriptor not found in the sockets map: ", WARNING, NULL, 0);
     return vector<Server>();
 }
 
