@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/16 19:25:44 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/17 16:45:19 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class ResponseGenerator
 
     size_t size;
     
-    ifstream    *fileStream;
+    ifstream    *ifs;
     
     Bond*       bond;
 
@@ -45,6 +45,8 @@ public:
     void setException( RequestParser::HttpRequestException* exception );
 
     void setBondObject( Bond* bond );
+
+    void setInputStream( ifstream* ifss );
 
     void generateErrorMessage( );
 

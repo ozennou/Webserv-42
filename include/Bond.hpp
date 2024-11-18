@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/16 19:15:51 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/17 15:15:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,14 @@ private:
 
     string  buffer;
 
+    ifstream *fileStream;
+
     RequestParser requestParser;
 
     ResponseGenerator responseGenerator;
 public:
     Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap );
+
 
     int     getClientFd( void );
 

@@ -33,7 +33,11 @@ class MessageHeaders
 public:
     MessageHeaders( );
 
-    void storeField( string& field, Uri& uri);
+    void storeRange( string& fieldValue, Uri& uri );
+
+    void storeHost( string& fieldValue, Uri& uri );
+
+    void storeField( string& field, Uri& uri );
 
     void parceFieldValue( void );
 

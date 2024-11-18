@@ -38,6 +38,32 @@ void MessageHeaders::parceFieldValue( ) {
     }
 }
 
+void MessageHeaders::storeHost( string& fieldValue, Uri& uri ) {
+    string subDelimiters = SUB_DELIM;
+
+    for (size_t j = 0; j < fieldValue.length(); j++) {
+        if (fieldValue[j] != ':')
+            break;
+        if (!isUnreserved(fieldValue[j]) \
+        && !percentEncoded(fieldValue, j) \
+        && subDelimiters.find(fieldValue[j]) == string::npos)
+            throw RequestParser::HttpRequestException("Invalid Char Found In Host field-value", 400);
+    }
+    if (fieldValue.find(':') == string::npos) uri.host = fieldValue;
+    else uri.host = fieldValue.substr(0, fieldValue.find(':'));
+
+    // If It Contains A Port Number
+    if (fieldValue.find(':') != string::npos \
+    && fieldValue.find(':') != fieldValue.length() - 1) {
+        stringstream ss;
+        // for (size_t i = fieldValue.find(':') + 1; i < fieldValue.length(); i++) {
+        ss << fieldValue.substr(fieldValue.find(':') + 1, fieldValue.length() - (fieldValue.find(':') + 1));
+        // }
+        ss >> uri.port;
+        if (ss.fail() || uri.port < 0 || uri.port > 65535) throw RequestParser::HttpRequestException("Invalid Port Number", 400);
+    }
+}
+
 void MessageHeaders::storeField( string& field, Uri& uri ) {
     size_t colonIndex = field.find(':');
 
@@ -58,31 +84,8 @@ void MessageHeaders::storeField( string& field, Uri& uri ) {
                                                     field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1);
 
     if (uri.type == ORIGIN \
-        && fieldName == "host" && fieldValue.length()) {
-        string subDelimiters = SUB_DELIM;
-
-        for (size_t j = 0; j < fieldValue.length(); j++) {
-            if (fieldValue[j] != ':')
-                break;
-            if (!isUnreserved(fieldValue[j]) \
-            && !percentEncoded(fieldValue, j) \
-            && subDelimiters.find(fieldValue[j]) == string::npos)
-                throw RequestParser::HttpRequestException("Invalid Char Found In Host field-value", 400);
-        }
-        if (fieldValue.find(':') == string::npos) uri.host = fieldValue;
-        else uri.host = fieldValue.substr(0, fieldValue.find(':'));
-
-        // If It Contains A Port Number
-        if (fieldValue.find(':') != string::npos \
-        && fieldValue.find(':') != fieldValue.length() - 1) {
-            stringstream ss;
-            // for (size_t i = fieldValue.find(':') + 1; i < fieldValue.length(); i++) {
-            ss << fieldValue.substr(fieldValue.find(':') + 1, fieldValue.length() - (fieldValue.find(':') + 1));
-            // }
-            ss >> uri.port;
-            if (ss.fail() || uri.port < 0 || uri.port > 65535) throw RequestParser::HttpRequestException("Invalid Port Number", 400);
-        }
-    }
+        && fieldName == "host" && fieldValue.length())
+        storeHost(fieldValue, uri);
 
     hash.insert(make_pair<string, string>(fieldName, fieldValue));
 }

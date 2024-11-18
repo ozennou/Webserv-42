@@ -100,7 +100,6 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struc
     if (bond == bonds.end()) return 1;
 
     try {
-        // logging("--", WARNING, NULL, 0);
         bond->initParcer();
     }
     catch(const RequestParser::HttpRequestException& e) {
@@ -124,8 +123,6 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd)
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0) return 1;
     vector<Bond>::iterator bond = getBond(bonds, client_fd);
-    // logging("++", WARNING, NULL, 0);
-
     bond->initResponse();
     return 0;
 }
@@ -141,6 +138,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(404, "Not Found"));
     statusCodeMap.insert(make_pair<int, string>(403, "Forbidden"));
     statusCodeMap.insert(make_pair<int, string>(400, "Bad Request"));
+    statusCodeMap.insert(make_pair<int, string>(416, "Range Not Satisfiable"));
 
     (void)srvs;
     vector<Bond>  bonds;

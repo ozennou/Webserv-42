@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/16 20:46:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/17 17:48:39 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
 }
 
 int Bond::getClientFd( ) {
@@ -67,6 +67,11 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase == REQUEST_READY)  return ;
+
+    if (!fileStream) {
+        fileStream = new ifstream();
+        responseGenerator.setInputStream(fileStream);
+    }
 
     responseGenerator.setBondObject(this);
     responseGenerator.filterResponseType();
@@ -101,6 +106,7 @@ void Bond::setPhase( int statee ) {
 }
 
 Bond::~Bond( ) {
+    if (!fileStream) delete fileStream; fileStream = NULL;
 }
 
 void Bond::methodInfosGET( void ) {
