@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/16 17:46:40 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/18 17:52:13 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,22 @@ Uri&  RequestParser::getUri( void ) {
     return uri;
 }
 
+bool  RequestParser::isRange( void ) {
+    return headers.findField("range");
+}
+
+string  RequestParser::getRangeFirst( void ) {
+    return headers.getRangeFirst();
+}
+
+string  RequestParser::getRangeLast( void ) {
+    return headers.getRangeLast();
+}
+
+int  RequestParser::getRangeType( void ) {
+    return headers.getRangeType();
+}
+
 void RequestParser::resolveResource( Location& location ) {
 
     // Either stat() failed, or the macro failed
@@ -91,7 +107,7 @@ void RequestParser::headerSection( string stringBuffer ) {
         if (!field.length()) break;
         
         pos += 2;
-        headers.storeField(field, uri);
+        headers.storeField(field, uri, method);
         stringBuffer = stringBuffer.substr(pos);
     }
 

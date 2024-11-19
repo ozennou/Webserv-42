@@ -25,21 +25,35 @@ using namespace std;
 
 class MessageHeaders
 {
+    int rangeType;
+
+    string first;
+    string last;
+
     string delimiters;
     string space;
 
-    multimap<string, string> hash;
+    multimap<string, string> headers;
     
 public:
     MessageHeaders( );
 
-    void storeRange( string& fieldValue, Uri& uri );
+    void storeRange( string& fieldValue );
+
+    bool isValidRange( Uri& uri );
+
+    int getRangeType( );
+
+    string getRangeFirst( );
+    string getRangeLast( );
 
     void storeHost( string& fieldValue, Uri& uri );
 
-    void storeField( string& field, Uri& uri );
+    void storeField( string& field, Uri& uri, int method );
 
     void parceFieldValue( void );
+
+    bool findField( string fieldName );
 
     map<string, string>::iterator findContentHeaders( );
     

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 20:49:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/18 17:52:23 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,5 +82,11 @@ public:
 
     Uri& getUri( void );
     
+    bool isRange( void );
+
+    string getRangeFirst( void );
+    string getRangeLast( void );
+    int getRangeType( void );
+
     ~RequestParser( );
 };

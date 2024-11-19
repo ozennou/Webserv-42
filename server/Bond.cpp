@@ -6,17 +6,16 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 17:48:39 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/19 15:49:01 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Bond.hpp"
 
-string stolower( string s ) {
+void stolower( string& s ) {
     for (size_t i = 0; i < s.length(); i++) {
         if (isalpha(s[i])) s[i] = tolower(s[i]);
     }
-    return s;
 }
 
 bool isUnreserved( int c ) {
@@ -75,6 +74,11 @@ void Bond::initResponse( ) {
 
     responseGenerator.setBondObject(this);
     responseGenerator.filterResponseType();
+
+    // if (isRange()) {
+        
+    // }
+    // else
 }
 
 int Bond::getMethod( ) {
@@ -105,10 +109,23 @@ void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
 
+bool Bond::isRange( void ) {
+    return requestParser.isRange();
+}
+
+string  Bond::getRangeFirst( void ) {
+    return requestParser.getRangeFirst();
+}
+
+string  Bond::getRangeLast( void ) {
+    return requestParser.getRangeLast();
+}
+
+int  Bond::getRangeType( void ) {
+    return requestParser.getRangeType();
+}
+
 Bond::~Bond( ) {
     if (!fileStream) delete fileStream; fileStream = NULL;
 }
 
-void Bond::methodInfosGET( void ) {
-    
-}

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 15:15:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/18 17:54:44 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,6 @@ public:
     void    initParcer( void );
     void    initResponse( void );
 
-    void    methodInfosGET( void );
-
     int     getMethod( void );
     Uri&    getUri( void );
     string* getBuffer( void );
@@ -56,6 +54,11 @@ public:
 
     int     getPhase( void );
     void     setPhase( int phasee );
+
+    bool    isRange( void );
+    string    getRangeFirst( void );
+    string    getRangeLast( void );
+    int     getRangeType( void );
 
     ~Bond( );
 };
