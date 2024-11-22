@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 20:55:00 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 20:59:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,10 @@ void Bond::initResponse( ) {
         responseGenerator.setInputStream(fileStream);
     }
 
+<<<<<<< HEAD
     responseGenerator.setBondObject(this);
+=======
+>>>>>>> 79db373... Commiting to only see the last good commit and to see where is the bug
     cout << "res="<< getClientFd() << endl;
     responseGenerator.filterResponseType();
 }
