@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 18:00:38 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 20:33:50 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,6 @@ Bond::Bond( ) {
 }
 
 Bond::Bond( const Bond& obj ) {
-    // cout << "Bond Copy" << endl;
     *this = obj;
 }
 
@@ -58,7 +57,6 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->connectionSate = obj.connectionSate;
         this->buffer = obj.buffer;
         this->fileStream = obj.fileStream;
-        // cout << fileStream << endl;
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
     }
@@ -66,7 +64,6 @@ Bond& Bond::operator=( const Bond& obj ) {
 }
 
 Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
-    // cout << "Bond Args" << endl;
 }
 
 
@@ -99,6 +96,7 @@ void Bond::initResponse( ) {
         responseGenerator.setInputStream(fileStream);
     }
 
+    cout << "res="<< getClientFd() << endl;
     responseGenerator.filterResponseType();
 }
 
