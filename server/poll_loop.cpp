@@ -105,10 +105,16 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struc
     catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
             logging("Client Disconnected", ERROR, NULL, 0);
+            // cout << "| -> "<< bond->getClientFd() << endl;
+            bonds.erase(getBond(bonds, client_fd));
+            if (getBond(bonds, client_fd) == bonds.end()) cout << "DELETED: " << client_fd << endl;
+            else cout << "KEEPT" << endl;
+            // bonds.erase(bond);
             pfds[i].fd = -1;
             clients.remove_client(i);
             bonds.erase(bond);
             close(client_fd);
+            cout << "*****" << endl;
         }
         else if (e.statusCode == -1)
             return 1;
@@ -123,6 +129,8 @@ int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd)
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0) return 1;
     vector<Bond>::iterator bond = getBond(bonds, client_fd);
+    cout << "+++++++++++" << endl;
+
     bond->initResponse();
     return 0;
 }
@@ -167,6 +175,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
             for (int i = 0; i < size; i++)
             {
                 fd = pfds[i].fd;
+                cout << "----------" << fd << endl;
                 if (fd < 0)
                     continue;
                 if (pfds[i].revents & POLLIN)
@@ -178,7 +187,6 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                 } else if (pfds[i].revents & POLLOUT) {
                     sending_response2(clients, bonds, fd);
                 }
-
             }
         }
     }

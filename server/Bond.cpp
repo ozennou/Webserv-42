@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 17:48:39 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 20:55:00 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,29 @@ bool percentEncoded( string& str, size_t index ) {
 Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
 }
 
-int Bond::getClientFd( ) {
+Bond::Bond( const Bond& obj ) {
+    *this = obj;
+}
+
+Bond& Bond::operator=( const Bond& obj ) {
+    if (this != &obj) {
+        this->phase = obj.phase;
+        this->responseState = obj.responseState;
+        this->clientFd = obj.clientFd;
+        this->connectionSate = obj.connectionSate;
+        this->buffer = obj.buffer;
+        this->fileStream = obj.fileStream;
+        this->requestParser = obj.requestParser;
+        this->responseGenerator = obj.responseGenerator;
+    }
+    return *this;
+}
+
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
+}
+
+
+int Bond::getClientFd( ) const {
     return clientFd;
 }
 
@@ -74,6 +96,7 @@ void Bond::initResponse( ) {
     }
 
     responseGenerator.setBondObject(this);
+    cout << "res="<< getClientFd() << endl;
     responseGenerator.filterResponseType();
 }
 
