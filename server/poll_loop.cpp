@@ -89,14 +89,28 @@ int newconnection2(Clients &clients, vector<Bond> &bonds, map<int, string> &stat
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
-    bonds.push_back(Bond(newFd, fd, socket_map, statusCodeMap));
+    Bond b(newFd, fd, socket_map, statusCodeMap);
+    cout << "newFd=" << newFd << endl;
+    bonds.push_back(b);
+    cout << "clientFd" << bonds[bonds.size() - 1].getClientFd() << endl;
+    cout << "--------" << endl;
     return 0;
+}
+
+void printVector( vector<Bond>& v) {
+    for (vector<Bond>::iterator i = v.begin(); i != v.end(); i++)
+    {
+        cout << "="<< i->getClientFd() << endl;
+    }
 }
 
 int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struct pollfd *pfds, int &i)
 {
-    vector<Bond>::iterator  bond = getBond(bonds, client_fd);
+    int sock_d = clients.get_sock_d(client_fd);
+    if (sock_d < 0) return 1;
 
+    vector<Bond>::iterator  bond = getBond(bonds, client_fd);
+    
     if (bond == bonds.end()) return 1;
 
     try {
@@ -105,15 +119,17 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struc
     catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
             logging("Client Disconnected", ERROR, NULL, 0);
+            // cout << "| -> "<< bond->getClientFd() << endl;
+            bonds.erase(getBond(bonds, client_fd));
+            if (getBond(bonds, client_fd) == bonds.end()) cout << "DELETED" << endl;
+            else cout << "KEEPT" << endl;
+            // bonds.erase(bond);
             pfds[i].fd = -1;
             clients.remove_client(i);
-            bonds.erase(bond);
             close(client_fd);
         }
         else if (e.statusCode == -1)
             return 1;
-        else
-            logging(e.what(), ERROR, NULL, 0);
     }
     return 1;
 }
@@ -140,7 +156,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(403, " Forbidden"));
     statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));
     statusCodeMap.insert(make_pair<int, string>(400, " Bad Request"));
-    statusCodeMap.insert(make_pair<int, string>(216, " Partial Content"));
+    statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));
 
     vector<Bond>  bonds;

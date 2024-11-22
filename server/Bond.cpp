@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/19 15:49:01 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 18:00:38 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,35 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( ) {
 }
 
-int Bond::getClientFd( ) {
+Bond::Bond( const Bond& obj ) {
+    // cout << "Bond Copy" << endl;
+    *this = obj;
+}
+
+Bond& Bond::operator=( const Bond& obj ) {
+    if (this != &obj) {
+        this->phase = obj.phase;
+        this->responseState = obj.responseState;
+        this->clientFd = obj.clientFd;
+        this->connectionSate = obj.connectionSate;
+        this->buffer = obj.buffer;
+        this->fileStream = obj.fileStream;
+        // cout << fileStream << endl;
+        this->requestParser = obj.requestParser;
+        this->responseGenerator = obj.responseGenerator;
+    }
+    return *this;
+}
+
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
+    // cout << "Bond Args" << endl;
+}
+
+
+int Bond::getClientFd( ) const {
     return clientFd;
 }
 
@@ -53,6 +78,7 @@ void Bond::initParcer( ) {
     try {
         setPhase(RESPONSE_READY);
         requestParser.init();
+        connectionSate = requestParser.getConnectionState();
     }
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
@@ -67,18 +93,13 @@ void Bond::initParcer( ) {
 void Bond::initResponse( ) {
     if (phase == REQUEST_READY)  return ;
 
+    responseGenerator.setBondObject(this);
     if (!fileStream) {
         fileStream = new ifstream();
         responseGenerator.setInputStream(fileStream);
     }
 
-    responseGenerator.setBondObject(this);
     responseGenerator.filterResponseType();
-
-    // if (isRange()) {
-        
-    // }
-    // else
 }
 
 int Bond::getMethod( ) {
@@ -110,7 +131,7 @@ void Bond::setPhase( int statee ) {
 }
 
 bool Bond::isRange( void ) {
-    return requestParser.isRange();
+    return requestParser.isRange() && requestParser.isValidRange();
 }
 
 string  Bond::getRangeFirst( void ) {
@@ -125,7 +146,17 @@ int  Bond::getRangeType( void ) {
     return requestParser.getRangeType();
 }
 
-Bond::~Bond( ) {
-    if (!fileStream) delete fileStream; fileStream = NULL;
+bool  Bond::getConnectionState( void ) {
+    return connectionSate;
 }
 
+Bond::~Bond( ) {
+    cout << getClientFd() << "= Closed" << endl;
+    cout << "->|"<< this << endl;
+    if (fileStream != NULL) {
+        fileStream->close();
+        delete fileStream;
+        fileStream = NULL;
+        cout << "freed" << endl;
+    }
+}

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/19 15:29:23 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 15:39:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,13 +36,15 @@ class ResponseGenerator
 
     RequestParser::HttpRequestException* exception;
 
-    map<int, string>& statusCodeMap;
+    map<int, string>* statusCodeMap;
 
 public:
     
-    ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
-
+    ResponseGenerator( );
+    ResponseGenerator( const ResponseGenerator& obj );
     ResponseGenerator& operator=( const ResponseGenerator& obj );
+
+    ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
 
     void setException( RequestParser::HttpRequestException* exception );
     void setBondObject( Bond* bond );
@@ -50,7 +52,7 @@ public:
 
     void generateErrorMessage( );
 
-    void generateValidMessage( int statusCode, Uri& uri, string& contentType, string& fileBuffer );
+    void generateValidMessage( int statusCode, Uri& uri, string& contentType, string& fileBuffer, size_t rangeFirst, size_t rangeLast);
 
     void completeNormalMessage( );
     void completeRangeMessage( );

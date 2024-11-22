@@ -16,6 +16,23 @@
 MessageHeaders::MessageHeaders( ) : rangeType(NO_RANGE), delimiters(DELI), space(" \t") {
 }
 
+MessageHeaders::MessageHeaders( const MessageHeaders& obj ) {
+    *this = obj;
+}
+
+MessageHeaders& MessageHeaders::operator=( const MessageHeaders& obj ) {
+    // cout << "MessageHeaders Copy" << endl;
+    if (this != &obj) {
+        this->rangeType = obj.rangeType;
+        this->first = obj.first;
+        this->last = obj.last;
+        this->delimiters = obj.delimiters;
+        this->space = obj.space;
+        this->headers = obj.headers;
+    }
+    return *this;
+}
+
 MessageHeaders::~MessageHeaders( ) {
 }
 
@@ -56,7 +73,17 @@ bool MessageHeaders::findField( string fieldName ) {
     return true;
 }
 
+bool MessageHeaders::connectionState( ) {
+    map<string, string>::iterator it = headers.find("connection");
+    if (it == headers.end()) return true;
+    stolower(it->second);
+    if (it->second == "close") return false;
+    return true;
+}
+
 size_t  getRangeValue( string rangeString ) {
+    if (!rangeString.length()) return 0;
+
     stringstream ss;
     ss << rangeString;
 
@@ -79,23 +106,19 @@ bool MessageHeaders::isValidRange( Uri& uri ) {
         else rangeLast = resourceSize;
         if (rangeLast > resourceSize) rangeLast = resourceSize;
 
-        if (rangeFirst >= resourceSize) return false; // Should be stricly greater or can be equal to
-        if (rangeFirst >= rangeLast) return false; // Should be stricly greater or can be equal to
-        if (rangeLast < resourceSize) return false; // Should be stricly greater or can be equal to
+        if (rangeFirst >= resourceSize) return false;
+        if (rangeFirst >= rangeLast) return false;
+        if (rangeLast < resourceSize) return false;
     } else {
         size_t rangeLast = getRangeValue(last);
 
-        if (resourceSize <= rangeLast) return false; // Should be stricly greater or can be equal to
+        if (resourceSize <= rangeLast) return false;
         if (!rangeLast) return false;
     }
     return true;
 }
 
 void MessageHeaders::storeRange( string& fieldValue ) {
-    cout << "RANGE FIELD :" << endl;
-    cout << fieldValue << endl;
-
-    // Should I Return Or Throw An Exception --> The Range Header is Optional
     if (!fieldValue.length()) return ;
 
     if (fieldValue.compare(0, 6, "bytes=")) return ;
@@ -107,8 +130,6 @@ void MessageHeaders::storeRange( string& fieldValue ) {
         }
         last = rangeSet.substr(1);
         rangeType = SUFFIX_RANGE;
-        cout << "SUFFIX_RANGE :" << endl;
-        cout << "lastPos=" << last << endl;
     } else if (isdigit(rangeSet[0])) {
         size_t i = 0;
         for (; i < rangeSet.length(); i++) {
@@ -117,15 +138,13 @@ void MessageHeaders::storeRange( string& fieldValue ) {
         }
         
         first = rangeSet.substr(0, i);
-        cout << "INT_RANGE :" << endl;
-        cout << "firstPos=" << first << endl;
+        last = "";
         if (i != rangeSet.length()) {
             size_t a = i + 1;
             for (; a < rangeSet.length(); a++) {
                 if (!isdigit(rangeSet[a])) return ;
             }
             last = rangeSet.substr(i + 1, (rangeSet.length() - (i + 1)));
-            cout << "lastPos=" << last << endl;
         }
         rangeType = INT_RANGE;
     } else

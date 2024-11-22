@@ -37,6 +37,8 @@ class MessageHeaders
     
 public:
     MessageHeaders( );
+    MessageHeaders( const MessageHeaders& obj );
+    MessageHeaders& operator=( const MessageHeaders& obj );
 
     void storeRange( string& fieldValue );
 
@@ -54,6 +56,8 @@ public:
     void parceFieldValue( void );
 
     bool findField( string fieldName );
+
+    bool connectionState( );
 
     map<string, string>::iterator findContentHeaders( );
     

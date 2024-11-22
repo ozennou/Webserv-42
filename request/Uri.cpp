@@ -6,13 +6,37 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/15 17:57:28 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 17:21:22 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Uri.hpp"
 #include "../include/RequestParser.hpp"
 #include <set>
+
+Uri::Uri( ) {
+}
+
+Uri::Uri( const Uri& obj ) {
+    *this = obj;
+}
+
+Uri& Uri::operator=( const Uri& obj ) {
+    // cout << "Uri Copy" << endl;
+    if (this != &obj) {
+        this->socketFd = obj.socketFd;
+        this->socket_map = obj.socket_map;
+        this->type = obj.type;
+        this->subDelimiters = obj.genDelimiters;
+        this->genDelimiters = obj.genDelimiters;
+        this->requestTarget = obj.requestTarget;
+        this->path = obj.path;
+        this->query = obj.query;
+        this->host = obj.host;
+        this->port = obj.port;
+    }
+    return *this;
+}
 
 Uri::Uri( int& socketFd, Socket_map& socket_map ) : socketFd(socketFd), socket_map(&socket_map), subDelimiters(SUB_DELIM), genDelimiters(GEN_DELIM) {
     port = 80;
