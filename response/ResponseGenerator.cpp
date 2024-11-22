@@ -6,26 +6,36 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 20:59:39 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 21:00:14 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/ResponseGenerator.hpp"
 #include "../include/Bond.hpp"
 
-ResponseGenerator::ResponseGenerator( int clientFd, map<int, string>& statusCodeMap) : clientFd(clientFd), exception(NULL), statusCodeMap(statusCodeMap) {
-    size = 0;
+ResponseGenerator::ResponseGenerator( ) {
+}
+
+ResponseGenerator::ResponseGenerator( const ResponseGenerator& obj ) {
+    *this = obj;
 }
 
 ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) {
+    // cout << "ResponseGenerator Copy" << endl;
     if (this != &obj) {
         this->clientFd = obj.clientFd;
-        this->size = obj.size;
+        this->toRead = obj.toRead;
         this->ifs = obj.ifs;
         this->exception = obj.exception;
         this->bond = obj.bond;
+        this->statusCodeMap = obj.statusCodeMap;
     }
     return *this;
+}
+
+ResponseGenerator::ResponseGenerator( int clientFd, map<int, string>& statusCodeMap ) : clientFd(clientFd), exception(NULL), statusCodeMap(&statusCodeMap) {
+    toRead = 0;
+    reading = 0;
 }
 
 ResponseGenerator::~ResponseGenerator( ) {
@@ -49,12 +59,13 @@ void ResponseGenerator::generateErrorMessage( ) {
     string  responseBuffer;
     Uri uri = bond->getUri();
 
+    cout << "Error Message" << endl;
     time_t timestamp = time(NULL);
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
     strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
 
-    ss << "HTTP/1.1 " << exception->statusCode << " " << statusCodeMap.find(exception->statusCode)->second << CRLF;
+    ss << "HTTP/1.1 " << exception->statusCode << " " << statusCodeMap->find(exception->statusCode)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
     ss << "Connection: close" << CRLF;
@@ -66,9 +77,7 @@ void ResponseGenerator::generateErrorMessage( ) {
 
     if (a == -1) {
         ifs->close();
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
-        generateErrorMessage();
+        cout << "Send-Error:" << strerror(errno) << endl;
     }
 
     delete exception; exception = NULL;
@@ -76,10 +85,48 @@ void ResponseGenerator::generateErrorMessage( ) {
     bond->setPhase(REQUEST_READY);
 }
 
-void ResponseGenerator::completeMessage( ) {
+void ResponseGenerator::completeRangeMessage( ) {
     string fileBuffer;
-    char buf[1620];
+    size_t size = (toRead / 1620) >= 1 ? 1620 : toRead;
+    char buf[size + 1];
 
+    ifs->read(buf, size);
+    if (ifs->bad()) {
+        ifs->close();
+        cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        generateErrorMessage();
+        return ;
+    }
+
+    toRead -= ifs->gcount();
+     
+    fileBuffer.append(buf, ifs->gcount());
+
+    int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
+
+    if (a == -1) {
+        ifs->close();
+        cout << "Send-Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
+        generateErrorMessage();
+    }
+
+    if (!toRead) {
+        logging("Completed", WARNING, NULL, 0);
+        bond->setResponseState(CLOSED);
+        bond->setPhase(REQUEST_READY);
+        ifs->close();
+        return ;
+    }
+
+}
+
+void ResponseGenerator::completeNormalMessage( ) {
+    string fileBuffer;
+    char buf[1621];
+
+    if (!ifs) cout << "SEGV" << endl;
     ifs->read(buf, 1620);
     if (ifs->bad()) {
         ifs->close();
@@ -90,29 +137,30 @@ void ResponseGenerator::completeMessage( ) {
     }
 
     fileBuffer.append(buf, ifs->gcount());
-    
+
+    int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
+
+    if (a == -1) {
+        ifs->close();
+        cout << "Send-Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
+        generateErrorMessage();
+    }
+
     if (ifs->eof()) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
         ifs->close();
         return ;
     }
-
-
-    int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
-
-    if (a == -1) {
-        ifs->close();
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
-        generateErrorMessage();
-    }
 }
 
-void ResponseGenerator::generateValidMessage( Uri& uri, string& contentType, string& fileBuffer ) {
-    string      responseBuffer;
+void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& contentType, string& fileBuffer, size_t rangeFirst, size_t rangeLast ) {
     stringstream ss;
     
+    (void)fileBuffer;
+    (void)rangeFirst;
+    (void)rangeLast;
     time_t timestamp = time(NULL);
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
@@ -120,8 +168,11 @@ void ResponseGenerator::generateValidMessage( Uri& uri, string& contentType, str
     
     struct stat result;
 
-    ss << "HTTP/1.1 " << 200 << " OK" << CRLF;
+    // Normal HTTP Header
+    ss << "HTTP/1.1 " << statusCode << statusCodeMap->find(statusCode)->second << CRLF;
     ss << "Date: " << date << CRLF;
+
+    // Optional Case
     if (!stat(uri.path.c_str(), &result)) {
         struct tm datetime2 = *localtime(&result.st_mtime);
         char lastModified[40];
@@ -129,16 +180,30 @@ void ResponseGenerator::generateValidMessage( Uri& uri, string& contentType, str
 
         ss << "Last Modified: " << lastModified << CRLF;
     }
+    
+    // Normal HTTP Headers
     ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
     ss << "Content-Type: " << contentType << CRLF;
-    ss << "Content-Length: " << uri.getResourceSize() << CRLF;
+
+    // In Case of Range request
+    if (statusCode == 206) {
+        ss << "Content-Range: bytes " << rangeFirst << "-" << rangeLast << "/" << uri.getResourceSize() << CRLF;
+        ss << "Content-Length: " << rangeLast - rangeFirst + 1 << CRLF;
+    }
+    else ss << "Content-Length: " << uri.getResourceSize() << CRLF;
+
+    // Normal HTTP Header
     ss << "Connection: keep-alive" << CRLF;
+
+    // In Case of Range request
+    // if (bond->isRange()) ss << "Accept-Ranges: bytes" << CRLF;
+    
     ss << CRLF;
 
+    // Adding The Paylod
     ss << fileBuffer;
-    responseBuffer += ss.str();
     
-    int a = send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
         ifs->close();
@@ -147,9 +212,64 @@ void ResponseGenerator::generateValidMessage( Uri& uri, string& contentType, str
     }
 }
 
-void ResponseGenerator::GETResponse( ) {
+void ResponseGenerator::NormalGETResponse( ) {
     if (bond->getResponseState() == OPEN) {
-        completeMessage();
+        completeNormalMessage();
+        return ;
+    }
+
+    Uri uri = bond->getUri();
+    string contentType = "application/octet-stream";
+
+    if (uri.path.rfind('.') != string::npos) {
+        string tmp = uri.path.substr(uri.path.rfind('.') + 1);
+
+        map<string, string> mimeTypes = uri.getHostServer().getMimeTypes();
+
+        map<string, string>::iterator it = mimeTypes.find(tmp);
+
+        if (it != mimeTypes.end()) contentType = it->second;
+    }
+    cout << "*" << endl;
+    ifs->open(uri.path.c_str(), ios_base::in | ios_base::binary);
+    if (!ifs->is_open()) {
+        cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("The Opening Of The File", 500);
+        generateErrorMessage();
+        bond->setPhase(REQUEST_READY);
+        return ;
+    }
+
+    string fileBuffer;
+    char buf[1621];
+    
+    ifs->read(buf, 1620);
+    
+    if (ifs->bad()) {
+        ifs->close();
+        cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        generateErrorMessage();
+        bond->setPhase(REQUEST_READY);
+        return ;
+    }
+
+    fileBuffer.append(buf, ifs->gcount());
+
+    generateValidMessage(200, uri, contentType, fileBuffer, -1, -1);
+
+    if (ifs->eof()) {
+        bond->setResponseState(CLOSED);
+        bond->setPhase(REQUEST_READY);
+        ifs->close();
+    } else {
+        bond->setResponseState(OPEN);
+    }
+}
+
+void ResponseGenerator::RangeGETResponse( ) {
+    if (bond->getResponseState() == OPEN) {
+        completeRangeMessage();
         return ;
     }
 
@@ -166,6 +286,7 @@ void ResponseGenerator::GETResponse( ) {
         if (it != mimeTypes.end()) contentType = it->second;
     }
     
+    cout << "@" << endl;
     ifs->open(uri.path.c_str(), ios_base::in | ios_base::binary);
     if (!ifs->is_open()) {
         cout << "Error:" << strerror(errno) << endl;
@@ -174,26 +295,48 @@ void ResponseGenerator::GETResponse( ) {
         bond->setPhase(REQUEST_READY);
         return ;
     }
+    
+    size_t rangeFirst;
+    size_t rangeLast;
+    if (bond->getRangeType() == INT_RANGE) {
+        rangeFirst = getRangeValue(bond->getRangeFirst());
+        rangeLast = getRangeValue(bond->getRangeLast());
+        
+        if (!rangeLast || rangeLast > uri.getResourceSize()) rangeLast = uri.getResourceSize() - 1;
+
+        ifs->seekg(rangeFirst);
+
+        toRead = rangeLast - rangeFirst + 1; reading = 0;
+    } else {
+        rangeFirst = getRangeValue(bond->getRangeLast());
+        rangeLast = uri.getResourceSize() - 1;
+
+        ifs->seekg(rangeFirst, ios_base::end);
+
+        toRead = uri.getResourceSize() - rangeLast + 1; reading = 0;\
+
+    }
 
     string fileBuffer;
-    char buf[1620];
+    size_t size = (toRead / 1620) >= 1 ? 1620 : toRead;
+    char buf[size + 1];
     
-    ifs->read(buf, 1620);
-    
+    ifs->read(buf, size);
     if (ifs->bad()) {
         ifs->close();
         cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
         generateErrorMessage();
-        bond->setPhase(REQUEST_READY);
         return ;
     }
 
+    toRead -= ifs->gcount();
+     
     fileBuffer.append(buf, ifs->gcount());
 
-    generateValidMessage(uri, contentType, fileBuffer);
+    generateValidMessage(206, uri, contentType, fileBuffer, rangeFirst, rangeLast);
 
-    if (ifs->eof()) {
+    if (!toRead) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
         ifs->close();
@@ -210,7 +353,9 @@ void ResponseGenerator::filterResponseType( ) {
         generateErrorMessage();
     else {
         if (bond->getMethod() == GET) {
-            GETResponse();
+            // if (bond->isRange()) RangeGETResponse();
+            // else NormalGETResponse();
+            NormalGETResponse();
             return ;
         }
         else {

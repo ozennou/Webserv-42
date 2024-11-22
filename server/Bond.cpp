@@ -6,17 +6,16 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 20:59:28 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 21:00:50 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Bond.hpp"
 
-string stolower( string s ) {
+void stolower( string& s ) {
     for (size_t i = 0; i < s.length(); i++) {
         if (isalpha(s[i])) s[i] = tolower(s[i]);
     }
-    return s;
 }
 
 bool isUnreserved( int c ) {
@@ -43,7 +42,7 @@ bool percentEncoded( string& str, size_t index ) {
 
 // ------------------------------------------------------------------------------------------------------ //
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( ) {
 }
 
 Bond::Bond( const Bond& obj ) {
@@ -76,6 +75,7 @@ void Bond::initParcer( ) {
     try {
         setPhase(RESPONSE_READY);
         requestParser.init();
+        connectionSate = requestParser.getConnectionState();
     }
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
@@ -90,15 +90,13 @@ void Bond::initParcer( ) {
 void Bond::initResponse( ) {
     if (phase == REQUEST_READY)  return ;
 
+    responseGenerator.setBondObject(this);
     if (!fileStream) {
         fileStream = new ifstream();
         responseGenerator.setInputStream(fileStream);
     }
 
-<<<<<<< HEAD
     responseGenerator.setBondObject(this);
-=======
->>>>>>> 79db373... Commiting to only see the last good commit and to see where is the bug
     cout << "res="<< getClientFd() << endl;
     responseGenerator.filterResponseType();
 }
@@ -131,10 +129,33 @@ void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
 
-Bond::~Bond( ) {
-    if (!fileStream) delete fileStream; fileStream = NULL;
+bool Bond::isRange( void ) {
+    return requestParser.isRange() && requestParser.isValidRange();
 }
 
-void Bond::methodInfosGET( void ) {
-    
+string  Bond::getRangeFirst( void ) {
+    return requestParser.getRangeFirst();
+}
+
+string  Bond::getRangeLast( void ) {
+    return requestParser.getRangeLast();
+}
+
+int  Bond::getRangeType( void ) {
+    return requestParser.getRangeType();
+}
+
+bool  Bond::getConnectionState( void ) {
+    return connectionSate;
+}
+
+Bond::~Bond( ) {
+    cout << getClientFd() << "= Closed" << endl;
+    cout << "->|"<< this << endl;
+    if (fileStream != NULL) {
+        fileStream->close();
+        delete fileStream;
+        fileStream = NULL;
+        cout << "freed" << endl;
+    }
 }

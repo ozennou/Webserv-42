@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 15:15:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 17:53:39 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 
 #include "ResponseGenerator.hpp"
 
+
 class Bond
 {
 private:
@@ -29,6 +30,8 @@ private:
 
     int clientFd;
 
+    bool connectionSate;
+
     string  buffer;
 
     ifstream *fileStream;
@@ -37,15 +40,16 @@ private:
 
     ResponseGenerator responseGenerator;
 public:
+    Bond( );
+    Bond( const Bond& obj );
+    Bond& operator=( const Bond& obj );
+
     Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap );
 
-
-    int     getClientFd( void );
+    int     getClientFd( void ) const;
 
     void    initParcer( void );
     void    initResponse( void );
-
-    void    methodInfosGET( void );
 
     int     getMethod( void );
     Uri&    getUri( void );
@@ -56,6 +60,12 @@ public:
 
     int     getPhase( void );
     void     setPhase( int phasee );
+
+    bool    isRange( void );
+    string    getRangeFirst( void );
+    string    getRangeLast( void );
+    int     getRangeType( void );
+    bool     getConnectionState( void );
 
     ~Bond( );
 };

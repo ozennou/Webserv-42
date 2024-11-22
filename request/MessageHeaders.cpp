@@ -13,7 +13,24 @@
 #include "../include/MessageHeaders.hpp"
 #include "../include/RequestParser.hpp"
 
-MessageHeaders::MessageHeaders( ) : delimiters(DELI), space(" \t") {
+MessageHeaders::MessageHeaders( ) : rangeType(NO_RANGE), delimiters(DELI), space(" \t") {
+}
+
+MessageHeaders::MessageHeaders( const MessageHeaders& obj ) {
+    *this = obj;
+}
+
+MessageHeaders& MessageHeaders::operator=( const MessageHeaders& obj ) {
+    // cout << "MessageHeaders Copy" << endl;
+    if (this != &obj) {
+        this->rangeType = obj.rangeType;
+        this->first = obj.first;
+        this->last = obj.last;
+        this->delimiters = obj.delimiters;
+        this->space = obj.space;
+        this->headers = obj.headers;
+    }
+    return *this;
 }
 
 MessageHeaders::~MessageHeaders( ) {
@@ -21,14 +38,14 @@ MessageHeaders::~MessageHeaders( ) {
 
 
 map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
-    map<string, string>::iterator it = hash.find("Transfer-Encoding");
-    if (it == hash.end()) it = hash.find("Content-Length");
-    if (it == hash.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
+    map<string, string>::iterator it = headers.find("Transfer-Encoding");
+    if (it == headers.end()) it = headers.find("Content-Length");
+    if (it == headers.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
     return it;
 }
 
 void MessageHeaders::parceFieldValue( ) {
-    for (multimap<string, string>::iterator it = hash.begin(); it != hash.end(); it++) {
+    for (multimap<string, string>::iterator it = headers.begin(); it != headers.end(); it++) {
         for (size_t i = 0; i < it->second.length(); i++) {
             int character = it->second[i];
             if ((character < 0 || character > 255) \
@@ -36,6 +53,102 @@ void MessageHeaders::parceFieldValue( ) {
                 throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400);
         }
     }
+}
+
+int MessageHeaders::getRangeType( ) {
+    return rangeType;
+}
+
+string MessageHeaders::getRangeFirst( ) {
+    return first;
+}
+
+string MessageHeaders::getRangeLast( ) {
+    return last;
+}
+
+bool MessageHeaders::findField( string fieldName ) {
+    map<string, string>::iterator it = headers.find(fieldName);
+    if (it == headers.end()) return false;
+    return true;
+}
+
+bool MessageHeaders::connectionState( ) {
+    map<string, string>::iterator it = headers.find("connection");
+    if (it == headers.end()) return true;
+    stolower(it->second);
+    if (it->second == "close") return false;
+    return true;
+}
+
+size_t  getRangeValue( string rangeString ) {
+    if (!rangeString.length()) return 0;
+
+    stringstream ss;
+    ss << rangeString;
+
+    size_t rangeValue;
+    ss >> rangeValue;
+
+    return rangeValue;
+}
+
+bool MessageHeaders::isValidRange( Uri& uri ) {
+    if (rangeType == NO_RANGE) return false;
+
+    size_t resourceSize = uri.getResourceSize();
+
+    if (rangeType == INT_RANGE) {
+        size_t rangeFirst = getRangeValue(first);
+        size_t rangeLast;
+
+        if (last.length()) rangeLast = getRangeValue(last);
+        else rangeLast = resourceSize;
+        if (rangeLast > resourceSize) rangeLast = resourceSize;
+
+        if (rangeFirst >= resourceSize) return false;
+        if (rangeFirst >= rangeLast) return false;
+        if (rangeLast < resourceSize) return false;
+    } else {
+        size_t rangeLast = getRangeValue(last);
+
+        if (resourceSize <= rangeLast) return false;
+        if (!rangeLast) return false;
+    }
+    return true;
+}
+
+void MessageHeaders::storeRange( string& fieldValue ) {
+    if (!fieldValue.length()) return ;
+
+    if (fieldValue.compare(0, 6, "bytes=")) return ;
+
+    string rangeSet = fieldValue.substr(6);
+    if (rangeSet[0] == '-') {
+        for (size_t i = 1; i < rangeSet.length(); i++) {
+            if (!isdigit(rangeSet[i])) return ;
+        }
+        last = rangeSet.substr(1);
+        rangeType = SUFFIX_RANGE;
+    } else if (isdigit(rangeSet[0])) {
+        size_t i = 0;
+        for (; i < rangeSet.length(); i++) {
+            if (!isdigit(rangeSet[i]) && rangeSet[i] != '-') return ;
+            if (rangeSet[i] == '-') break;
+        }
+        
+        first = rangeSet.substr(0, i);
+        last = "";
+        if (i != rangeSet.length()) {
+            size_t a = i + 1;
+            for (; a < rangeSet.length(); a++) {
+                if (!isdigit(rangeSet[a])) return ;
+            }
+            last = rangeSet.substr(i + 1, (rangeSet.length() - (i + 1)));
+        }
+        rangeType = INT_RANGE;
+    } else
+        return ;
 }
 
 void MessageHeaders::storeHost( string& fieldValue, Uri& uri ) {
@@ -64,7 +177,7 @@ void MessageHeaders::storeHost( string& fieldValue, Uri& uri ) {
     }
 }
 
-void MessageHeaders::storeField( string& field, Uri& uri ) {
+void MessageHeaders::storeField( string& field, Uri& uri, int method ) {
     size_t colonIndex = field.find(':');
 
     if (colonIndex == string::npos) throw RequestParser::HttpRequestException("no colon ':' found in the field", 400);
@@ -87,5 +200,7 @@ void MessageHeaders::storeField( string& field, Uri& uri ) {
         && fieldName == "host" && fieldValue.length())
         storeHost(fieldValue, uri);
 
-    hash.insert(make_pair<string, string>(fieldName, fieldValue));
+    if (method == GET && fieldName == "range") storeRange(fieldValue);
+
+    headers.insert(make_pair<string, string>(fieldName, fieldValue));
 }

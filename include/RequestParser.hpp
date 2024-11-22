@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 20:49:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 15:59:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ enum {
     DELETE
 };
 
-class RequestParser
+class   RequestParser
 {
     Bond*    bond;
 
@@ -58,6 +58,10 @@ class RequestParser
     void resolveResource( Location& location );
 
 public:
+    RequestParser( );
+    RequestParser( const RequestParser& obj );
+    RequestParser& operator=( const RequestParser& obj );
+    
     RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond );
 
     void init( void );
@@ -79,8 +83,15 @@ public:
     //
 
     int getMethod( void );
-
     Uri& getUri( void );
     
+    bool isRange( void );
+    bool isValidRange( void );
+
+    string getRangeFirst( void );
+    string getRangeLast( void );
+    int getRangeType( void );
+    bool getConnectionState( void );
+
     ~RequestParser( );
 };

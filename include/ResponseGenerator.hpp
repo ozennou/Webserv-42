@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/17 16:45:19 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 15:39:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,9 @@ class ResponseGenerator
 {
     int clientFd;
 
-    size_t size;
+    size_t toRead;
+
+    size_t reading;
     
     ifstream    *ifs;
     
@@ -34,29 +36,31 @@ class ResponseGenerator
 
     RequestParser::HttpRequestException* exception;
 
-    map<int, string>& statusCodeMap;
+    map<int, string>* statusCodeMap;
 
 public:
     
-    ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
-
+    ResponseGenerator( );
+    ResponseGenerator( const ResponseGenerator& obj );
     ResponseGenerator& operator=( const ResponseGenerator& obj );
 
+    ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
+
     void setException( RequestParser::HttpRequestException* exception );
-
     void setBondObject( Bond* bond );
-
     void setInputStream( ifstream* ifss );
 
     void generateErrorMessage( );
 
-    void generateValidMessage( Uri& uri, string& contentType, string& fileBuffer );
+    void generateValidMessage( int statusCode, Uri& uri, string& contentType, string& fileBuffer, size_t rangeFirst, size_t rangeLast);
 
-    void completeMessage( );
+    void completeNormalMessage( );
+    void completeRangeMessage( );
 
     void filterResponseType();
 
-    void GETResponse();
+    void NormalGETResponse();
+    void RangeGETResponse();
 
     ~ResponseGenerator();
 };

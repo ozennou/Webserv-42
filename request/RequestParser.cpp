@@ -6,12 +6,33 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/16 17:46:40 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/22 17:21:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
+
+RequestParser::RequestParser( ) {
+}
+
+RequestParser::RequestParser( const RequestParser& obj ) {
+    *this = obj;
+}
+
+RequestParser& RequestParser::operator=( const RequestParser& obj ) {
+    // cout << "RequestParser Copy" << endl;
+    if (this != &obj) {
+        this->bond = obj.bond;
+        this->method = obj.method;
+        this->uri = obj.uri;
+        this->headers = obj.headers;
+        this->size = obj.size;
+        this->payload = obj.payload;
+        this->clientFd = obj.clientFd;
+    }
+    return *this;
+}
 
 RequestParser::RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond ) : uri(socketFd, socket_map) {
     this->bond = bond;
@@ -62,6 +83,30 @@ Uri&  RequestParser::getUri( void ) {
     return uri;
 }
 
+bool  RequestParser::isRange( void ) {
+    return headers.findField("range");
+}
+
+bool  RequestParser::isValidRange( void ) {
+    return headers.isValidRange(uri);
+}
+
+string  RequestParser::getRangeFirst( void ) {
+    return headers.getRangeFirst();
+}
+
+string  RequestParser::getRangeLast( void ) {
+    return headers.getRangeLast();
+}
+
+int  RequestParser::getRangeType( void ) {
+    return headers.getRangeType();
+}
+
+bool  RequestParser::getConnectionState( void ) {
+    return headers.connectionState();
+}
+
 void RequestParser::resolveResource( Location& location ) {
 
     // Either stat() failed, or the macro failed
@@ -91,7 +136,7 @@ void RequestParser::headerSection( string stringBuffer ) {
         if (!field.length()) break;
         
         pos += 2;
-        headers.storeField(field, uri);
+        headers.storeField(field, uri, method);
         stringBuffer = stringBuffer.substr(pos);
     }
 
@@ -127,16 +172,16 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
 void RequestParser::init( ) {
     int i;
-    char buf[size];
+    char buf[size + 1];
     string stringBuffer;
 
     i = recv(clientFd, buf, size, 0);
-    
+
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
     buf[i] = 0; stringBuffer += buf;
-    
+
     requestLine(stringBuffer);
     
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));

@@ -38,7 +38,10 @@ enum {
     OPEN,
     CLOSED,
     REQUEST_READY,
-    RESPONSE_READY
+    RESPONSE_READY,
+    INT_RANGE,
+    SUFFIX_RANGE,
+    NO_RANGE
 };
 
 using namespace std;
@@ -51,7 +54,7 @@ class Clients;
 //printf_server.cpp
 void print_servers(vector<Server> &);
 
-string stolower( string s );
+void stolower( string& s );
 
 bool isUnreserved( int c );
 
@@ -80,7 +83,7 @@ void    init_servers(vector<Server> &servers, Socket_map &sock_map);
 //check_flags.cpp
 string check_flags(int ac, char **av);
 
-
+size_t  getRangeValue( string rangeString );
 
 //to_remove
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map);
