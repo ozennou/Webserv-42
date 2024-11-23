@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 13:21:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 15:26:07 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,10 +175,10 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
 void RequestParser::init( ) {
     int i;
-    char buf[size + 1];
+    char buf[1621];
     string stringBuffer;
 
-    i = recv(clientFd, buf, size, 0);
+    i = recv(clientFd, buf, 1620, 0);
 
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
