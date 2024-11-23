@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 15:26:07 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 16:54:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ RequestParser::RequestParser( const RequestParser& obj ) {
 }
 
 RequestParser& RequestParser::operator=( const RequestParser& obj ) {
-    // cout << "RequestParser Copy" << endl;
     if (this != &obj) {
         this->bond = obj.bond;
         this->method = obj.method;

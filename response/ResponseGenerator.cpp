@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 12:06:48 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 15:49:42 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     else ss << "Content-Length: " << uri.getResourceSize() << CRLF;
 
     // Normal HTTP Header
-    ss << "Connection: keep-alive" << CRLF;
+    ss << "Connection: close" << CRLF;
 
     // In Case of Range request
     // if (bond->isRange()) ss << "Accept-Ranges: bytes" << CRLF;

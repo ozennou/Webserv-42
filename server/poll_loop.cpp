@@ -79,7 +79,7 @@ int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &status
     if (newFd < 0)
         return 1;
     if (sa.ss_family == AF_INET) {
-        // logging("Accepted ipv4 new connection", INFO, NULL, 0);
+        logging("Accepted ipv4 new connection", INFO, NULL, 0);
     }
     else
     {
@@ -96,34 +96,6 @@ int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &status
 
 int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct pollfd *pfds, int &i)
 {
-    // cout << "------------" << endl;
-    //  int sock_d = clients.get_sock_d(client_fd);
-    // if (sock_d < 0) return 1;
-    // cout << "++++++++++++" << endl;
-    // (void)bonds;
-    // char    bf[1621];
-    // int     lenght = recv(client_fd, bf, 1620, 0);
-
-    // if (lenght < 0) {
-    //     // logging("< 0>", ERROR, NULL, 0);
-    //     return 1;
-    // }
-    // else if (!lenght)
-    // {
-    //     // logging("Client disconnected", INFO, NULL, 0);
-    //     pfds[i].fd = -1;
-    //     clients.remove_client(i);
-    //     close(client_fd);
-    // }
-    // else
-    // {
-    //     // cout << bf << endl;;    // reding the request part
-    //     (void)bf;
-    // }
-    // return 0;
-
-    // int sock_d = clients.get_sock_d(client_fd);
-    // if (sock_d < 0) return 1;
 
     list<Bond>::iterator  bond = getBond(bonds, client_fd);
     
@@ -134,46 +106,34 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
     }
     catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
-            // logging("Client Disconnected", ERROR, NULL, 0);
+            logging("Client Disconnected", ERROR, NULL, 0);
             bonds.erase(bond);
             pfds[i].fd = -1;
             clients.remove_client(client_fd);
             close(client_fd);
         }
         else if (e.statusCode == -1) {
-            // logging(e.message, ERROR, NULL, 0);
             return 1;
         }
-        // else
-        //     logging(e.message, ERROR, NULL, 0);
+        else
+            logging(e.message, ERROR, NULL, 0);
     }
     return 1;
 }
 
-int sending_response2(Clients &clients, list<Bond> &bonds, int &client_fd)
+int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, int &client_fd, int &i)
 {
-    (void)bonds;
-    (void)clients;
-
-    // int sock_d = clients.get_sock_d(client_fd);
-    // if (sock_d < 0)   // used for the client that already desconnected from the same iteration
-    //     return 1;
-    // vector<Server> srv = sock_map.get_servers(sock_d);
-        const char *response =
-        "HTTP/1.1 200 OK\r\n"        
-        "Content-Type: text/html\r\n"
-        "Content-Length: 0\r\n"      
-        "\r\n";                      
-
-    int result = send(client_fd, response, strlen(response), 0);
-    if (result < 0)
-        return 1;
-    return 0;
-
-    // int sock_d = clients.get_sock_d(client_fd);
-    // if (sock_d < 0) return 1;
-    // list<Bond>::iterator bond = getBond(bonds, client_fd);
-    // bond->initResponse();
+    int sock_d = clients.get_sock_d(client_fd);
+    if (sock_d < 0) return 1;
+    list<Bond>::iterator bond = getBond(bonds, client_fd);
+    bond->initResponse();
+    if (!bond->getConnectionState() && bond->getResponseState() == CLOSED) {
+        logging("Client Disconnected", ERROR, NULL, 0);
+        bonds.erase(bond);
+        pfds[i].fd = -1;
+        clients.remove_client(client_fd);
+        close(client_fd);
+    }
     return 0;
 }
 
@@ -227,7 +187,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                     else
                         reading_request2(fd, clients, bonds, pfds, i);
                 } else if (pfds[i].revents & POLLOUT) {
-                    sending_response2(clients, bonds, fd);
+                    sending_response2(clients, bonds, pfds, fd, i);
                 }
             }
         }
