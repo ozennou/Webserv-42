@@ -1,8 +1,8 @@
 #include "header.hpp"
 #include "../include/Bond.hpp"
 
-vector<Bond>::iterator getBond( vector<Bond>& bonds, int clientFd ) {
-    vector<Bond>::iterator it = bonds.begin();
+list<Bond>::iterator getBond( list<Bond>& bonds, int clientFd ) {
+    list<Bond>::iterator it = bonds.begin();
     for (; it != bonds.end(); it++) {
         if ((it)->getClientFd() == clientFd) return it;
     }
@@ -71,7 +71,7 @@ int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
     return 0;
 }
 
-int newconnection2(Clients &clients, vector<Bond> &bonds, map<int, string> &statusCodeMap, int &fd, struct pollfd **pfds, int &size, int &max_size, Socket_map& socket_map)
+int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &statusCodeMap, int &fd, struct pollfd **pfds, int &size, int &max_size, Socket_map& socket_map)
 {
     sockaddr_storage sa;
     socklen_t t = sizeof(sa);
@@ -90,18 +90,16 @@ int newconnection2(Clients &clients, vector<Bond> &bonds, map<int, string> &stat
         return 1;
     clients.add_client(newFd, fd);
     Bond b(newFd, fd, socket_map, statusCodeMap);
-    cout << "newFd=" << newFd << endl;
     bonds.push_back(b);
-    cout << "clientFd" << bonds[bonds.size() - 1].getClientFd() << endl;
     return 0;
 }
 
-int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struct pollfd *pfds, int &i)
+int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct pollfd *pfds, int &i)
 {
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0) return 1;
 
-    vector<Bond>::iterator  bond = getBond(bonds, client_fd);
+    list<Bond>::iterator  bond = getBond(bonds, client_fd);
     
     if (bond == bonds.end()) return 1;
 
@@ -111,22 +109,24 @@ int reading_request2(int &client_fd, Clients &clients, vector<Bond> &bonds,struc
     catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
             logging("Client Disconnected", ERROR, NULL, 0);
-            bonds.erase(getBond(bonds, client_fd));
+            bonds.erase(bond);
             pfds[i].fd = -1;
-            clients.remove_client(i);
+            clients.remove_client(client_fd);
             close(client_fd);
         }
         else if (e.statusCode == -1)
             return 1;
+        else
+            logging(e.message, ERROR, NULL, 0);
     }
     return 1;
 }
 
-int sending_response2(Clients &clients, vector<Bond> &bonds, int &client_fd)
+int sending_response2(Clients &clients, list<Bond> &bonds, int &client_fd)
 {
     int sock_d = clients.get_sock_d(client_fd);
     if (sock_d < 0) return 1;
-    vector<Bond>::iterator bond = getBond(bonds, client_fd);
+    list<Bond>::iterator bond = getBond(bonds, client_fd);
     bond->initResponse();
     return 0;
 }
@@ -147,13 +147,12 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));
 
-    vector<Bond>  bonds;
+    list<Bond>  bonds;
     Clients       clients;
     int           size, fd, max_size = 1;
     vector<int> sockets = sock_map.get_sockets();
     struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
 
-    bonds.reserve(255);
     while (true)
     {
         if (set_value(-1))

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 09:47:21 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 10:53:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,10 +143,8 @@ bool  Bond::getConnectionState( void ) {
 }
 
 Bond::~Bond( ) {
-    cout << "->|"<< clientFd << endl;
     if (fileStream != NULL) {
         delete fileStream;
         fileStream = NULL;
-        cout << "freed" << endl;
     }
 }
