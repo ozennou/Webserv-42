@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 17:21:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 09:39:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,7 @@ RequestParser& RequestParser::operator=( const RequestParser& obj ) {
     return *this;
 }
 
-RequestParser::RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond ) : uri(socketFd, socket_map) {
-    this->bond = bond;
+RequestParser::RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map ) : uri(socketFd, socket_map) {
     this->clientFd = clientFd;
     size = 5160;
 }

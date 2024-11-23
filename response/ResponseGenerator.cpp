@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 21:00:14 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 09:44:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ ResponseGenerator::ResponseGenerator( const ResponseGenerator& obj ) {
 }
 
 ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) {
-    // cout << "ResponseGenerator Copy" << endl;
     if (this != &obj) {
         this->clientFd = obj.clientFd;
         this->toRead = obj.toRead;
@@ -76,7 +75,8 @@ void ResponseGenerator::generateErrorMessage( ) {
     int a = send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
 
     if (a == -1) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Send-Error:" << strerror(errno) << endl;
     }
 
@@ -92,7 +92,8 @@ void ResponseGenerator::completeRangeMessage( ) {
 
     ifs->read(buf, size);
     if (ifs->bad()) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
         generateErrorMessage();
@@ -106,7 +107,8 @@ void ResponseGenerator::completeRangeMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
         generateErrorMessage();
@@ -116,7 +118,8 @@ void ResponseGenerator::completeRangeMessage( ) {
         logging("Completed", WARNING, NULL, 0);
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         return ;
     }
 
@@ -127,9 +130,11 @@ void ResponseGenerator::completeNormalMessage( ) {
     char buf[1621];
 
     if (!ifs) cout << "SEGV" << endl;
+    buf[0] = 0;
     ifs->read(buf, 1620);
     if (ifs->bad()) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
         generateErrorMessage();
@@ -141,7 +146,8 @@ void ResponseGenerator::completeNormalMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
         generateErrorMessage();
@@ -150,7 +156,8 @@ void ResponseGenerator::completeNormalMessage( ) {
     if (ifs->eof()) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         return ;
     }
 }
@@ -206,7 +213,8 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
         generateErrorMessage();
     }
@@ -246,7 +254,8 @@ void ResponseGenerator::NormalGETResponse( ) {
     ifs->read(buf, 1620);
     
     if (ifs->bad()) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
         generateErrorMessage();
@@ -261,7 +270,8 @@ void ResponseGenerator::NormalGETResponse( ) {
     if (ifs->eof()) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
     } else {
         bond->setResponseState(OPEN);
     }
@@ -323,7 +333,8 @@ void ResponseGenerator::RangeGETResponse( ) {
     
     ifs->read(buf, size);
     if (ifs->bad()) {
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
         cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
         generateErrorMessage();
@@ -339,7 +350,8 @@ void ResponseGenerator::RangeGETResponse( ) {
     if (!toRead) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
-        ifs->close();
+        // ifs->close();
+        logging("No Leak", WARNING, NULL, 0);
     } else {
         bond->setResponseState(OPEN);
     }

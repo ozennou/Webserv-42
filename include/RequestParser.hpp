@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 15:59:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 09:39:23 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ public:
     RequestParser( const RequestParser& obj );
     RequestParser& operator=( const RequestParser& obj );
     
-    RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map, Bond* bond );
+    RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map );
 
     void init( void );
 

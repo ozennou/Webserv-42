@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 21:00:50 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 09:47:21 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,19 +56,16 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->clientFd = obj.clientFd;
         this->connectionSate = obj.connectionSate;
         this->buffer = obj.buffer;
-        this->fileStream = obj.fileStream;
+        this->fileStream = new ifstream();
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
+        this->responseGenerator.setBondObject(this);
+        this->responseGenerator.setInputStream(fileStream);
     }
     return *this;
 }
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map, this), responseGenerator(clientFd, statusCodeMap) {
-}
-
-
-int Bond::getClientFd( ) const {
-    return clientFd;
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd, statusCodeMap) {
 }
 
 void Bond::initParcer( ) {
@@ -90,15 +87,11 @@ void Bond::initParcer( ) {
 void Bond::initResponse( ) {
     if (phase == REQUEST_READY)  return ;
 
-    responseGenerator.setBondObject(this);
-    if (!fileStream) {
-        fileStream = new ifstream();
-        responseGenerator.setInputStream(fileStream);
-    }
-
-    responseGenerator.setBondObject(this);
-    cout << "res="<< getClientFd() << endl;
     responseGenerator.filterResponseType();
+}
+
+int Bond::getClientFd( ) const {
+    return clientFd;
 }
 
 int Bond::getMethod( ) {
@@ -150,10 +143,8 @@ bool  Bond::getConnectionState( void ) {
 }
 
 Bond::~Bond( ) {
-    cout << getClientFd() << "= Closed" << endl;
-    cout << "->|"<< this << endl;
+    cout << "->|"<< clientFd << endl;
     if (fileStream != NULL) {
-        fileStream->close();
         delete fileStream;
         fileStream = NULL;
         cout << "freed" << endl;
