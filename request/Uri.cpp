@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 17:21:22 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 12:03:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,11 @@ Uri::Uri( const Uri& obj ) {
 }
 
 Uri& Uri::operator=( const Uri& obj ) {
-    // cout << "Uri Copy" << endl;
     if (this != &obj) {
         this->socketFd = obj.socketFd;
         this->socket_map = obj.socket_map;
         this->type = obj.type;
-        this->subDelimiters = obj.genDelimiters;
+        this->subDelimiters = obj.subDelimiters;
         this->genDelimiters = obj.genDelimiters;
         this->requestTarget = obj.requestTarget;
         this->path = obj.path;
@@ -72,8 +71,10 @@ Location Uri::matchURI( Server& server ) {
     vector<Location>::iterator it = locations.begin();
 
     // Get the route that is at least equal to the path
-    for (; it->getRoute().size() > path.size(); it++) {
+    for (; (it != locations.end() && it->getRoute().size() > path.size()); it++) {
     }
+
+    if (it == locations.end()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
 
     string route;
     // Getting the path Of the resource

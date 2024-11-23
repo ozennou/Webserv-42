@@ -139,10 +139,10 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(505, " HTTP Version Not Supported"));
     statusCodeMap.insert(make_pair<int, string>(501, " Not Implemented"));
     statusCodeMap.insert(make_pair<int, string>(500, " Internal Server Error"));
+    statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));
     statusCodeMap.insert(make_pair<int, string>(405, " Method Not Allowed"));
     statusCodeMap.insert(make_pair<int, string>(404, " Not Found"));
     statusCodeMap.insert(make_pair<int, string>(403, " Forbidden"));
-    statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));
     statusCodeMap.insert(make_pair<int, string>(400, " Bad Request"));
     statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));

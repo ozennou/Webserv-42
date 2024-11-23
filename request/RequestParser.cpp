@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 09:39:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 13:21:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ RequestParser& RequestParser::operator=( const RequestParser& obj ) {
         this->method = obj.method;
         this->uri = obj.uri;
         this->headers = obj.headers;
-        this->size = obj.size;
+        this->size = 5160;
         this->payload = obj.payload;
         this->clientFd = obj.clientFd;
     }
@@ -72,6 +72,10 @@ void RequestParser::findCRLF( string& stringBuffer ) {
                 break;
         }
     }
+}
+
+void RequestParser::setBondObject( Bond* bondd ) {
+    this->bond = bondd;
 }
 
 int  RequestParser::getMethod( void ) {
@@ -190,6 +194,4 @@ void RequestParser::init( ) {
     Location location = uri.matchURI(server);
 
     resolveResource(location);
-
-    (void)bond;
 }

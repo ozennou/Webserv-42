@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 09:39:23 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 11:52:25 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ public:
 
     void init( void );
 
+    void setBondObject( Bond* bond );
     // Exception Class
     class HttpRequestException : public exception
     {

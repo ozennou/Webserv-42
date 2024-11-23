@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 10:53:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 12:06:04 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
         this->responseGenerator.setBondObject(this);
+        this->requestParser.setBondObject(this);
         this->responseGenerator.setInputStream(fileStream);
     }
     return *this;

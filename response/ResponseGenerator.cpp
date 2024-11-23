@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 10:57:33 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/23 12:06:48 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ void ResponseGenerator::generateErrorMessage( ) {
     string  responseBuffer;
     Uri uri = bond->getUri();
 
-    cout << "Error Message" << endl;
     time_t timestamp = time(NULL);
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
