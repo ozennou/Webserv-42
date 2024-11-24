@@ -62,4 +62,5 @@ public:
     void directoryResponse();
     void NormalGETResponse();
     void RangeGETResponse();
+    string dirlisting();
 };

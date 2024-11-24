@@ -325,9 +325,47 @@ void ResponseGenerator::RangeGETResponse( ) {
     }
 }
 
+string ResponseGenerator::dirlisting()
+{
+    stringstream res;
+
+    string dir_path = "/Users/mozennou/goinfre";
+    string uri = "/";
+
+    res << "<!DOCTYPE HTML><html><head><h1>Index of " << uri << "</title></head><body><p>hello world</p></body><html>";
+
+
+
+    return res.str();
+}
+
 void ResponseGenerator::directoryResponse( ) {
-    // uri = bond->getUri();
-    // path = path.uri;
+    stringstream ss;
+    string       html_res;
+    Uri     uri = bond->getUri();
+
+    // cout << uri.requestTarget << endl;
+    time_t timestamp = time(NULL);
+    struct tm datetime1 = *localtime(&timestamp);
+    char date[40];
+    strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+
+    ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
+    ss << "Date: " << date << CRLF;
+    ss << "Content-Type: text/html" << CRLF;
+
+    html_res = dirlisting();
+
+    ss << "Content-Length: " << html_res.length() << CRLF;
+
+    ss << CRLF;
+    ss << html_res;
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+
+    if (a == -1) {
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        generateErrorMessage();
+    }
 }
 
 void ResponseGenerator::filterResponseType( ) {
