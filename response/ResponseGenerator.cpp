@@ -327,24 +327,59 @@ void ResponseGenerator::RangeGETResponse( ) {
 
 string ResponseGenerator::dirlisting()
 {
+    Uri     uri = bond->getUri();
     stringstream res;
+    DIR* dir = opendir(uri.path.c_str());
+    struct dirent *entry;
+    if (!dir) {
+        this->exception = new RequestParser::HttpRequestException("No permission to list the directory", 403);
+        generateErrorMessage();
+        return "";
+    }
+res << "<!DOCTYPE HTML><html><head>";
+res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+res << "<title>Index of " << uri.requestTarget << "</title>";
+res << "<style>";
+res << ".file-list { font-weight: 300; list-style-type: none; padding: 0; margin-top: 20px; }";
+res << ".file-list li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; }";
+res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 1; }";
+res << ".file-name:hover { text-decoration: underline; }";
 
-    string dir_path = "/Users/mozennou/goinfre";
-    string uri = "/";
+res << ".file-type { font-style: italic; color: gray; text-align: right; margin-left: 10px; }";
+res << "</style></head><body>";
 
-    res << "<!DOCTYPE HTML><html><head><h1>Index of " << uri << "</title></head><body><p>hello world</p></body><html>";
+res << "<h1>Index of " << uri.requestTarget << "</h1>";
+res << "<ul class='file-list'>";
+    res << "<ul class='file-list'>";
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
+            continue ;
+        res << "<li><a href='"<< entry->d_name << "'>" << entry->d_name << "</a>";
+        res << "<a class='file-type'>";
+        if (entry->d_type == DT_DIR)
+            res << "Directory";
+        else if (entry->d_type == DT_REG)
+            res << "Regular file";
+        else if (entry->d_type == DT_SOCK)
+            res << "Socket file";
+        else if (entry->d_type == DT_LNK)
+            res << "Symlink";
+        else if (entry->d_type == DT_BLK)
+            res << "Block device";
+        else
+            res << "Unknown file type";
+        res << "</a></li>";
+    }
+    res << "</ul></body><html>";
 
-
-
+    closedir(dir);
     return res.str();
 }
 
 void ResponseGenerator::directoryResponse( ) {
     stringstream ss;
     string       html_res;
-    Uri     uri = bond->getUri();
 
-    // cout << uri.requestTarget << endl;
     time_t timestamp = time(NULL);
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
@@ -353,8 +388,11 @@ void ResponseGenerator::directoryResponse( ) {
     ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Content-Type: text/html" << CRLF;
+    ss << "Connection: close" << CRLF;
 
     html_res = dirlisting();
+    if (html_res == "")
+        return ;
 
     ss << "Content-Length: " << html_res.length() << CRLF;
 
