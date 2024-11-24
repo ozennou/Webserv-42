@@ -21,7 +21,6 @@ MessageHeaders::MessageHeaders( const MessageHeaders& obj ) {
 }
 
 MessageHeaders& MessageHeaders::operator=( const MessageHeaders& obj ) {
-    // cout << "MessageHeaders Copy" << endl;
     if (this != &obj) {
         this->rangeType = obj.rangeType;
         this->first = obj.first;
@@ -94,7 +93,6 @@ size_t  getRangeValue( string rangeString ) {
 }
 
 bool MessageHeaders::isValidRange( Uri& uri ) {
-    if (rangeType == NO_RANGE) return false;
 
     size_t resourceSize = uri.getResourceSize();
 
@@ -108,7 +106,6 @@ bool MessageHeaders::isValidRange( Uri& uri ) {
 
         if (rangeFirst >= resourceSize) return false;
         if (rangeFirst >= rangeLast) return false;
-        if (rangeLast < resourceSize) return false;
     } else {
         size_t rangeLast = getRangeValue(last);
 
@@ -169,10 +166,9 @@ void MessageHeaders::storeHost( string& fieldValue, Uri& uri ) {
     if (fieldValue.find(':') != string::npos \
     && fieldValue.find(':') != fieldValue.length() - 1) {
         stringstream ss;
-        // for (size_t i = fieldValue.find(':') + 1; i < fieldValue.length(); i++) {
-        ss << fieldValue.substr(fieldValue.find(':') + 1, fieldValue.length() - (fieldValue.find(':') + 1));
-        // }
-        ss >> uri.port;
+
+        ss << fieldValue.substr(fieldValue.find(':') + 1, fieldValue.length() - (fieldValue.find(':') + 1)); ss >> uri.port;
+        
         if (ss.fail() || uri.port < 0 || uri.port > 65535) throw RequestParser::HttpRequestException("Invalid Port Number", 400);
     }
 }

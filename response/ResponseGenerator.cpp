@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 15:49:42 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 16:57:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) 
 
 ResponseGenerator::ResponseGenerator( int clientFd, map<int, string>& statusCodeMap ) : clientFd(clientFd), exception(NULL), statusCodeMap(&statusCodeMap) {
     toRead = 0;
-    reading = 0;
 }
 
 ResponseGenerator::~ResponseGenerator( ) {
@@ -68,14 +67,15 @@ void ResponseGenerator::generateErrorMessage( ) {
     ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
     ss << "Connection: close" << CRLF;
     ss << "Content-Length: 0" << CRLF;
+    
+    if (exception->statusCode == 416) ss << "Content-Range: */" << uri.getResourceSize() << CRLF;
+
     ss << CRLF;
     responseBuffer += ss.str();
 
-    int a = send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
+    send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
 
-    if (a == -1) {
-        cout << "Send-Error:" << strerror(errno) << endl;
-    }
+    logging(exception->message, WARNING, NULL, 0);
 
     delete exception; exception = NULL;
 
@@ -89,8 +89,8 @@ void ResponseGenerator::completeRangeMessage( ) {
 
     ifs->read(buf, size);
     if (ifs->bad()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
         generateErrorMessage();
         return ;
     }
@@ -102,13 +102,13 @@ void ResponseGenerator::completeRangeMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        cout << "Send-Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
+        // cout << "Send-Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
         generateErrorMessage();
+        return ;
     }
 
     if (!toRead) {
-        logging("Completed", WARNING, NULL, 0);
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
         return ;
@@ -124,8 +124,8 @@ void ResponseGenerator::completeNormalMessage( ) {
     buf[0] = 0;
     ifs->read(buf, 1620);
     if (ifs->bad()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
         generateErrorMessage();
         return ;
     }
@@ -135,9 +135,10 @@ void ResponseGenerator::completeNormalMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        cout << "Send-Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
+        // cout << "Send-Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
         generateErrorMessage();
+        return ;
     }
 
     if (ifs->eof()) {
@@ -177,15 +178,13 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     // In Case of Range request
     if (statusCode == 206) {
         ss << "Content-Range: bytes " << rangeFirst << "-" << rangeLast << "/" << uri.getResourceSize() << CRLF;
-        ss << "Content-Length: " << rangeLast - rangeFirst + 1 << CRLF;
+        if (bond->getRangeType() == INT_RANGE) ss << "Content-Length: " << (rangeLast - rangeFirst + 1) << CRLF;
+        if (bond->getRangeType() == SUFFIX_RANGE) ss << "Content-Length: " << (rangeLast - (rangeLast - rangeFirst)) << CRLF;
     }
     else ss << "Content-Length: " << uri.getResourceSize() << CRLF;
 
     // Normal HTTP Header
     ss << "Connection: close" << CRLF;
-
-    // In Case of Range request
-    // if (bond->isRange()) ss << "Accept-Ranges: bytes" << CRLF;
     
     ss << CRLF;
 
@@ -195,7 +194,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
-        this->exception = new RequestParser::HttpRequestException("Send Failed", 500);
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
         generateErrorMessage();
     }
 }
@@ -219,10 +218,10 @@ void ResponseGenerator::NormalGETResponse( ) {
         if (it != mimeTypes.end()) contentType = it->second;
     }
 
-    ifs->open(uri.path.c_str(), ios_base::in | ios_base::binary);
+    ifs->open(uri.path.c_str(), ios::in | ios::binary);
     if (!ifs->is_open()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Opening Of The File", 500);
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-The Opening Of The File", 500);
         generateErrorMessage();
         bond->setPhase(REQUEST_READY);
         return ;
@@ -234,8 +233,8 @@ void ResponseGenerator::NormalGETResponse( ) {
     ifs->read(buf, 1620);
     
     if (ifs->bad()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
         generateErrorMessage();
         bond->setPhase(REQUEST_READY);
         return ;
@@ -272,12 +271,11 @@ void ResponseGenerator::RangeGETResponse( ) {
         if (it != mimeTypes.end()) contentType = it->second;
     }
     
-    ifs->open(uri.path.c_str(), ios_base::in | ios_base::binary);
+    ifs->open(uri.path.c_str(), ios::in | ios::binary);
     if (!ifs->is_open()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Opening Of The File", 500);
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("System Error-Opening Of The Resource", 500);
         generateErrorMessage();
-        bond->setPhase(REQUEST_READY);
         return ;
     }
     
@@ -287,19 +285,18 @@ void ResponseGenerator::RangeGETResponse( ) {
         rangeFirst = getRangeValue(bond->getRangeFirst());
         rangeLast = getRangeValue(bond->getRangeLast());
         
-        if (!rangeLast || rangeLast > uri.getResourceSize()) rangeLast = uri.getResourceSize() - 1;
+        if (!rangeLast || rangeLast >= uri.getResourceSize()) rangeLast = uri.getResourceSize() - 1;
 
         ifs->seekg(rangeFirst);
 
-        toRead = rangeLast - rangeFirst + 1; reading = 0;
+        toRead = rangeLast - rangeFirst + 1;
     } else {
         rangeFirst = getRangeValue(bond->getRangeLast());
         rangeLast = uri.getResourceSize() - 1;
 
-        ifs->seekg(rangeFirst, ios_base::end);
+        ifs->seekg(rangeLast - rangeFirst);
 
-        toRead = uri.getResourceSize() - rangeLast + 1; reading = 0;\
-
+        toRead = rangeLast - (rangeLast - rangeFirst);
     }
 
     string fileBuffer;
@@ -308,8 +305,7 @@ void ResponseGenerator::RangeGETResponse( ) {
     
     ifs->read(buf, size);
     if (ifs->bad()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("The Reading Of The File", 500);
+        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
         generateErrorMessage();
         return ;
     }
@@ -332,11 +328,11 @@ void ResponseGenerator::filterResponseType( ) {
     stringstream stream;
     string  responseBuffer;
 
-    if (exception)
-        generateErrorMessage();
+    bond->rangeHeader();
+    if (exception) generateErrorMessage();
     else {
         if (bond->getMethod() == GET) {
-            if (bond->isRange()) RangeGETResponse();
+            if (bond->rangeHeader()) RangeGETResponse();
             else NormalGETResponse();
             return ;
         }

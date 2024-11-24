@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 12:03:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 14:45:16 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ Location Uri::matchURI( Server& server ) {
     Location location;
     vector<Location> locations = server.getLocations();
     vector<Location>::iterator it = locations.begin();
-
+    
     // Get the route that is at least equal to the path
     for (; (it != locations.end() && it->getRoute().size() > path.size()); it++) {
     }
@@ -155,11 +155,11 @@ void Uri::normalizePath( ) {
 void Uri::extractQuery( size_t& index ) {
     query = requestTarget.substr(index + 1, requestTarget.length() - (index + 1));
     
-    for (size_t i = 0; i < requestTarget.length(); i++) {
-        if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
-            && requestTarget[i] != ':' && requestTarget[i] != '/' && requestTarget[i] != '?') \
-        && !percentEncoded(requestTarget, i) \
-        && subDelimiters.find(requestTarget[i]) == string::npos)
+    for (size_t i = 0; i < query.length(); i++) {
+        if ((!isUnreserved(query[i]) && query[i] != '@' \
+            && query[i] != ':' && query[i] != '/' && query[i] != '?') \
+        && !percentEncoded(query, i) \
+        && subDelimiters.find(query[i]) == string::npos)
             throw RequestParser::HttpRequestException("Invalid Character found in Query", 400);
     }
 }
@@ -167,7 +167,6 @@ void Uri::extractQuery( size_t& index ) {
 void Uri::absoluteForm( ) {
     size_t colonIndex = requestTarget.find(':');
 
-    if (colonIndex == string::npos) throw RequestParser::HttpRequestException("':' not found in absolute-fome URI", 400);
     if (colonIndex != 4 || requestTarget.compare(0, 4, "http")) throw RequestParser::HttpRequestException("Invalid scheme received for the absolut-form", 400);
 
     size_t i = 4;

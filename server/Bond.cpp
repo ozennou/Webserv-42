@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 12:06:04 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 15:23:02 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,6 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->responseState = obj.responseState;
         this->clientFd = obj.clientFd;
         this->connectionSate = obj.connectionSate;
-        this->buffer = obj.buffer;
         this->fileStream = new ifstream();
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
@@ -86,7 +85,7 @@ void Bond::initParcer( ) {
 }
 
 void Bond::initResponse( ) {
-    if (phase == REQUEST_READY)  return ;
+    if (phase != RESPONSE_READY)  return;
 
     responseGenerator.filterResponseType();
 }
@@ -96,15 +95,11 @@ int Bond::getClientFd( ) const {
 }
 
 int Bond::getMethod( ) {
-    return GET;
+    return requestParser.getMethod();
 }
 
 Uri& Bond::getUri( ) {
     return requestParser.getUri();
-}
-
-string* Bond::getBuffer( ) {
-    return &buffer;
 }
 
 int Bond::getResponseState( ) {
@@ -123,7 +118,11 @@ void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
 
-bool Bond::isRange( void ) {
+bool Bond::rangeHeader( void ) {
+    if (requestParser.isRange() && !requestParser.isValidRange()) {
+        RequestParser::HttpRequestException e("Range Condition Not Good", 416);
+        responseGenerator.setException(&e);
+    }
     return requestParser.isRange() && requestParser.isValidRange();
 }
 
@@ -144,7 +143,7 @@ bool  Bond::getConnectionState( void ) {
 }
 
 Bond::~Bond( ) {
-    if (fileStream != NULL) {
+    if (fileStream) {
         delete fileStream;
         fileStream = NULL;
     }

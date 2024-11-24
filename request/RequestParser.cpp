@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 16:54:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 14:46:33 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,10 @@ RequestParser::~RequestParser( ) {
 void RequestParser::findCRLF( string& stringBuffer ) {
     if (!stringBuffer.length() || stringBuffer.find(CRLF) == string::npos) {
         int i;
-        char buf[size];
+        char buf[size + 1];
 
-        while((i = recv(clientFd, buf, size - 1, 0)) && i > 0) {
-            buf[i] = 0; stringBuffer += buf;
+        while((i = recv(clientFd, buf, size, 0)) && i > 0) {
+            stringBuffer.append(buf, i);
             if (stringBuffer.find(CRLF) != string::npos)
                 break;
         }
@@ -128,10 +128,10 @@ void RequestParser::resolveResource( Location& location ) {
 }
 
 void RequestParser::headerSection( string stringBuffer ) {
-
-    findCRLF(stringBuffer);
-
+    
     while (1) {
+        if (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
+
         size_t pos = stringBuffer.find(CRLF);
         string field = stringBuffer.substr(0, pos);
 
@@ -174,15 +174,15 @@ void RequestParser::requestLine( string& stringBuffer ) {
 
 void RequestParser::init( ) {
     int i;
-    char buf[1621];
+    char buf[size + 1];
     string stringBuffer;
 
-    i = recv(clientFd, buf, 1620, 0);
+    i = recv(clientFd, buf, size, 0);
 
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
-    buf[i] = 0; stringBuffer += buf;
+    stringBuffer.append(buf, i);
 
     requestLine(stringBuffer);
     

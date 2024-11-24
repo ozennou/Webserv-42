@@ -40,26 +40,21 @@ public:
     MessageHeaders( const MessageHeaders& obj );
     MessageHeaders& operator=( const MessageHeaders& obj );
 
+    ~MessageHeaders( );
+    
     void storeRange( string& fieldValue );
-
     bool isValidRange( Uri& uri );
-
     int getRangeType( );
-
     string getRangeFirst( );
     string getRangeLast( );
 
     void storeHost( string& fieldValue, Uri& uri );
 
     void storeField( string& field, Uri& uri, int method );
-
     void parceFieldValue( void );
-
     bool findField( string fieldName );
 
     bool connectionState( );
 
     map<string, string>::iterator findContentHeaders( );
-    
-    ~MessageHeaders( );
 };

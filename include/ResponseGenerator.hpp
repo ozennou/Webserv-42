@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 09:44:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 15:35:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,6 @@ class ResponseGenerator
     int clientFd;
 
     size_t toRead;
-
-    size_t reading;
     
     ifstream    *ifs;
     
@@ -46,6 +44,8 @@ public:
 
     ResponseGenerator( int clientFd, map<int, string>& statusCodeMap );
 
+    ~ResponseGenerator();
+    
     void setException( RequestParser::HttpRequestException* exception );
     void setBondObject( Bond* bond );
     void setInputStream( ifstream* ifss );
@@ -61,6 +61,4 @@ public:
 
     void NormalGETResponse();
     void RangeGETResponse();
-
-    ~ResponseGenerator();
 };

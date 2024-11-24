@@ -89,15 +89,15 @@ int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &status
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
-    Bond b(newFd, fd, socket_map, statusCodeMap);
-    bonds.push_back(b);
+    Bond b(newFd, fd, socket_map, statusCodeMap); // The Object is constructed in the function's stack
+    bonds.push_back(b); // The list's object is constructed in heap by it COPY constructor
     return 0;
 }
 
 int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct pollfd *pfds, int &i)
 {
 
-    list<Bond>::iterator  bond = getBond(bonds, client_fd);
+    list<Bond>::iterator  bond = getBond(bonds, client_fd); // Getting The Iterator
     
     if (bond == bonds.end()) return 1;
 
@@ -123,10 +123,12 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
 
 int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, int &client_fd, int &i)
 {
-    int sock_d = clients.get_sock_d(client_fd);
-    if (sock_d < 0) return 1;
     list<Bond>::iterator bond = getBond(bonds, client_fd);
+
+    if (bond == bonds.end()) return 1;
+
     bond->initResponse();
+    
     if (!bond->getConnectionState() && bond->getResponseState() == CLOSED) {
         logging("Client Disconnected", ERROR, NULL, 0);
         bonds.erase(bond);
@@ -153,11 +155,11 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));
 
-    list<Bond>  bonds;
-    Clients       clients;
-    int           size, fd, max_size = 1;
-    vector<int> sockets = sock_map.get_sockets();
-    struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
+    list<Bond>      bonds;
+    Clients         clients;
+    int             size, fd, max_size = 1;
+    vector<int>     sockets = sock_map.get_sockets();
+    struct pollfd   *pfds = init_poll_struct(sockets, size, max_size);
 
     while (true)
     {

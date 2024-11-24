@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 09:44:49 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 15:12:56 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,16 +24,14 @@
 class Bond
 {
 private:
-    int phase;
+    int phase; // The Phase Of The Flow Of The Connection, RESPONSE_READY or REQUEST_READY.
 
-    int responseState;
+    int responseState; // The State Of The Response, Is The Full Request Is Sent -> CLOSED, or We Still Have To Send The Buffer -> OPEN.
 
     int clientFd;
 
-    bool connectionSate;
-
-    string  buffer;
-
+    bool connectionSate; // keep-alive = true, close = false
+    
     ifstream *fileStream;
 
     RequestParser requestParser;
@@ -46,6 +44,8 @@ public:
 
     Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap );
 
+    ~Bond( );
+
     int     getClientFd( void ) const;
 
     void    initParcer( void );
@@ -53,7 +53,6 @@ public:
 
     int     getMethod( void );
     Uri&    getUri( void );
-    string* getBuffer( void );
 
     int     getResponseState( void );
     void     setResponseState( int state );
@@ -61,11 +60,9 @@ public:
     int     getPhase( void );
     void     setPhase( int phasee );
 
-    bool    isRange( void );
+    bool    rangeHeader( void );
     string    getRangeFirst( void );
     string    getRangeLast( void );
     int     getRangeType( void );
     bool     getConnectionState( void );
-
-    ~Bond( );
 };

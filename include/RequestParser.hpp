@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/23 11:52:25 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 10:37:38 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,9 +64,23 @@ public:
     
     RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map );
 
+    ~RequestParser( );
+
     void init( void );
 
     void setBondObject( Bond* bond );
+    
+    int getMethod( void );
+    Uri& getUri( void );
+    
+    bool isRange( void );
+    bool isValidRange( void );
+
+    string getRangeFirst( void );
+    string getRangeLast( void );
+    int getRangeType( void );
+    bool getConnectionState( void );
+
     // Exception Class
     class HttpRequestException : public exception
     {
@@ -82,17 +96,4 @@ public:
         ~HttpRequestException() throw();
     };
     //
-
-    int getMethod( void );
-    Uri& getUri( void );
-    
-    bool isRange( void );
-    bool isValidRange( void );
-
-    string getRangeFirst( void );
-    string getRangeLast( void );
-    int getRangeType( void );
-    bool getConnectionState( void );
-
-    ~RequestParser( );
 };

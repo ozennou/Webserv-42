@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/22 15:41:34 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 10:13:14 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,22 +29,23 @@ enum {
 
 class Uri
 {
-public:
-    Uri( );
-    Uri( const Uri& obj );
-    Uri& operator=( const Uri& obj );
-    Uri( int& socketFd, Socket_map& socket_map );
-    
-    ~Uri( );
-
     int socketFd;
 
     Socket_map* socket_map;
 
-    int type;
 
     string subDelimiters;
     string genDelimiters;
+public:
+    Uri( );
+    Uri( const Uri& obj );
+    Uri& operator=( const Uri& obj );
+
+    Uri( int& socketFd, Socket_map& socket_map );
+    
+    ~Uri( );
+
+    int type;
 
     string requestTarget;
 
