@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 15:35:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 18:14:49 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ public:
 
     void filterResponseType();
 
+    void directoryResponse();
     void NormalGETResponse();
     void RangeGETResponse();
 };

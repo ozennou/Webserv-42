@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 17:01:41 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 18:16:13 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -325,6 +325,11 @@ void ResponseGenerator::RangeGETResponse( ) {
     }
 }
 
+void ResponseGenerator::directoryResponse( ) {
+    // uri = bond->getUri();
+    // path = path.uri;
+}
+
 void ResponseGenerator::filterResponseType( ) {
     stringstream stream;
     string  responseBuffer;
@@ -333,7 +338,8 @@ void ResponseGenerator::filterResponseType( ) {
     if (exception) generateErrorMessage();
     else {
         if (bond->getMethod() == GET) {
-            if (bond->rangeHeader()) RangeGETResponse();
+            if (bond->getUri().isDirectory()) directoryResponse();
+            else if (bond->rangeHeader()) RangeGETResponse();
             else NormalGETResponse();
             return ;
         }
