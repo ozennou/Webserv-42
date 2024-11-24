@@ -115,8 +115,6 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
         else if (e.statusCode == -1) {
             return 1;
         }
-        else
-            logging(e.message, ERROR, NULL, 0);
     }
     return 1;
 }

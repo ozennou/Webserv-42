@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 16:57:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/24 17:01:41 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,8 +183,9 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     }
     else ss << "Content-Length: " << uri.getResourceSize() << CRLF;
 
-    // Normal HTTP Header
-    ss << "Connection: close" << CRLF;
+    // Connection State
+    if (bond->getConnectionState()) ss << "Connection: keep-alive" << CRLF;
+    else ss << "Connection: close" << CRLF;
     
     ss << CRLF;
 
