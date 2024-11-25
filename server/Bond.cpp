@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 15:23:02 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 11:57:39 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ void Bond::initParcer( ) {
     }
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
-            logging(e.message, WARNING, NULL, 0);
             responseGenerator.setException(&e);
             return ;
         }
