@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 14:45:16 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 15:09:43 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,13 @@ bool    Uri::isRegularFile( ) {
     return S_ISREG(path_stat.st_mode);
 }
 
+bool    Uri::isRegularFile( string& pathh ) {
+    struct stat path_stat;
+
+    if (stat(pathh.c_str(), &path_stat) == -1) return false;
+    return S_ISREG(path_stat.st_mode);
+}
+
 bool    Uri::isDirectory( ) {
     struct stat path_stat;
 
@@ -92,7 +99,7 @@ Location Uri::matchURI( Server& server ) {
     }
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
-
+    
     path.insert(0, location.getRoot());
     return location;
 }
@@ -245,13 +252,13 @@ void Uri::absoluteForm( ) {
 void Uri::originForm( ) {
     size_t i = 1;
     for (; i < requestTarget.length(); i++) {
+        if (requestTarget[i] == '?')
+            break;
         if ((!isUnreserved(requestTarget[i]) && requestTarget[i] != '@' \
             && requestTarget[i] != ':' && requestTarget[i] != '/') \
         && !percentEncoded(requestTarget, i) \
         && subDelimiters.find(requestTarget[i]) == string::npos)
             throw RequestParser::HttpRequestException("Invalid Character found in path in Origin Form", 400);
-        if (requestTarget[i] == '?')
-            break;
     }
     path = requestTarget.substr(0, i);
     if (i != requestTarget.length()) extractQuery(i);

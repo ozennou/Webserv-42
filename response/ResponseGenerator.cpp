@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 18:16:13 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 11:54:09 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ void ResponseGenerator::generateErrorMessage( ) {
     delete exception; exception = NULL;
 
     bond->setPhase(REQUEST_READY);
+    ifs->close();
 }
 
 void ResponseGenerator::completeRangeMessage( ) {
@@ -111,6 +112,7 @@ void ResponseGenerator::completeRangeMessage( ) {
     if (!toRead) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
+        ifs->close();
         return ;
     }
 
@@ -120,7 +122,6 @@ void ResponseGenerator::completeNormalMessage( ) {
     string fileBuffer;
     char buf[1621];
 
-    if (!ifs) cout << "SEGV" << endl;
     buf[0] = 0;
     ifs->read(buf, 1620);
     if (ifs->bad()) {
@@ -144,6 +145,7 @@ void ResponseGenerator::completeNormalMessage( ) {
     if (ifs->eof()) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
+        ifs->close();
         return ;
     }
 }
@@ -192,9 +194,11 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     // Adding The Paylod
     ss << fileBuffer;
     
+    // cout << ss.str() << endl;
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
+        cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
         generateErrorMessage();
     }
@@ -224,7 +228,6 @@ void ResponseGenerator::NormalGETResponse( ) {
         // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("System Error-The Opening Of The File", 500);
         generateErrorMessage();
-        bond->setPhase(REQUEST_READY);
         return ;
     }
 
@@ -234,10 +237,9 @@ void ResponseGenerator::NormalGETResponse( ) {
     ifs->read(buf, 1620);
     
     if (ifs->bad()) {
-        // cout << "Error:" << strerror(errno) << endl;
+        cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
         generateErrorMessage();
-        bond->setPhase(REQUEST_READY);
         return ;
     }
 
@@ -248,6 +250,7 @@ void ResponseGenerator::NormalGETResponse( ) {
     if (ifs->eof()) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
+        ifs->close();
     } else {
         bond->setResponseState(OPEN);
     }
@@ -320,6 +323,7 @@ void ResponseGenerator::RangeGETResponse( ) {
     if (!toRead) {
         bond->setResponseState(CLOSED);
         bond->setPhase(REQUEST_READY);
+        ifs->close();
     } else {
         bond->setResponseState(OPEN);
     }

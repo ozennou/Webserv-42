@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 14:46:33 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 15:11:00 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,22 @@ void RequestParser::resolveResource( Location& location ) {
     // Either stat() failed, or the macro failed
     if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
-    if (uri.isDirectory() && !location.getDirListings()) throw RequestParser::HttpRequestException("Directory Listing is off and the client is trying to access it", 403);
+    if (uri.isDirectory()) {
+        vector<string> defaultPages = location.getDefaultPages();
+        vector<string>::iterator iterator = defaultPages.begin();
+
+        for (; iterator != defaultPages.end(); iterator++) {
+            string concatenated = uri.path;
+            concatenated += *(iterator);
+
+            if (uri.isRegularFile(concatenated)) {
+                uri.path = concatenated;
+                break;
+            }
+        }
+
+        if (iterator == defaultPages.end() && !location.getDirListings()) throw RequestParser::HttpRequestException("Directory Listing is off and the client is trying to access it", 403);
+    }
 
     if (uri.isRegularFile()) {
         if (method == GET) {
@@ -183,7 +198,7 @@ void RequestParser::init( ) {
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
     stringBuffer.append(buf, i);
-
+    
     requestLine(stringBuffer);
     
     headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));

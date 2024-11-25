@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 10:13:14 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 10:55:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,7 @@ public:
     Location    matchURI( Server& server );
 
     bool    isRegularFile( );
+    bool    isRegularFile( string& path );
     bool    isDirectory( );
 
     size_t    getResourceSize( );
