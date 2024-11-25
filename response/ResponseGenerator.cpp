@@ -329,9 +329,99 @@ void ResponseGenerator::RangeGETResponse( ) {
     }
 }
 
+string ResponseGenerator::dirlisting()
+{
+    Uri     uri = bond->getUri();
+    stringstream res;
+    DIR* dir = opendir(uri.path.c_str());
+    struct dirent *entry;
+    struct stat result;
+
+    if (!dir) {
+        this->exception = new RequestParser::HttpRequestException("No permission to list the directory", 403);
+        generateErrorMessage();
+        return "";
+    }
+
+    res << "<!DOCTYPE HTML><html><head>";
+    res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+    res << "<title>Index of " << uri.requestTarget << "</title>";
+    res << "<style>";
+    res << ".file-list { font-weight: 300; list-style-type: none; padding: 0; margin-top: 20px; }";
+    res << "li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; }";
+    res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 1; }";
+    res << ".test { font-weight: bold; }";
+
+    res << ".file-type { font-style: italic; color: gray; text-align: right; margin-left: 10px; }";
+    res << "</style></head><body>";
+
+    res << "<h1>Index of " << uri.requestTarget << "</h1>";
+    res << "<ul class='file-list'>";
+    res << "<ul class='file-list'>";
+    res << "<li class='test'><a>File name</a><a>Last modified</a><a>size</a><a>File type</a></li>";
+    while ((entry = readdir(dir)) != nullptr) {
+        string full_path = uri.path + string(entry->d_name);
+
+        if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
+            continue ;
+        res << "<li><a href='"<< entry->d_name << "'>" << entry->d_name << "</a>";
+        if (!stat(full_path.c_str(), &result)) {
+            struct tm datetime2 = *localtime(&result.st_mtime);
+            char lastModified[40];
+            strftime(lastModified, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime2);
+
+            res << "<a>" << lastModified << "</a>";
+            res << "<a>" << result.st_size << " B</a>";
+        }
+        res << "<a class='file-type'>";
+        if (entry->d_type == DT_DIR)
+            res << "Directory";
+        else if (entry->d_type == DT_REG)
+            res << "Regular file";
+        else if (entry->d_type == DT_SOCK)
+            res << "Socket file";
+        else if (entry->d_type == DT_LNK)
+            res << "Symlink";
+        else if (entry->d_type == DT_BLK)
+            res << "Block device";
+        else
+            res << "Unknown file type";
+        res << "</a></li>";
+    }
+    res << "</ul></body><html>";
+
+    closedir(dir);
+    return res.str();
+}
+
 void ResponseGenerator::directoryResponse( ) {
-    // uri = bond->getUri();
-    // path = path.uri;
+    stringstream ss;
+    string       html_res;
+
+    time_t timestamp = time(NULL);
+    struct tm datetime1 = *localtime(&timestamp);
+    char date[40];
+    strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+
+    ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
+    ss << "Date: " << date << CRLF;
+    ss << "Content-Type: text/html" << CRLF;
+    ss << "Connection: close" << CRLF;
+
+    html_res = dirlisting();
+    if (html_res == "")
+        return ;
+
+    ss << "Content-Length: " << html_res.length() << CRLF;
+
+    ss << CRLF;
+    ss << html_res;
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+
+    if (a == -1) {
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        generateErrorMessage();
+    }
 }
 
 void ResponseGenerator::filterResponseType( ) {
