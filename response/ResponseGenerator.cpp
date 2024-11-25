@@ -331,30 +331,44 @@ string ResponseGenerator::dirlisting()
     stringstream res;
     DIR* dir = opendir(uri.path.c_str());
     struct dirent *entry;
+    struct stat result;
+
     if (!dir) {
         this->exception = new RequestParser::HttpRequestException("No permission to list the directory", 403);
         generateErrorMessage();
         return "";
     }
-res << "<!DOCTYPE HTML><html><head>";
-res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
-res << "<title>Index of " << uri.requestTarget << "</title>";
-res << "<style>";
-res << ".file-list { font-weight: 300; list-style-type: none; padding: 0; margin-top: 20px; }";
-res << ".file-list li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; }";
-res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 1; }";
-res << ".file-name:hover { text-decoration: underline; }";
 
-res << ".file-type { font-style: italic; color: gray; text-align: right; margin-left: 10px; }";
-res << "</style></head><body>";
+    res << "<!DOCTYPE HTML><html><head>";
+    res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+    res << "<title>Index of " << uri.requestTarget << "</title>";
+    res << "<style>";
+    res << ".file-list { font-weight: 300; list-style-type: none; padding: 0; margin-top: 20px; }";
+    res << "li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; }";
+    res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 1; }";
+    res << ".test { font-weight: bold; }";
 
-res << "<h1>Index of " << uri.requestTarget << "</h1>";
-res << "<ul class='file-list'>";
+    res << ".file-type { font-style: italic; color: gray; text-align: right; margin-left: 10px; }";
+    res << "</style></head><body>";
+
+    res << "<h1>Index of " << uri.requestTarget << "</h1>";
     res << "<ul class='file-list'>";
+    res << "<ul class='file-list'>";
+    res << "<li class='test'><a>File name</a><a>Last modified</a><a>size</a><a>File type</a></li>";
     while ((entry = readdir(dir)) != nullptr) {
+        string full_path = uri.path + string(entry->d_name);
+
         if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
             continue ;
         res << "<li><a href='"<< entry->d_name << "'>" << entry->d_name << "</a>";
+        if (!stat(full_path.c_str(), &result)) {
+            struct tm datetime2 = *localtime(&result.st_mtime);
+            char lastModified[40];
+            strftime(lastModified, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime2);
+
+            res << "<a>" << lastModified << "</a>";
+            res << "<a>" << result.st_size << " B</a>";
+        }
         res << "<a class='file-type'>";
         if (entry->d_type == DT_DIR)
             res << "Directory";
