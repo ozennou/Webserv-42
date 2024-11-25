@@ -347,29 +347,34 @@ string ResponseGenerator::dirlisting()
     res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
     res << "<title>Index of " << uri.requestTarget << "</title>";
     res << "<style>";
+    res << "body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }";
     res << ".file-list { font-weight: 300; list-style-type: none; padding: 0; margin-top: 20px; }";
-    res << "li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; }";
-    res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 1; }";
-    res << ".test { font-weight: bold; }";
-
+    res << "li { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #eee; }";
+    res << ".header { font-weight: bold; background-color: #f4f4f4; }";
+    res << ".file-name { font-weight: bold; text-decoration: none; color: #007bff; flex: 2; }";
+    res << ".file-details { display: flex; flex: 1; justify-content: space-between; }";
     res << ".file-type { font-style: italic; color: gray; text-align: right; margin-left: 10px; }";
     res << "</style></head><body>";
 
     res << "<h1>Index of " << uri.requestTarget << "</h1>";
     res << "<ul class='file-list'>";
-    res << "<ul class='file-list'>";
-    res << "<li class='test'><a>File name</a><a>Last modified</a><a>size</a><a>File type</a></li>";
+    res << "<li class='header'>";
+    res << "<span class='file-name'>File name</span>";
+    res << "<div class='file-details'>";
+    res << "<span>Last modified</span>";
+    res << "<span>Size</span>";
+    res << "<span>File type</span>";
+    res << "</div></li>";
     while ((entry = readdir(dir)) != nullptr) {
-        string full_path = uri.path + string(entry->d_name);
+        string full_path = uri.path + "/" + string(entry->d_name);
 
         if (entry->d_name[0] == '.' && entry->d_name[1] == '\0')
             continue ;
-        res << "<li><a href='"<< entry->d_name << "'>" << entry->d_name << "</a>";
+        res << "<li><a href='"<< uri.requestTarget << (uri.requestTarget[uri.requestTarget.length() - 1] == '/'? "": "/")<< entry->d_name << "'>" << entry->d_name << "</a>";
         if (!stat(full_path.c_str(), &result)) {
             struct tm datetime2 = *localtime(&result.st_mtime);
             char lastModified[40];
             strftime(lastModified, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime2);
-
             res << "<a>" << lastModified << "</a>";
             res << "<a>" << result.st_size << " B</a>";
         }
