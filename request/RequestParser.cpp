@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 15:11:00 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/26 15:36:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,6 +120,9 @@ void RequestParser::resolveResource( Location& location ) {
 
         for (; iterator != defaultPages.end(); iterator++) {
             string concatenated = uri.path;
+
+            if (concatenated[concatenated.length() - 1] != '/') concatenated += '/';
+            
             concatenated += *(iterator);
 
             if (uri.isRegularFile(concatenated)) {
@@ -162,9 +165,11 @@ void RequestParser::headerSection( string stringBuffer ) {
 
 void RequestParser::requestLine( string& stringBuffer ) {
 
-    findCRLF(stringBuffer);
+    while (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
 
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
+
+    stringBuffer = stringBuffer.substr(stringBuffer.find(CRLF) + 2);
 
     if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Wrong Number Of Spaces", 400);
 
@@ -201,8 +206,10 @@ void RequestParser::init( ) {
     
     requestLine(stringBuffer);
     
-    headerSection(stringBuffer.substr(stringBuffer.find(CRLF) + 2));
+    while (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
 
+    headerSection(stringBuffer);
+    
     Server server = uri.getHostServer();
 
     Location location = uri.matchURI(server);

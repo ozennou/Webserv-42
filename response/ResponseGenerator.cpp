@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 11:54:09 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/25 20:36:56 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ ResponseGenerator::~ResponseGenerator( ) {
 }
 
 void ResponseGenerator::setException( RequestParser::HttpRequestException* exc ) {
-    this->exception = new RequestParser::HttpRequestException(*exc);
+    if (!exception) this->exception = new RequestParser::HttpRequestException(*exc);
 }
 
 void ResponseGenerator::setBondObject( Bond* bondd ) {
