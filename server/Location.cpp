@@ -3,6 +3,7 @@
 Location::Location() {
     dirlst = false;
     exact = false;
+    redirect.first = -1;
     cgi_timeout = 60;  //https://www.baeldung.com/linux/nginx-timeouts#:~:text=NGINX%20fastcgi_*%20Timeouts&text=fastcgi_connect_timeout%20%E2%80%93%20maximum%20time%20to%20connect,FastCGI%20server%20response%20(default%2060)
 }
 
@@ -121,4 +122,12 @@ void Location::ready_location(void)
         this->addMethod("GET");
         this->addMethod("DELETE");
     }
+}
+
+pair<int, string>   Location::getRedirect() const{
+    return redirect;
+}
+
+void                Location::setRedirect(int code, string path){
+    redirect = pair<int, string>(code, path);
 }
