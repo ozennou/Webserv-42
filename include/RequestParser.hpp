@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 10:37:38 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/26 16:07:11 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,15 +45,15 @@ class   RequestParser
 
     size_t size;
 
-    string  payload;
+    string  stringBuffer;
 
     int     clientFd;
 
-    void findCRLF( string& stringBuffer);
+    void findCRLF( );
 
-    void requestLine( string& bufferString );
+    void requestLine( );
 
-    void headerSection( string stringBuffer );
+    void headerSection( );
 
     void resolveResource( Location& location );
 
@@ -75,6 +75,8 @@ public:
     
     bool isRange( void );
     bool isValidRange( void );
+
+    string& getStringBuffer( void );
 
     string getRangeFirst( void );
     string getRangeLast( void );

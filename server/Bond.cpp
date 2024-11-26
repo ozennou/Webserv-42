@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 20:36:42 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/26 16:55:14 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,22 @@ Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>
 }
 
 void Bond::initParcer( ) {
+    
+    int i;
+    char buf[5621];
+
+    i = recv(clientFd, buf, 5620, 0);
+
+    if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
+    if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
+
+    string& stringBuffer = requestParser.getStringBuffer();
+
+    stringBuffer.append(buf, i);
+
+    // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string
+    if (stringBuffer.find(CRLF) == string::npos || (stringBuffer.find(CRLF) == stringBuffer.rfind(CRLF))) return ;
+
     try {
         setPhase(RESPONSE_READY);
         requestParser.init();

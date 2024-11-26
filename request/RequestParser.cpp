@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/26 15:36:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/26 16:59:47 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ RequestParser& RequestParser::operator=( const RequestParser& obj ) {
         this->uri = obj.uri;
         this->headers = obj.headers;
         this->size = 5160;
-        this->payload = obj.payload;
+        this->stringBuffer = obj.stringBuffer;
         this->clientFd = obj.clientFd;
     }
     return *this;
@@ -60,7 +60,7 @@ RequestParser::HttpRequestException::~HttpRequestException( ) throw() {
 RequestParser::~RequestParser( ) {
 }
 
-void RequestParser::findCRLF( string& stringBuffer ) {
+void RequestParser::findCRLF( ) {
     if (!stringBuffer.length() || stringBuffer.find(CRLF) == string::npos) {
         int i;
         char buf[size + 1];
@@ -79,6 +79,10 @@ void RequestParser::setBondObject( Bond* bondd ) {
 
 int  RequestParser::getMethod( void ) {
     return this->method;
+}
+
+string&  RequestParser::getStringBuffer( void ) {
+    return this->stringBuffer;
 }
 
 Uri&  RequestParser::getUri( void ) {
@@ -145,11 +149,9 @@ void RequestParser::resolveResource( Location& location ) {
     }
 }
 
-void RequestParser::headerSection( string stringBuffer ) {
+void RequestParser::headerSection( ) {
     
     while (1) {
-        if (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
-
         size_t pos = stringBuffer.find(CRLF);
         string field = stringBuffer.substr(0, pos);
 
@@ -158,14 +160,14 @@ void RequestParser::headerSection( string stringBuffer ) {
         pos += 2;
         headers.storeField(field, uri, method);
         stringBuffer = stringBuffer.substr(pos);
+
+        if (stringBuffer.find(CRLF) == string::npos) findCRLF();
     }
 
     headers.parceFieldValue();
 }
 
-void RequestParser::requestLine( string& stringBuffer ) {
-
-    while (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
+void RequestParser::requestLine( ) {
 
     string requestLine = stringBuffer.substr(0, stringBuffer.find(CRLF));
 
@@ -193,22 +195,9 @@ void RequestParser::requestLine( string& stringBuffer ) {
 }
 
 void RequestParser::init( ) {
-    int i;
-    char buf[size + 1];
-    string stringBuffer;
+    requestLine();
 
-    i = recv(clientFd, buf, size, 0);
-
-    if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
-    if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
-
-    stringBuffer.append(buf, i);
-    
-    requestLine(stringBuffer);
-    
-    while (stringBuffer.find(CRLF) == string::npos) findCRLF(stringBuffer);
-
-    headerSection(stringBuffer);
+    headerSection();
     
     Server server = uri.getHostServer();
 
