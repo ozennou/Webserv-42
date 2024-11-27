@@ -41,8 +41,10 @@ public:
     MessageHeaders& operator=( const MessageHeaders& obj );
 
     ~MessageHeaders( );
-    
-    void storeRange( string& fieldValue );
+
+    string  getFieldValue( string fieldValue );
+
+    void    storeRange( string& fieldValue );
     bool isValidRange( Uri& uri );
     int getRangeType( );
     string getRangeFirst( );
@@ -57,4 +59,6 @@ public:
     bool connectionState( );
 
     map<string, string>::iterator findContentHeaders( );
+
+    void reset( );
 };

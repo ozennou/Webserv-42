@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 15:09:43 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:21:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,14 @@ Uri::Uri( int& socketFd, Socket_map& socket_map ) : socketFd(socketFd), socket_m
 }
 
 Uri::~Uri( ) {
+}
+
+void    Uri::reset( ) {
+    type = 0;
+    requestTarget.clear();
+    query.clear();
+    host.clear();
+    port = 80;
 }
 
 bool    Uri::isRegularFile( ) {
@@ -100,7 +108,7 @@ Location Uri::matchURI( Server& server ) {
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
     
-    path.insert(0, location.getRoot());
+    path.insert(0, location.getRoot()); // FIXME: This Part here should be revised
     return location;
 }
 

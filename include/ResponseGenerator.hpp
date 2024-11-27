@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 18:14:49 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:23:37 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class ResponseGenerator
 
     size_t toRead;
     
-    ifstream    *ifs;
+    ifstream    ifs;
     
     Bond*       bond;
 
@@ -48,7 +48,6 @@ public:
     
     void setException( RequestParser::HttpRequestException* exception );
     void setBondObject( Bond* bond );
-    void setInputStream( ifstream* ifss );
 
     void generateErrorMessage( );
 
@@ -62,5 +61,8 @@ public:
     void directoryResponse();
     void NormalGETResponse();
     void RangeGETResponse();
+
     string dirlisting();
+
+    void reset();
 };

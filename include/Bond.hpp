@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/24 15:12:56 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:12:38 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,6 @@ private:
     int clientFd;
 
     bool connectionSate; // keep-alive = true, close = false
-    
-    ifstream *fileStream;
 
     RequestParser requestParser;
 
@@ -65,4 +63,6 @@ public:
     string    getRangeLast( void );
     int     getRangeType( void );
     bool     getConnectionState( void );
+
+    void    reset( );
 };

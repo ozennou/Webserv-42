@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 20:36:56 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 19:33:31 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,6 @@ ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) 
     if (this != &obj) {
         this->clientFd = obj.clientFd;
         this->toRead = obj.toRead;
-        this->ifs = obj.ifs;
         this->exception = obj.exception;
         this->bond = obj.bond;
         this->statusCodeMap = obj.statusCodeMap;
@@ -40,16 +39,17 @@ ResponseGenerator::~ResponseGenerator( ) {
     if (exception) delete exception;
 }
 
+void ResponseGenerator::reset( ) {
+    toRead = -1;
+    ifs.close(); ifs.clear();
+}
+
 void ResponseGenerator::setException( RequestParser::HttpRequestException* exc ) {
     if (!exception) this->exception = new RequestParser::HttpRequestException(*exc);
 }
 
 void ResponseGenerator::setBondObject( Bond* bondd ) {
     this->bond = bondd;
-}
-
-void ResponseGenerator::setInputStream( ifstream* ifss ) {
-    this->ifs = ifss;
 }
 
 void ResponseGenerator::generateErrorMessage( ) {
@@ -80,7 +80,7 @@ void ResponseGenerator::generateErrorMessage( ) {
     delete exception; exception = NULL;
 
     bond->setPhase(REQUEST_READY);
-    ifs->close();
+    bond->reset();
 }
 
 void ResponseGenerator::completeRangeMessage( ) {
@@ -88,31 +88,29 @@ void ResponseGenerator::completeRangeMessage( ) {
     size_t size = (toRead / 1620) >= 1 ? 1620 : toRead;
     char buf[size + 1];
 
-    ifs->read(buf, size);
-    if (ifs->bad()) {
+    ifs.read(buf, size);
+    if (ifs.bad()) {
         // cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
-    toRead -= ifs->gcount();
+    toRead -= ifs.gcount();
      
-    fileBuffer.append(buf, ifs->gcount());
+    fileBuffer.append(buf, ifs.gcount());
 
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
         // cout << "Send-Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
     if (!toRead) {
-        bond->setResponseState(CLOSED);
-        bond->setPhase(REQUEST_READY);
-        ifs->close();
+        bond->reset();
         return ;
     }
 
@@ -122,30 +120,27 @@ void ResponseGenerator::completeNormalMessage( ) {
     string fileBuffer;
     char buf[1621];
 
-    buf[0] = 0;
-    ifs->read(buf, 1620);
-    if (ifs->bad()) {
+    ifs.read(buf, 1620);
+    if (ifs.bad()) {
         // cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
-    fileBuffer.append(buf, ifs->gcount());
+    fileBuffer.append(buf, ifs.gcount());
 
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
         // cout << "Send-Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
-    if (ifs->eof()) {
-        bond->setResponseState(CLOSED);
-        bond->setPhase(REQUEST_READY);
-        ifs->close();
+    if (ifs.eof()) {
+        bond->reset();
         return ;
     }
 }
@@ -199,7 +194,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
 
     if (a == -1) {
         cout << "Send-Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
     }
 }
@@ -223,8 +218,8 @@ void ResponseGenerator::NormalGETResponse( ) {
         if (it != mimeTypes.end()) contentType = it->second;
     }
 
-    ifs->open(uri.path.c_str(), ios::in | ios::binary);
-    if (!ifs->is_open()) {
+    ifs.open(uri.path.c_str(), ios::in | ios::binary);
+    if (!ifs.is_open()) {
         // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("System Error-The Opening Of The File", 500);
         generateErrorMessage();
@@ -234,23 +229,21 @@ void ResponseGenerator::NormalGETResponse( ) {
     string fileBuffer;
     char buf[1621];
     
-    ifs->read(buf, 1620);
+    ifs.read(buf, 1620);
     
-    if (ifs->bad()) {
-        cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
+    if (ifs.bad()) {
+        // cout << "Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
-    fileBuffer.append(buf, ifs->gcount());
+    fileBuffer.append(buf, ifs.gcount());
 
     generateValidMessage(200, uri, contentType, fileBuffer, -1, -1);
 
-    if (ifs->eof()) {
-        bond->setResponseState(CLOSED);
-        bond->setPhase(REQUEST_READY);
-        ifs->close();
+    if (ifs.eof()) {
+        bond->reset();
     } else {
         bond->setResponseState(OPEN);
     }
@@ -275,10 +268,10 @@ void ResponseGenerator::RangeGETResponse( ) {
         if (it != mimeTypes.end()) contentType = it->second;
     }
     
-    ifs->open(uri.path.c_str(), ios::in | ios::binary);
-    if (!ifs->is_open()) {
+    ifs.open(uri.path.c_str(), ios::in | ios::binary);
+    if (!ifs.is_open()) {
         // cout << "Error:" << strerror(errno) << endl;
-        this->exception = new RequestParser::HttpRequestException("System Error-Opening Of The Resource", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
@@ -291,14 +284,14 @@ void ResponseGenerator::RangeGETResponse( ) {
         
         if (!rangeLast || rangeLast >= uri.getResourceSize()) rangeLast = uri.getResourceSize() - 1;
 
-        ifs->seekg(rangeFirst);
+        ifs.seekg(rangeFirst);
 
         toRead = rangeLast - rangeFirst + 1;
     } else {
         rangeFirst = getRangeValue(bond->getRangeLast());
         rangeLast = uri.getResourceSize() - 1;
 
-        ifs->seekg(rangeLast - rangeFirst);
+        ifs.seekg(rangeLast - rangeFirst);
 
         toRead = rangeLast - (rangeLast - rangeFirst);
     }
@@ -307,23 +300,21 @@ void ResponseGenerator::RangeGETResponse( ) {
     size_t size = (toRead / 1620) >= 1 ? 1620 : toRead;
     char buf[size + 1];
     
-    ifs->read(buf, size);
-    if (ifs->bad()) {
-        this->exception = new RequestParser::HttpRequestException("System Error-The Reading Of The File", 500);
+    ifs.read(buf, size);
+    if (ifs.bad()) {
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
     }
 
-    toRead -= ifs->gcount();
+    toRead -= ifs.gcount();
      
-    fileBuffer.append(buf, ifs->gcount());
+    fileBuffer.append(buf, ifs.gcount());
 
     generateValidMessage(206, uri, contentType, fileBuffer, rangeFirst, rangeLast);
 
     if (!toRead) {
-        bond->setResponseState(CLOSED);
-        bond->setPhase(REQUEST_READY);
-        ifs->close();
+        bond->reset();
     } else {
         bond->setResponseState(OPEN);
     }
@@ -424,9 +415,10 @@ void ResponseGenerator::directoryResponse( ) {
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
-        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
     }
+    bond->reset();
 }
 
 void ResponseGenerator::filterResponseType( ) {
@@ -442,6 +434,7 @@ void ResponseGenerator::filterResponseType( ) {
             else NormalGETResponse();
             return ;
         }
+        // else if (bond->getMethod() == POST)
         else {
             stream << "HTTP/1.1 " << 200 << " OK" << CRLF;
             stream << "Date: Thu, 16 Nov 2017 16:40:10 GMT" << endl;

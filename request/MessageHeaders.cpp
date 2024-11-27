@@ -35,23 +35,46 @@ MessageHeaders& MessageHeaders::operator=( const MessageHeaders& obj ) {
 MessageHeaders::~MessageHeaders( ) {
 }
 
+void MessageHeaders::reset( ) {
+    rangeType = NO_RANGE;
+    first.clear();
+    last.clear();
+    headers.clear();
+}
+
+string MessageHeaders::getFieldValue( string fieldName ) {
+    map<string, string>::iterator it = headers.find(fieldName);
+    if (it == headers.end()) return "";
+    return it->second;
+}
+
+bool MessageHeaders::findField( string fieldName ) {
+    map<string, string>::iterator it = headers.find(fieldName);
+    if (it == headers.end()) return false;
+    return true;
+}
 
 map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
-    map<string, string>::iterator it = headers.find("Transfer-Encoding");
-    if (it == headers.end()) it = headers.find("Content-Length");
+    map<string, string>::iterator it = headers.find("transfer-encoding");
+    if (it == headers.end()) it = headers.find("content-length");
+    else if (it->second != "chunked") throw RequestParser::HttpRequestException("Encoding Not Implemented", 501);
     if (it == headers.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
+    else {
+        for (size_t i = 0; i < it->second.length(); i++) {
+            if (!isdigit(it->second[i])) throw RequestParser::HttpRequestException("Invalid Content Length", 400);
+        }
+    }
     return it;
 }
 
-void MessageHeaders::parceFieldValue( ) {
-    for (multimap<string, string>::iterator it = headers.begin(); it != headers.end(); it++) {
-        for (size_t i = 0; i < it->second.length(); i++) {
-            int character = it->second[i];
-            if ((character < 0 || character > 255) \
-            || (!isprint(character) && space.find(character) == string::npos))
-                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400);
-        }
-    }
+bool MessageHeaders::connectionState( ) {
+    if (findField("content-length") && findField("transfer-encoding")) return false;
+    
+    map<string, string>::iterator it = headers.find("connection");
+    if (it == headers.end()) return true;
+    stolower(it->second);
+    if (it->second == "close") return false;
+    return true;
 }
 
 int MessageHeaders::getRangeType( ) {
@@ -64,20 +87,6 @@ string MessageHeaders::getRangeFirst( ) {
 
 string MessageHeaders::getRangeLast( ) {
     return last;
-}
-
-bool MessageHeaders::findField( string fieldName ) {
-    map<string, string>::iterator it = headers.find(fieldName);
-    if (it == headers.end()) return false;
-    return true;
-}
-
-bool MessageHeaders::connectionState( ) {
-    map<string, string>::iterator it = headers.find("connection");
-    if (it == headers.end()) return true;
-    stolower(it->second);
-    if (it->second == "close") return false;
-    return true;
 }
 
 size_t  getRangeValue( string rangeString ) {
@@ -173,6 +182,17 @@ void MessageHeaders::storeHost( string& fieldValue, Uri& uri ) {
     }
 }
 
+void MessageHeaders::parceFieldValue( ) {
+    for (multimap<string, string>::iterator it = headers.begin(); it != headers.end(); it++) {
+        for (size_t i = 0; i < it->second.length(); i++) {
+            int character = it->second[i];
+            if ((character < 0 || character > 255) \
+            || (!isprint(character) && space.find(character) == string::npos))
+                throw RequestParser::HttpRequestException("Invalid Character Found in the field-value", 400);
+        }
+    }
+}
+
 void MessageHeaders::storeField( string& field, Uri& uri, int method ) {
     size_t colonIndex = field.find(':');
 
@@ -188,10 +208,17 @@ void MessageHeaders::storeField( string& field, Uri& uri, int method ) {
 
     string fieldName = field.substr(0, colonIndex); stolower(fieldName);
     string fieldValue;
-    if (colonIndex != field.length() - 1)
-        fieldValue = field.substr( field.find_first_not_of(space, colonIndex + 1), \
-                                                    field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1);
 
+    if (colonIndex != field.length() - 1) {
+        size_t k = colonIndex + 1;
+        for (; k < field.length(); k++) {
+            if (!isspace(field[k])) break;
+        }
+        if (k != field.length()) {
+            fieldValue = field.substr( field.find_first_not_of(space, colonIndex + 1), \
+                                                        field.find_last_not_of(space) - field.find_first_not_of(space, colonIndex + 1) + 1); stolower(fieldValue);
+        }
+    }
     if (uri.type == ORIGIN \
         && fieldName == "host" && fieldValue.length())
         storeHost(fieldValue, uri);

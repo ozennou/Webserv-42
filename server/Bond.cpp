@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/26 16:55:14 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 19:35:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,37 +55,40 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->responseState = obj.responseState;
         this->clientFd = obj.clientFd;
         this->connectionSate = obj.connectionSate;
-        this->fileStream = new ifstream();
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
         this->responseGenerator.setBondObject(this);
         this->requestParser.setBondObject(this);
-        this->responseGenerator.setInputStream(fileStream);
     }
     return *this;
 }
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), fileStream(NULL), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd, statusCodeMap) {
 }
 
 void Bond::initParcer( ) {
-    
-    int i;
-    char buf[5621];
-
-    i = recv(clientFd, buf, 5620, 0);
-
-    if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
-    if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
-
-    string& stringBuffer = requestParser.getStringBuffer();
-
-    stringBuffer.append(buf, i);
-
-    // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string
-    if (stringBuffer.find(CRLF) == string::npos || (stringBuffer.find(CRLF) == stringBuffer.rfind(CRLF))) return ;
-
     try {
+        // cout << requestParser.getMethod() << endl;
+        if (requestParser.getMethod() == POST && requestParser.getUploadState() == UPLOADING) {
+            requestParser.upload();
+            return;
+        }
+
+        int i;
+        char buf[5621];
+
+        i = recv(clientFd, buf, 5620, 0);
+
+        if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
+        if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
+
+        string& stringBuffer = requestParser.getStringBuffer();
+
+        stringBuffer.append(buf, i);
+
+        // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string
+        if (stringBuffer.find(CRLF) == string::npos || (stringBuffer.find(CRLF) == stringBuffer.rfind(CRLF))) return ;
+
         setPhase(RESPONSE_READY);
         requestParser.init();
         connectionSate = requestParser.getConnectionState();
@@ -100,7 +103,7 @@ void Bond::initParcer( ) {
 }
 
 void Bond::initResponse( ) {
-    if (phase != RESPONSE_READY)  return;
+    if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
 
     responseGenerator.filterResponseType();
 }
@@ -157,9 +160,15 @@ bool  Bond::getConnectionState( void ) {
     return connectionSate;
 }
 
+void  Bond::reset( void ) {
+    if (connectionSate) return ;
+
+    phase = REQUEST_READY;
+    responseState = CLOSED;
+    connectionSate = true;
+    requestParser.reset();
+    responseGenerator.reset();
+}
+
 Bond::~Bond( ) {
-    if (fileStream) {
-        delete fileStream;
-        fileStream = NULL;
-    }
 }

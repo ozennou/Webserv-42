@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/26 16:07:11 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:16:44 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 
 #include "Uri.hpp"
 #include "MessageHeaders.hpp"
+#include "Uploader.hpp"
 
 class Bond;
 
@@ -37,7 +38,8 @@ enum {
 
 class   RequestParser
 {
-    Bond*    bond;
+    Bond*       bond;
+    Uploader   uploader;
 
     int                 method;
     Uri                 uri;
@@ -57,6 +59,8 @@ class   RequestParser
 
     void resolveResource( Location& location );
 
+    void setUploader( Server& server, Location& location );
+
 public:
     RequestParser( );
     RequestParser( const RequestParser& obj );
@@ -72,6 +76,7 @@ public:
     
     int getMethod( void );
     Uri& getUri( void );
+    int getUploadState( void );
     
     bool isRange( void );
     bool isValidRange( void );
@@ -82,6 +87,10 @@ public:
     string getRangeLast( void );
     int getRangeType( void );
     bool getConnectionState( void );
+
+    void upload( void );
+
+    void reset( void );
 
     // Exception Class
     class HttpRequestException : public exception

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/25 10:55:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/27 17:02:18 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,4 +72,6 @@ public:
     void    absoluteForm();
 
     void    extractQuery( size_t& index );
+
+    void    reset( );
 };

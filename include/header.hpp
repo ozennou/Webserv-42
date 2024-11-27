@@ -42,7 +42,9 @@ enum {
     RESPONSE_READY,
     INT_RANGE,
     SUFFIX_RANGE,
-    NO_RANGE
+    NO_RANGE,
+    UPLOADING,
+    UPLOADED
 };
 
 using namespace std;
