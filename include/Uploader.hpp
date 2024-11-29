@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 16:51:37 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/28 21:12:25 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ private:
     ofstream    ofs;
 
     string      buffer; // buffer
+    int         state;
 
     size_t      totalLength;
     size_t      currentLength;
@@ -48,6 +49,7 @@ public:
     void    setUploadState( int state );
     int     getUploadState( );
 
+    void    decodeChunked( );
     void    read( );
 
     void    closeUploader( );

@@ -121,13 +121,14 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
 
 int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, int &client_fd, int &i)
 {
+    (void)clients, (void)pfds,(void)i;
     list<Bond>::iterator bond = getBond(bonds, client_fd);
 
     if (bond == bonds.end()) return 1;
 
     bond->initResponse();
     
-    if (!bond->getConnectionState() && bond->getResponseState() == CLOSED) {
+    if (bond->getUploadState() == UPLOADED && !bond->getConnectionState() && bond->getResponseState() == CLOSED) {
         logging("Client Disconnected", ERROR, NULL, 0);
         bonds.erase(bond);
         pfds[i].fd = -1;

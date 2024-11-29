@@ -44,7 +44,9 @@ enum {
     SUFFIX_RANGE,
     NO_RANGE,
     UPLOADING,
-    UPLOADED
+    UPLOADED,
+    CHUNKED_LENGTH,
+    CHUNKED_DATA
 };
 
 using namespace std;

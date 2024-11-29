@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 19:35:07 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/29 17:56:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,9 @@ Uploader::Uploader( const Uploader& obj ) {
 Uploader& Uploader::operator=( const Uploader& obj ) {
     if (this != &obj) {
         this->clientFd = obj.clientFd;
+        this->totalLength = 0;
+        this->currentLength = 0;
+        this->state = CHUNKED_LENGTH;
     }
     return *this;
 }
@@ -37,11 +40,20 @@ Uploader::~Uploader( ) {
 
 void    Uploader::setBuffer( string& stringBuffer ) {
     buffer = stringBuffer;
+
+    if (isChunked) {
+        decodeChunked();
+        return ;
+    }
+
+    currentLength = buffer.length();
+    
+    ofs.write(buffer.c_str(), buffer.length()); buffer.clear();
+    if (currentLength >= totalLength) closeUploader();
 }
 
 void    Uploader::setTotalLength( size_t& contentLengthh ) {
     totalLength = contentLengthh;
-    currentLength = buffer.length();
 }
 
 void    Uploader::setIsChunked( bool value ) {
@@ -75,29 +87,64 @@ void    Uploader::setOfs( string uploadPath ) {
 
     ofs.open(fullPath.str());
 
-    // cout << fullPath.str() << endl;
     if (!ofs.is_open()) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
 }
 
-void    Uploader::setUploadState( int state ) {
-    uploadeState = state;
+void    Uploader::setUploadState( int statee ) {
+    uploadeState = statee;
 }
 
 int    Uploader::getUploadState( void ) {
     return uploadeState;
 }
-
+ 
 void    Uploader::closeUploader( ) {
     ofs.close(); ofs.clear();
     uploadeState = UPLOADED;
 }
 
-void    Uploader::read( ) {
-    if (buffer.length()) {
-        ofs.write(buffer.c_str(), buffer.length()); buffer.clear();
-        if (currentLength >= totalLength) closeUploader();
-    }
+void    Uploader::decodeChunked( ) {
+    
+    while (true) {
+        if (buffer.find(CRLF) != string::npos && state == CHUNKED_LENGTH) {
+            stringstream ss;
 
+            ss << hex << buffer.substr(0, buffer.find(CRLF));
+            ss >> totalLength; currentLength = 0;
+
+            if (ss.fail()) throw RequestParser::HttpRequestException("Bad Hex Digit", 400);
+            
+            if (!totalLength) {
+                closeUploader();
+                break;
+            }
+
+            buffer = buffer.substr(buffer.find(CRLF) + 2);
+
+            state = CHUNKED_DATA;
+        }
+        else if (state == CHUNKED_DATA && (currentLength + buffer.length() >= totalLength)) {
+            
+            string payload = buffer.substr(0, (totalLength - currentLength));
+            ofs.write(payload.c_str(), payload.length());
+            
+
+            if (currentLength + buffer.length() > totalLength) buffer = buffer.substr((totalLength - currentLength) + 2);
+            else buffer.clear();
+
+            currentLength += payload.length();
+            state = CHUNKED_LENGTH;
+        }
+        else if (state == CHUNKED_DATA) {
+            ofs.write(buffer.c_str(), buffer.length());
+            currentLength += buffer.length();
+            buffer.clear();
+            break;
+        }
+    }
+}
+
+void    Uploader::read( ) {
     int i;
     char buf[5621];
 
@@ -108,6 +155,11 @@ void    Uploader::read( ) {
 
     buffer.append(buf, i);
 
+    if (isChunked) {
+        decodeChunked();
+        return ;
+    }
+    
     currentLength += i;
 
     ofs.write(buffer.c_str(), buffer.length()); buffer.clear();

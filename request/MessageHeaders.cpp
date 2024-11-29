@@ -56,14 +56,16 @@ bool MessageHeaders::findField( string fieldName ) {
 
 map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
     map<string, string>::iterator it = headers.find("transfer-encoding");
-    if (it == headers.end()) it = headers.find("content-length");
-    else if (it->second != "chunked") throw RequestParser::HttpRequestException("Encoding Not Implemented", 501);
-    if (it == headers.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
-    else {
+
+    if (it == headers.end()) {
+        it = headers.find("content-length");
+        if (it == headers.end()) throw RequestParser::HttpRequestException("No Content Related Headers Found", 400);
+        
         for (size_t i = 0; i < it->second.length(); i++) {
             if (!isdigit(it->second[i])) throw RequestParser::HttpRequestException("Invalid Content Length", 400);
         }
     }
+    else if (it->second != "chunked") throw RequestParser::HttpRequestException("Encoding Not Implemented", 501);
     return it;
 }
 

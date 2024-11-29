@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 19:35:10 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/29 17:53:54 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,6 @@ Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>
 
 void Bond::initParcer( ) {
     try {
-        // cout << requestParser.getMethod() << endl;
         if (requestParser.getMethod() == POST && requestParser.getUploadState() == UPLOADING) {
             requestParser.upload();
             return;
@@ -158,6 +157,10 @@ int  Bond::getRangeType( void ) {
 
 bool  Bond::getConnectionState( void ) {
     return connectionSate;
+}
+
+int  Bond::getUploadState( void ) {
+    return requestParser.getUploadState();
 }
 
 void  Bond::reset( void ) {

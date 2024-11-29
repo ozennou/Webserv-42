@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 19:33:31 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/29 10:37:57 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ void ResponseGenerator::generateErrorMessage( ) {
     char date[40];
     strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
 
+    logging(exception->message, WARNING, NULL, 0);
     ss << "HTTP/1.1 " << exception->statusCode << " " << statusCodeMap->find(exception->statusCode)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
@@ -421,6 +422,10 @@ void ResponseGenerator::directoryResponse( ) {
     bond->reset();
 }
 
+void ResponseGenerator::POSTResponse( ) {
+    
+}
+
 void ResponseGenerator::filterResponseType( ) {
     stringstream stream;
     string  responseBuffer;
@@ -434,7 +439,8 @@ void ResponseGenerator::filterResponseType( ) {
             else NormalGETResponse();
             return ;
         }
-        // else if (bond->getMethod() == POST)
+        // else if (bond->getMethod() == POST) {
+        // }
         else {
             stream << "HTTP/1.1 " << 200 << " OK" << CRLF;
             stream << "Date: Thu, 16 Nov 2017 16:40:10 GMT" << endl;

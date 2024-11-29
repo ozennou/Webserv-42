@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 19:35:37 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/28 14:44:03 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,6 @@ RequestParser& RequestParser::operator=( const RequestParser& obj ) {
 RequestParser::RequestParser( int& clientFd, int& socketFd, Socket_map& socket_map ) : uploader(clientFd), uri(socketFd, socket_map) {
     this->method = -1;
     this->clientFd = clientFd;
-    // this->uploader = NULL;
     size = 5160;
 }
 
@@ -143,23 +142,25 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     
     if (it != mapp.end()) uploader.setFileType(it->first);
 
-    uploader.setBuffer(stringBuffer);
-
     uploader.setIsChunked(false);
     uploader.setIsMulti(false);
 
-    stringstream ss;
-    size_t sizee;
+    if (headers.getFieldValue("transfer-encoding") == "chunked") uploader.setIsChunked(true);
+    else {
+        stringstream ss;
+        size_t sizee;
+        if (!headers.getFieldValue("content-length").length()) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
+        ss << headers.getFieldValue("content-length"); ss >> sizee;
+        if (ss.fail()) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
 
-    ss << headers.getFieldValue("content-length"); ss >> sizee;
-
-    if (ss.fail()) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
-
-    uploader.setTotalLength(sizee);
+        uploader.setTotalLength(sizee);
+    }
 
     uploader.setOfs(location.getUploadPath());
 
     uploader.setUploadState(UPLOADING);
+    
+    uploader.setBuffer(stringBuffer);
 }
 
 void RequestParser::resolveResource( Location& location ) {
@@ -208,7 +209,7 @@ void RequestParser::headerSection( ) {
         string field = stringBuffer.substr(0, pos);
 
         if (!field.length()) break;
-        
+
         pos += 2;
         headers.storeField(field, uri, method);
         stringBuffer = stringBuffer.substr(pos);
