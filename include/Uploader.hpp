@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/28 21:12:25 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/30 08:54:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ class Uploader
 private:
     int         uploadeState;
     int         clientFd;
+    size_t      maxPayloadSize;
 
     ofstream    ofs;
 
@@ -45,6 +46,7 @@ public:
     void    setIsChunked( bool value );
     void    setIsMulti( bool value );
     void    setFileType( string type );
+    void    setMaxPayloadSize( size_t payloadSize );
     void    setOfs( string uploadPath );
     void    setUploadState( int state );
     int     getUploadState( );

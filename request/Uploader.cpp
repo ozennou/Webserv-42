@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/29 17:56:28 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/30 11:34:24 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,6 +94,10 @@ void    Uploader::setUploadState( int statee ) {
     uploadeState = statee;
 }
 
+void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
+    this->maxPayloadSize = payloadSize * 1000000;
+}
+
 int    Uploader::getUploadState( void ) {
     return uploadeState;
 }
@@ -108,7 +112,11 @@ void    Uploader::decodeChunked( ) {
     while (true) {
         if (buffer.find(CRLF) != string::npos && state == CHUNKED_LENGTH) {
             stringstream ss;
-
+            
+            if (!buffer.find(CRLF)) buffer = buffer.substr(2);
+            
+            if (!buffer.length()) break;
+            
             ss << hex << buffer.substr(0, buffer.find(CRLF));
             ss >> totalLength; currentLength = 0;
 
@@ -126,13 +134,15 @@ void    Uploader::decodeChunked( ) {
         else if (state == CHUNKED_DATA && (currentLength + buffer.length() >= totalLength)) {
             
             string payload = buffer.substr(0, (totalLength - currentLength));
-            ofs.write(payload.c_str(), payload.length());
             
+            ofs.write(payload.c_str(), payload.length());
 
-            if (currentLength + buffer.length() > totalLength) buffer = buffer.substr((totalLength - currentLength) + 2);
+            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length()))
+                buffer = buffer.substr((totalLength - currentLength) + 2);
             else buffer.clear();
 
             currentLength += payload.length();
+
             state = CHUNKED_LENGTH;
         }
         else if (state == CHUNKED_DATA) {
@@ -141,15 +151,16 @@ void    Uploader::decodeChunked( ) {
             buffer.clear();
             break;
         }
+        else break;
     }
 }
 
 void    Uploader::read( ) {
     int i;
-    char buf[5621];
+    char buf[10001];
 
-    i = recv(clientFd, buf, 5620, 0);
-
+    i = recv(clientFd, buf, 10000, 0);
+    
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 

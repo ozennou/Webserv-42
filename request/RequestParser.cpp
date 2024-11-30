@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/28 14:44:03 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/11/30 08:55:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,8 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     
     if (it != mapp.end()) uploader.setFileType(it->first);
 
+    uploader.setMaxPayloadSize(server.getBodySize());
+    
     uploader.setIsChunked(false);
     uploader.setIsMulti(false);
 
