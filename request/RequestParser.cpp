@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/30 08:55:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/01 13:16:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,10 @@ void  RequestParser::upload( void ) {
 }
 
 void  RequestParser::setUploader( Server& server, Location& location ) {
+
+    uploader.setIsChunked(false);
+    uploader.setIsMulti(false);
+
     string contentType = headers.getFieldValue("content-type");
     map<string, string> mapp = server.getMimeTypes();
     map<string, string>::iterator it = mapp.begin();
@@ -141,12 +145,13 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     }
     
     if (it != mapp.end()) uploader.setFileType(it->first);
+    else if (contentType.rfind("multipart/form-data", 0) != string::npos) {
+        uploader.setIsMulti(true);
+        uploader.setBoundary(contentType.substr(contentType.find('=') + 1));
+    }
 
     uploader.setMaxPayloadSize(server.getBodySize());
     
-    uploader.setIsChunked(false);
-    uploader.setIsMulti(false);
-
     if (headers.getFieldValue("transfer-encoding") == "chunked") uploader.setIsChunked(true);
     else {
         stringstream ss;

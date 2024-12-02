@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/30 08:54:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/02 08:36:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,11 @@ private:
     size_t      totalLength;
     size_t      currentLength;
     string      fileType;
+    string      boundary;
+    string      closingBoundary;
+
+    string      boundaryPart;
+    int         boundaryState;
 
     bool        isChunked;
     bool        isMulti;
@@ -42,15 +47,20 @@ public:
 
     void    setBuffer( string& stringBuffer );
     void    setTotalLength( size_t& totalLengthh );
-
+    void    setBoundary( string boundaryValue );
     void    setIsChunked( bool value );
     void    setIsMulti( bool value );
     void    setFileType( string type );
     void    setMaxPayloadSize( size_t payloadSize );
     void    setOfs( string uploadPath );
     void    setUploadState( int state );
-    int     getUploadState( );
 
+    int     getUploadState( );
+    void    boundaryChecks( string& payload );
+    int     readHeaders( string& payload );
+    void    parceHeaders( string& field );
+
+    void    multipart( string& buffer );
     void    decodeChunked( );
     void    read( );
 

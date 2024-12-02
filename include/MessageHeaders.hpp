@@ -17,8 +17,6 @@
 
 #include "Uri.hpp"
 
-#define DELI "\"(),/:;<=>?@[\\]{}"
-
 using namespace std;
 
 #include <cctype>

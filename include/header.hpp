@@ -34,6 +34,7 @@
 #define CRLF "\r\n"
 #define GEN_DELIM ":/?#[]@"
 #define SUB_DELIM "!$&'()*+,;="
+#define DELI "\"(),/:;<=>?@[\\]{}"
 
 enum {
     OPEN,
@@ -46,7 +47,9 @@ enum {
     UPLOADING,
     UPLOADED,
     CHUNKED_LENGTH,
-    CHUNKED_DATA
+    CHUNKED_DATA,
+    BOUNDARY,
+    HEADERS
 };
 
 using namespace std;
