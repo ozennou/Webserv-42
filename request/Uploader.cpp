@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/02 11:34:13 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/03 07:51:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void    Uploader::setBoundary( string boundaryValue ) {
     this->boundary += boundaryValue;
     this->boundary += CRLF;
 
+    this->closingBoundary = CRLF;
     this->closingBoundary = "--";
     this->closingBoundary += boundaryValue;
     this->closingBoundary += "--";
@@ -83,7 +84,25 @@ void    Uploader::setFileType( string type ) {
     fileType += type;
 }
 
-void    Uploader::setOfs( string uploadPath ) {
+void    Uploader::setUploadPath( string uploadPathh ) {
+    this->uploadPath = uploadPathh;
+}
+
+void    Uploader::setOfs( string& filename ) {
+    // Basic filename checks here
+    stringstream fullPath;
+
+    fullPath << uploadPath;
+    if (fullPath.str()[fullPath.str().length() - 1] != '/') fullPath << '/';
+
+    fullPath << filename;
+    
+    ofs.open(fullPath.str());
+
+    if (!ofs.is_open()) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
+}
+
+void    Uploader::setOfs( ) {
     stringstream fullPath;
 
     fullPath << uploadPath;
@@ -114,6 +133,10 @@ void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
 
 int    Uploader::getUploadState( void ) {
     return uploadeState;
+}
+
+bool    Uploader::getIsMulti( void ) {
+    return isMulti;
 }
  
 void    Uploader::closeUploader( ) {
@@ -150,9 +173,16 @@ void    Uploader::parceHeaders( string& field ) {
         }
     }
 
-    // if (fieldName == "content-disposition") {
-        // cout << fieldValue << endl;
-    // }
+    if (fieldName == "content-disposition") {
+        size_t pos = fieldValue.find("filename=");
+
+        if (pos == string::npos) return ;
+
+        string filename = fieldValue.substr(pos).substr(10); filename.erase(filename.length() - 1);
+
+        ofs.close(); ofs.clear();
+        setOfs(filename);
+    }
 }
 
 int    Uploader::readHeaders( string& payload ) {
@@ -176,7 +206,7 @@ int    Uploader::readHeaders( string& payload ) {
 }
 
 void    Uploader::boundaryChecks( string& payload ) {
-    if (boundary.length() > payload.length()) return ;
+    if (boundary.length() >= payload.length()) return ;
     
     string  lastBufferPart = payload.substr(payload.length() - boundary.length() + 1 /* This 1 is neccesarry */);
     size_t i = 0;
@@ -194,6 +224,8 @@ void    Uploader::boundaryChecks( string& payload ) {
 
     // This Part Is For The ClosingBoundary
     if (!boundaryPart.length()) {
+        if (closingBoundary.length() >= payload.length()) return ;
+        
         i = 0;
         lastBufferPart = payload.substr(payload.length() - closingBoundary.length() + 1 /* This 1 is neccesarry */);
         for (; i < lastBufferPart.length(); i++) {
@@ -209,7 +241,6 @@ void    Uploader::boundaryChecks( string& payload ) {
 }
 
 void    Uploader::multipart( string& payload ) {
-    
     if (boundaryPart.length()) {
         payload.insert(0, boundaryPart);
         boundaryPart.clear();
@@ -219,19 +250,17 @@ void    Uploader::multipart( string& payload ) {
 
     while (true) {
         if (boundaryState == BOUNDARY && !payload.rfind(closingBoundary, 0)) {
-            cout << "Closed" << endl;
             closeUploader();
             return ;
         }
 
         if (boundaryState == BOUNDARY && !payload.rfind(boundary, 0)) {
-            cout << "Opened" << endl;
-            payload = payload.substr(payload.find(CRLF) + 2);
-
+            payload = payload.substr(boundary.length());
+            
             boundaryState = HEADERS;
         } else if (boundaryState == HEADERS) {
             if (readHeaders(payload)) return ;
-
+            
             boundaryState = BOUNDARY;
         }
         else if (boundaryState == BOUNDARY) {
@@ -242,15 +271,14 @@ void    Uploader::multipart( string& payload ) {
 
                 if (payload.find(closingBoundary) != string::npos) pos = payload.find(closingBoundary);
                 else pos = payload.find(boundary);
-
+                
                 string tmp = payload.substr(0, pos);
-
-                if (tmp.length()) ofs.write(tmp.c_str(), tmp.length());
+                
+                if (tmp!= CRLF)ofs.write(tmp.c_str(), tmp.length());
 
                 payload = payload.substr(pos);
-
             } else {
-                ofs.write(payload.c_str(), payload.length());
+                if (payload != CRLF) ofs.write(payload.c_str(), payload.length());
                 return ;
             }
         }
@@ -284,7 +312,7 @@ void    Uploader::decodeChunked( ) {
             state = CHUNKED_DATA;
         }
         else if (state == CHUNKED_DATA && (currentLength + buffer.length() >= totalLength)) {
-            
+
             payload = buffer.substr(0, (totalLength - currentLength));
             payloadLength = payload.length();
 
@@ -315,9 +343,9 @@ void    Uploader::decodeChunked( ) {
 
 void    Uploader::read( ) {
     int i;
-    char buf[10001];
+    char buf[16001];
 
-    i = recv(clientFd, buf, 10000, 0);
+    i = recv(clientFd, buf, 16000, 0);
     
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/01 13:16:10 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/02 14:23:36 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,6 +151,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     }
 
     uploader.setMaxPayloadSize(server.getBodySize());
+    uploader.setUploadPath(location.getUploadPath());
     
     if (headers.getFieldValue("transfer-encoding") == "chunked") uploader.setIsChunked(true);
     else {
@@ -163,7 +164,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
         uploader.setTotalLength(sizee);
     }
 
-    uploader.setOfs(location.getUploadPath());
+    if (!uploader.getIsMulti()) uploader.setOfs();
 
     uploader.setUploadState(UPLOADING);
     
