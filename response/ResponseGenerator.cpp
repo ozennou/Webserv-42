@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/29 10:37:57 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/03 11:42:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,8 +75,6 @@ void ResponseGenerator::generateErrorMessage( ) {
     responseBuffer += ss.str();
 
     send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
-
-    logging(exception->message, WARNING, NULL, 0);
 
     delete exception; exception = NULL;
 
@@ -423,7 +421,27 @@ void ResponseGenerator::directoryResponse( ) {
 }
 
 void ResponseGenerator::POSTResponse( ) {
+    stringstream ss;
     
+    time_t timestamp = time(NULL);
+    struct tm datetime1 = *localtime(&timestamp);
+    char date[40];
+    strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+    
+    // struct stat result;
+
+    // Normal HTTP Header
+    ss << "HTTP/1.1 " << 201 << statusCodeMap->find(201)->second << CRLF;
+    ss << "Date: " << date << CRLF;
+    // Normal HTTP Headers
+    ss << CRLF;
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+
+    if (a == -1) {
+        cout << "Send-Error:" << strerror(errno) << endl;
+        this->exception = new RequestParser::HttpRequestException("", 500);
+        generateErrorMessage();
+    }
 }
 
 void ResponseGenerator::filterResponseType( ) {

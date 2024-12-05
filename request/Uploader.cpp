@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/03 07:51:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/05 13:16:24 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
         this->clientFd = obj.clientFd;
         this->totalLength = 0;
         this->currentLength = 0;
+        this->a = 0;
+        this->b = 0;
         this->state = CHUNKED_LENGTH;
         this->boundaryState = BOUNDARY;
     }
@@ -44,6 +46,9 @@ void    Uploader::setBuffer( string& stringBuffer ) {
 
     if (isChunked) {
         decodeChunked();
+        return ;
+    } else if (isMulti) {
+        multipart(buffer);
         return ;
     }
 
@@ -60,11 +65,12 @@ void    Uploader::setTotalLength( size_t& contentLengthh ) {
 void    Uploader::setBoundary( string boundaryValue ) {
     if (boundaryValue.length() > 70) throw RequestParser::HttpRequestException("Boundary Too Long", 400);
 
+    // this->boundary = CRLF;
     this->boundary = "--";
     this->boundary += boundaryValue;
     this->boundary += CRLF;
 
-    this->closingBoundary = CRLF;
+    // this->boundary = CRLF;
     this->closingBoundary = "--";
     this->closingBoundary += boundaryValue;
     this->closingBoundary += "--";
@@ -98,8 +104,8 @@ void    Uploader::setOfs( string& filename ) {
     fullPath << filename;
     
     ofs.open(fullPath.str());
-
     if (!ofs.is_open()) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
+
 }
 
 void    Uploader::setOfs( ) {
@@ -176,7 +182,10 @@ void    Uploader::parceHeaders( string& field ) {
     if (fieldName == "content-disposition") {
         size_t pos = fieldValue.find("filename=");
 
-        if (pos == string::npos) return ;
+        if (pos == string::npos) {
+            setOfs();
+            return ;
+        }
 
         string filename = fieldValue.substr(pos).substr(10); filename.erase(filename.length() - 1);
 
@@ -208,7 +217,7 @@ int    Uploader::readHeaders( string& payload ) {
 void    Uploader::boundaryChecks( string& payload ) {
     if (boundary.length() >= payload.length()) return ;
     
-    string  lastBufferPart = payload.substr(payload.length() - boundary.length() + 1 /* This 1 is neccesarry */);
+    string  lastBufferPart = payload.substr(payload.length() - boundary.length() + 1);
     size_t i = 0;
     
     // This Part Is For The Boundary
@@ -217,7 +226,7 @@ void    Uploader::boundaryChecks( string& payload ) {
 
         if (!boundary.rfind(tmp, 0)) {
             boundaryPart = tmp;
-            payload = payload.substr(0, payload.length() - boundary.length() + 1 + i);
+            payload = payload.substr(0, payload.length() - boundary.length() + i + 1);
             break;
         }
     }
@@ -227,13 +236,13 @@ void    Uploader::boundaryChecks( string& payload ) {
         if (closingBoundary.length() >= payload.length()) return ;
         
         i = 0;
-        lastBufferPart = payload.substr(payload.length() - closingBoundary.length() + 1 /* This 1 is neccesarry */);
+        lastBufferPart = payload.substr(payload.length() - closingBoundary.length() + 1);
         for (; i < lastBufferPart.length(); i++) {
             string  tmp = lastBufferPart.substr(i);
 
             if (!closingBoundary.rfind(tmp, 0)) {
                 boundaryPart = tmp;
-                payload = payload.substr(0, payload.length() - closingBoundary.length() + 1 + i);
+                payload = payload.substr(0, payload.length() - closingBoundary.length() + i + 1);
                 break;
             }
         }
@@ -249,6 +258,7 @@ void    Uploader::multipart( string& payload ) {
     boundaryChecks(payload);
 
     while (true) {
+
         if (boundaryState == BOUNDARY && !payload.rfind(closingBoundary, 0)) {
             closeUploader();
             return ;
@@ -265,7 +275,7 @@ void    Uploader::multipart( string& payload ) {
         }
         else if (boundaryState == BOUNDARY) {
             if (!payload.length()) return ;
-
+            
             if (payload.find(closingBoundary) != string::npos || payload.find(boundary) != string::npos) {
                 size_t pos;
 
@@ -274,23 +284,24 @@ void    Uploader::multipart( string& payload ) {
                 
                 string tmp = payload.substr(0, pos);
                 
-                if (tmp!= CRLF)ofs.write(tmp.c_str(), tmp.length());
+                if (tmp != CRLF) ofs.write(tmp.c_str(), tmp.length());
 
                 payload = payload.substr(pos);
             } else {
-                if (payload != CRLF) ofs.write(payload.c_str(), payload.length());
+                ofs.write(payload.c_str(), payload.length());
                 return ;
             }
-        }
+        } 
+        else break;
     }
 }
 
 void    Uploader::decodeChunked( ) {
-    string payload = buffer;
+    string payload = "";
     size_t payloadLength = 0;
 
     while (true) {
-        if (buffer.find(CRLF) != string::npos && state == CHUNKED_LENGTH) {
+        if (state == CHUNKED_LENGTH && buffer.find(CRLF) != string::npos) {
             stringstream ss;
             
             if (!buffer.find(CRLF)) buffer = buffer.substr(2);
@@ -319,11 +330,14 @@ void    Uploader::decodeChunked( ) {
             if (isMulti) multipart(payload);
             else ofs.write(payload.c_str(), payload.length());
 
-            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length()))
+            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) 
                 buffer = buffer.substr((totalLength - currentLength) + 2);
             else buffer.clear();
 
             currentLength += payloadLength;
+            maxPayloadSize -= payloadLength;
+
+            if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
             state = CHUNKED_LENGTH;
         }
@@ -334,7 +348,11 @@ void    Uploader::decodeChunked( ) {
             else ofs.write(payload.c_str(), payload.length());
 
             currentLength += buffer.length();
-            buffer.clear();
+            maxPayloadSize -= buffer.length();
+
+            if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+
+            buffer.clear(); payload.clear();
             break;
         }
         else break;
@@ -343,33 +361,47 @@ void    Uploader::decodeChunked( ) {
 
 void    Uploader::read( ) {
     int i;
-    char buf[16001];
+    char buf[200001]; // TODO: reading more
 
-    i = recv(clientFd, buf, 16000, 0);
+    i = recv(clientFd, buf, 200000, 0);
     
     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
-
+    
     buffer.append(buf, i);
 
     if (isChunked) {
         decodeChunked();
+        buffer.clear();
         return ;
     }
     
     currentLength += i;
+    maxPayloadSize -= i;
 
-    ofs.write(buffer.c_str(), buffer.length()); buffer.clear();
+    if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+    
+    if (isMulti) multipart(buffer);
+    else ofs.write(buffer.c_str(), buffer.length());
+
     if (currentLength >= totalLength) closeUploader();
+    buffer.clear();
 }
 
 void    Uploader::reset( ) {
     uploadeState = UPLOADED;
     ofs.close(); ofs.clear();
     buffer.clear();
+    writingBuffer.clear();
+    state = CHUNKED_LENGTH;
     totalLength = 0;
     currentLength = 0;
     fileType.clear();
+    boundary.clear();
+    closingBoundary.clear();
+    boundaryPart.clear();
+    boundaryState = BOUNDARY;
+    uploadPath.clear();
     isChunked = false;
     isMulti = false;
 }

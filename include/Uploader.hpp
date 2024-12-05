@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/02 14:21:38 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/05 10:44:32 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,13 @@ private:
     int         clientFd;
     size_t      maxPayloadSize;
 
+    int         a;
+    size_t         b;
+
     ofstream    ofs;
 
     string      buffer; // buffer
+    string      writingBuffer;
     int         state;
 
     size_t      totalLength;
