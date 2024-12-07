@@ -138,7 +138,7 @@ void RequestParser::resolveResource( Location& location ) {
             if (set.find("GET") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
         }
     } else if (uri.isDirectory()) {
-        cout << "It is a directory" << endl;
+        // cout << "It is a directory" << endl;
     }
 }
 
