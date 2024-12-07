@@ -513,8 +513,6 @@ void ResponseGenerator::DELETEMethod( ) {
             this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
             generateErrorMessage();
         }
-        bond->setResponseState(CLOSED);
-        bond->setConnectionState(false);
     }
 }
 
