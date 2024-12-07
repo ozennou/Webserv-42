@@ -6,12 +6,13 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 21:43:00 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 21:46:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
+#include "header.hpp"
 
 RequestParser::RequestParser( ) {
 }
@@ -222,8 +223,8 @@ void RequestParser::resolveResource( Location& location ) {
     if (uri.isRegularFile()) {
         if (method == GET) {
             if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
-            set<string> set = location.getMethods();
-            if (set.find("GET") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
+            std::set<string> s = location.getMethods();
+            if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
         }
     } else if (uri.isDirectory()) {
         // cout << "It is a directory" << endl;
