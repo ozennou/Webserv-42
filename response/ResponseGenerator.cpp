@@ -429,6 +429,95 @@ void ResponseGenerator::directoryResponse( ) {
     }
 }
 
+int remove_resource(string &path) {
+    if (remove(path.c_str())) {
+        if (errno == EACCES)
+            return 1; //403
+        else if (errno == ENOENT)
+            return 2; //404
+        else 
+            return 3; //500
+    }
+    return 0;
+}
+
+int delete_resource(string path, int is_dir) {
+    if (!is_dir) {
+        return remove_resource(path);
+    }
+
+    DIR* dir = opendir(path.c_str());
+    struct dirent *entry = nullptr;
+    struct stat result;
+
+    if (path[path.size() - 1] != '/')
+        path += "/";
+    if (!dir)
+    {
+        if (errno == EACCES)
+            return 1;
+        else if (errno == ENOENT)
+            return 2;
+        return 3;
+    }
+    while((entry = readdir(dir)) != nullptr) {
+        string file = entry->d_name; 
+        string full_path = path + file;   
+        if (file == "." || file == "..")
+            continue;
+        if (stat(full_path.c_str(), &result))
+            return 3;
+        int num = delete_resource(full_path, S_ISDIR(result.st_mode));
+        if (num)
+            return num;
+    }
+    closedir(dir);
+    return remove_resource(path);
+}
+
+void ResponseGenerator::DELETEMethod( ) {
+    // bond->getUri().path;
+    struct stat result;
+    if (false){ // Condition where i should check if it's a CGI case or not
+        
+    } else {
+        if (stat(bond->getUri().path.c_str(), &result)) {
+            this->exception = new RequestParser::HttpRequestException("Not found", 404);
+            generateErrorMessage();
+            return ;
+        }
+        int num = delete_resource(bond->getUri().path, S_ISDIR(result.st_mode));
+        if (num) {
+            if (num == 1)
+                this->exception = new RequestParser::HttpRequestException("Forbidden", 403);
+            else if (num == 2)
+                this->exception = new RequestParser::HttpRequestException("Not found", 404);
+            else
+                this->exception = new RequestParser::HttpRequestException("Internal server error", 500);
+            return;
+        }
+        stringstream ss;
+        string       html_res;
+
+        time_t timestamp = time(NULL);
+        struct tm datetime1 = *localtime(&timestamp);
+        char date[40];
+        strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+
+        ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
+        ss << "Date: " << date << CRLF;
+        ss << "Connection: close" << CRLF;
+        ss << CRLF;
+        int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+        if (a == -1) {
+            this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+            generateErrorMessage();
+        }
+        bond->setResponseState(CLOSED);
+        bond->setConnectionState(false);
+    }
+}
+
 void ResponseGenerator::filterResponseType( ) {
     stringstream stream;
     string  responseBuffer;
@@ -442,6 +531,7 @@ void ResponseGenerator::filterResponseType( ) {
             else NormalGETResponse();
             return ;
         }
+        else if (bond->getMethod() == DELETE) DELETEMethod();
         else {
             stream << "HTTP/1.1 " << 200 << " OK" << CRLF;
             stream << "Date: Thu, 16 Nov 2017 16:40:10 GMT" << endl;

@@ -65,4 +65,5 @@ public:
     string    getRangeLast( void );
     int     getRangeType( void );
     bool     getConnectionState( void );
+    void    setConnectionState(bool cs);
 };

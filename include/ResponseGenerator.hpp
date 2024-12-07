@@ -62,5 +62,6 @@ public:
     void directoryResponse();
     void NormalGETResponse();
     void RangeGETResponse();
+    void DELETEMethod();
     string dirlisting();
 };
