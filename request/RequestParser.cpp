@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/02 14:23:36 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 14:18:34 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     }
     
     if (it != mapp.end()) uploader.setFileType(it->first);
-    else if (contentType.rfind("multipart/form-data", 0) != string::npos) {
+    else if (!contentType.rfind("multipart/form-data", 0)) {
         uploader.setIsMulti(true);
         uploader.setBoundary(contentType.substr(contentType.find('=') + 1));
     }
@@ -177,10 +177,20 @@ void RequestParser::resolveResource( Location& location ) {
     if (method == POST) {
         if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
         set<string> set = location.getMethods();
-        if (set.find("POST") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
+        if (set.find("POST") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
         headers.findContentHeaders();
         return ;
     }
+
+    // In Case Of DELETE method
+    if (method == DELETE) {
+        if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to delete the to the directory", 403);
+        set<string> set = location.getMethods();
+        if (set.find("DELETE") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
+        return ;
+    }
+
+    // In Case of GET method
 
     // Either stat() failed, or the macro failed
     if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);

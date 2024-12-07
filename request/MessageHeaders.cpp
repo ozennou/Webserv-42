@@ -227,5 +227,5 @@ void MessageHeaders::storeField( string& field, Uri& uri, int method ) {
 
     if (method == GET && fieldName == "range") storeRange(fieldValue);
 
-    headers.insert(make_pair<string, string>(fieldName, fieldValue));
+    headers.insert(pair<string, string>(fieldName, fieldValue));
 }

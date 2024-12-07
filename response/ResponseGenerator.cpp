@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/03 11:42:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 15:18:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ void ResponseGenerator::generateErrorMessage( ) {
 
     delete exception; exception = NULL;
 
-    bond->setPhase(REQUEST_READY);
     bond->reset();
 }
 
@@ -89,7 +88,6 @@ void ResponseGenerator::completeRangeMessage( ) {
 
     ifs.read(buf, size);
     if (ifs.bad()) {
-        // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -102,7 +100,6 @@ void ResponseGenerator::completeRangeMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        // cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -121,7 +118,6 @@ void ResponseGenerator::completeNormalMessage( ) {
 
     ifs.read(buf, 1620);
     if (ifs.bad()) {
-        // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -132,7 +128,6 @@ void ResponseGenerator::completeNormalMessage( ) {
     int a = send(clientFd, fileBuffer.c_str(), fileBuffer.length(), 0);
 
     if (a == -1) {
-        // cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -168,7 +163,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     }
     
     // Normal HTTP Headers
-    ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
+    ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF; // TODO: Is the server good
     ss << "Content-Type: " << contentType << CRLF;
 
     // In Case of Range request
@@ -192,7 +187,6 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
-        cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
     }
@@ -219,7 +213,6 @@ void ResponseGenerator::NormalGETResponse( ) {
 
     ifs.open(uri.path.c_str(), ios::in | ios::binary);
     if (!ifs.is_open()) {
-        // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("System Error-The Opening Of The File", 500);
         generateErrorMessage();
         return ;
@@ -231,7 +224,6 @@ void ResponseGenerator::NormalGETResponse( ) {
     ifs.read(buf, 1620);
     
     if (ifs.bad()) {
-        // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -269,7 +261,6 @@ void ResponseGenerator::RangeGETResponse( ) {
     
     ifs.open(uri.path.c_str(), ios::in | ios::binary);
     if (!ifs.is_open()) {
-        // cout << "Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
         return ;
@@ -427,21 +418,24 @@ void ResponseGenerator::POSTResponse( ) {
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
     strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
-    
-    // struct stat result;
 
     // Normal HTTP Header
     ss << "HTTP/1.1 " << 201 << statusCodeMap->find(201)->second << CRLF;
     ss << "Date: " << date << CRLF;
+    ss << "Server: " <<  *(bond->getUri().getHostServer().getServerNames().begin()) << CRLF;
+
     // Normal HTTP Headers
+    if (bond->getConnectionState()) ss << "Connection: keep-alive" << CRLF;
+    else ss << "Connection: close" << CRLF;
+
     ss << CRLF;
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
-        cout << "Send-Error:" << strerror(errno) << endl;
         this->exception = new RequestParser::HttpRequestException("", 500);
         generateErrorMessage();
     }
+    bond->reset();
 }
 
 void ResponseGenerator::filterResponseType( ) {
@@ -457,9 +451,9 @@ void ResponseGenerator::filterResponseType( ) {
             else NormalGETResponse();
             return ;
         }
-        // else if (bond->getMethod() == POST) {
-        // }
+        else if (bond->getMethod() == POST) POSTResponse();
         else {
+            cout << "HERE" << endl;
             stream << "HTTP/1.1 " << 200 << " OK" << CRLF;
             stream << "Date: Thu, 16 Nov 2017 16:40:10 GMT" << endl;
             stream << "Content-Length: 1" << CRLF;

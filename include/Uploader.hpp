@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 11:44:13 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 14:09:36 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,9 +62,9 @@ public:
 
     int     getUploadState( );
     bool    getIsMulti( );
-    void    boundaryChecks( string& payload );
     int     readHeaders( string& payload );
-    void    parceHeaders( string& field );
+    int     parceHeaders( string& field );
+    void    normalizePath( string path );
 
     void    multipart( string& buffer );
     void    decodeChunked( );

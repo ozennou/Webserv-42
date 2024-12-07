@@ -106,7 +106,7 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
     }
     catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
-            logging("Client Disconnected-1", ERROR, NULL, 0);
+            logging("Client Disconnected", ERROR, NULL, 0);
             bonds.erase(bond);
             pfds[i].fd = -1;
             clients.remove_client(client_fd);

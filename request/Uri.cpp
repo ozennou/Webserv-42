@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 17:21:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 14:31:20 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,7 +108,7 @@ Location Uri::matchURI( Server& server ) {
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
     
-    path.insert(0, location.getRoot()); // FIXME: This Part here should be revised
+    path.insert(0, location.getRoot()); // TODO: This Part here should be revised
     return location;
 }
 
@@ -179,84 +179,6 @@ void Uri::extractQuery( size_t& index ) {
     }
 }
 
-void Uri::absoluteForm( ) {
-    size_t colonIndex = requestTarget.find(':');
-
-    if (colonIndex != 4 || requestTarget.compare(0, 4, "http")) throw RequestParser::HttpRequestException("Invalid scheme received for the absolut-form", 400);
-
-    size_t i = 4;
-
-    if ((i + 2 >= requestTarget.length()) \
-    || requestTarget[i + 1] != '/' \
-    || requestTarget[i + 2] != '/')
-        throw RequestParser::HttpRequestException("No // found after the scheme", 400);
-    
-    i += 3;
-
-    for (; i < requestTarget.length(); i++) {
-        if (genDelimiters.find(requestTarget[i]) != string::npos)
-            break;
-        if (!isUnreserved(requestTarget[i]) \
-        && (!percentEncoded(requestTarget, i)) \
-        && subDelimiters.find(requestTarget[i]) == string::npos)
-            throw RequestParser::HttpRequestException("Invalid Character found in path in Host Absolut Form", 400);
-    }
-
-    host = requestTarget.substr(7, (i -  (7)));
-
-    if (!host.length()) throw RequestParser::HttpRequestException("No Host Found in absolut-form", 400);
-
-    if (i == requestTarget.length()) return ;
-
-    if ((requestTarget[i] != '/') && (requestTarget[i] != '?') && (requestTarget[i] != ':'))
-        throw RequestParser::HttpRequestException("Invalid delimiter after host", 400);
-    
-    if (requestTarget[i] == ':') {
-        size_t j = i + 1;
-        for (; j < requestTarget.length(); j++) {
-            if (genDelimiters.find(requestTarget[j]) != string::npos)
-                break;
-            if (!isdigit(requestTarget[j]))
-                throw RequestParser::HttpRequestException("Invalid Character In the Port Number", 400);
-        }
-        if (j != i + 1) {
-            stringstream ss;
-            ss << requestTarget.substr(i + 1, (j - (i + 1))); ss >> port;
-            if (ss.fail() || port < 0 || port > 65535) throw RequestParser::HttpRequestException("Invalid Port Number", 400);
-        }
-
-        i = j;
-        if (i == requestTarget.length()) return;
-
-        if (requestTarget[i] != '/' && requestTarget[i] != '?')
-            throw RequestParser::HttpRequestException("Invalid delimiter after port", 400);
-
-    }
-
-    if (requestTarget[i] == '/') {
-        size_t j = i + 1;
-        for (; j < requestTarget.length(); j++) {
-            if (genDelimiters.find(requestTarget[j]) != string::npos \
-                && requestTarget[j] != '/')
-                break;
-            if ((!isUnreserved(requestTarget[j]) && requestTarget[j] != '@' && requestTarget[j] != ':' \
-                && requestTarget[j] != '/') \
-            && (!percentEncoded(requestTarget, j)) \
-            && subDelimiters.find(requestTarget[j]) == string::npos)
-                throw RequestParser::HttpRequestException("Invalid character found in path", 400);
-        }
-
-        path = requestTarget.substr(i, j - i);
-
-        i = j;
-        if (i == requestTarget.length()) return;
-
-        if (requestTarget[i] != '?') throw RequestParser::HttpRequestException("Invalid character after path", 400);
-    }
-
-    if (requestTarget[i] == '?') extractQuery(i);
-}
-
 void Uri::originForm( ) {
     size_t i = 1;
     for (; i < requestTarget.length(); i++) {
@@ -277,11 +199,6 @@ void Uri::extractPath( string& requestT ) {
     if (requestTarget[0] == '/') {
         originForm();
         type = ORIGIN;
-    }
-    else {
-        absoluteForm();
-        type = ABSOLUTE;
-        if (!path.length()) path = "/";
     }
 
     normalizePath();

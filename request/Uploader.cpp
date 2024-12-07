@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 11:47:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 14:58:11 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,14 +40,60 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
 Uploader::~Uploader( ) {
 }
 
+void Uploader::normalizePath( string filename ) {
+    size_t j;
+
+    // /./././././././././
+    for (size_t i = 0; i < filename.length(); i++) {
+        if ((filename[i] == '.' && (i > 0 && filename[i - 1] == '/')) && ((i + 1 == filename.length()) || (i + 1 < filename.length() && filename[i + 1] == '/')))
+            filename.erase(i, 1);
+    }
+    
+    // /////a/////a//////b////n
+    for (size_t i = 0; i < filename.length(); i++) {
+        j = i;
+        for (; j < filename.length() && filename[j] == '/'; j++) {
+        }
+        
+        if (j != i && filename[i] == '/') filename.erase(i + 1, (j - (i + 1)));
+    }
+
+    // /.. Bad Request /b1/../a1
+    for (size_t i = 0; i < filename.length(); i++) {
+        if ((filename[i] == '.' && (i > 0 && filename[i - 1] == '/')) \
+        && (i + 1 < filename.length() && filename[i + 1] == '.') \
+        && ((i + 2 == filename.length()) || (i + 2 < filename.length() && filename[i + 2] == '/'))) {
+            
+            if (i == 1 && filename[0] == '/') throw RequestParser::HttpRequestException("Invalid filename", 400);
+
+            int a = i - 2;
+            for (; a > 0; a--)
+                if (filename[a] == '/') break;
+
+            if (a == -1) a = 0;
+            
+            filename = filename.erase(a + 1, (i + 2) - a);
+            i = 0;
+        }
+    }
+
+    if (!filename.length()) throw RequestParser::HttpRequestException("Invalid File Name", 400);
+}
+
 void    Uploader::setBuffer( string& stringBuffer ) {
     buffer = stringBuffer;
 
     if (isChunked) {
         decodeChunked();
+
+        maxPayloadSize -= buffer.length();
+        if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
         return ;
     } else if (isMulti) {
         multipart(buffer);
+
+        maxPayloadSize -= buffer.length();
+        if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
         return ;
     }
 
@@ -58,10 +104,17 @@ void    Uploader::setBuffer( string& stringBuffer ) {
 }
 
 void    Uploader::setTotalLength( size_t& contentLengthh ) {
+    if (contentLengthh < 0) throw  RequestParser::HttpRequestException("Invalid Content-Length Value - Negative", 400);
+
     totalLength = contentLengthh;
 }
 
 void    Uploader::setBoundary( string boundaryValue ) {
+    if (boundaryValue[0] == '"' && boundaryValue[boundaryValue.length() - 1] == '"') {
+        boundaryValue.erase(0);
+        boundaryValue.erase(boundaryValue.length() - 1);
+    }
+
     if (boundaryValue.length() > 70) throw RequestParser::HttpRequestException("Boundary Too Long", 400);
 
     this->boundary = CRLF;
@@ -90,11 +143,18 @@ void    Uploader::setFileType( string type ) {
 }
 
 void    Uploader::setUploadPath( string uploadPathh ) {
-    this->uploadPath = uploadPathh;
+    this->uploadPath = uploadPathh; // TODO: Does Amin check for this upload Path
+}
+
+void    Uploader::setUploadState( int statee ) {
+    uploadeState = statee;
+}
+
+void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
+    this->maxPayloadSize = payloadSize * 1000000; // TODO: Is this number right, or should we add some protections
 }
 
 void    Uploader::setOfs( string& filename ) {
-    // Basic filename checks here
     stringstream fullPath;
 
     fullPath << uploadPath;
@@ -102,11 +162,13 @@ void    Uploader::setOfs( string& filename ) {
 
     fullPath << filename;
     
+    normalizePath(fullPath.str());
+    
     if (fd != -2) close(fd);
     
     fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
-
-    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
+    
+    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-1", 500);
 }
 
 void    Uploader::setOfs( ) {
@@ -129,15 +191,7 @@ void    Uploader::setOfs( ) {
 
     fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
-    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
-}
-
-void    Uploader::setUploadState( int statee ) {
-    uploadeState = statee;
-}
-
-void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
-    this->maxPayloadSize = payloadSize * 1000000;
+    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-2", 500);
 }
 
 int    Uploader::getUploadState( void ) {
@@ -153,7 +207,7 @@ void    Uploader::closeUploader( ) {
     uploadeState = UPLOADED;
 }
 
-void    Uploader::parceHeaders( string& field ) {
+int    Uploader::parceHeaders( string& field ) {
     size_t colonIndex = field.find(':');
     string delimiters = DELI;
     string space = " \t";
@@ -184,19 +238,23 @@ void    Uploader::parceHeaders( string& field ) {
 
     if (fieldName == "content-disposition") {
         size_t pos = fieldValue.find("filename=");
-        if (pos == string::npos) {
-            setOfs();
-            return ;
+        
+        if (pos == string::npos) setOfs();
+        else {
+            string filename = fieldValue.substr(pos).substr(10); filename.erase(filename.length() - 1);
+
+            if (filename.length()) setOfs(filename);
+            else setOfs();
         }
 
-        string filename = fieldValue.substr(pos).substr(10); filename.erase(filename.length() - 1);
-
-        setOfs(filename);
+        if (fieldValue.find(';') != string::npos) return fieldValue.substr(0, fieldValue.find(';')) == "form-data";
+        else return fieldValue == "form-data";
     }
+    return 0;
 }
 
 int    Uploader::readHeaders( string& payload ) {
-
+    int flag = 0;
     while (1) {
         if (!payload.length() || payload.find(CRLF) == string::npos) return 1;
 
@@ -206,56 +264,18 @@ int    Uploader::readHeaders( string& payload ) {
         pos += 2;
         
         if (!field.length()) {
+            if (!flag) throw RequestParser::HttpRequestException("Invalid Content-Disposition Header", 400);
+
             payload = payload.substr(pos);
             return 0;
         }
 
-        parceHeaders(field);
+        if (parceHeaders(field)) flag = 1;
         payload = payload.substr(pos);
     }
 }
 
-void    Uploader::boundaryChecks( string& payload ) {
-    if (boundary.length() >= payload.length() || payload.find(boundary) != string::npos) return ;
-    
-    if (payload.substr(payload.length() - boundary.length() - 2) == closingBoundary) return ;
-    
-    string  lastBufferPart = payload.substr(payload.length() - boundary.length());
-
-    size_t i = 0;
-    
-    // This Part Is For The Boundary
-    for (; i < lastBufferPart.length(); i++) {
-        string  tmp = lastBufferPart.substr(i);
-
-        if (!boundary.rfind(tmp, 0)) {
-            boundaryPart = tmp;
-            payload = payload.substr(0, payload.length() - boundary.length() + i + 1);
-            break;
-        }
-    }
-
-    // This Part Is For The ClosingBoundary
-    if (!boundaryPart.length()) {
-        if (closingBoundary.length() >= payload.length() || payload.find(closingBoundary) != string::npos) return ;
-
-        i = 0;
-        lastBufferPart = payload.substr(payload.length() - closingBoundary.length() + 1);
-
-        for (; i < lastBufferPart.length(); i++) {
-            string  tmp = lastBufferPart.substr(i);
-
-            if (!closingBoundary.rfind(tmp, 0)) {
-                boundaryPart = tmp;
-                payload = payload.substr(0, payload.length() - closingBoundary.length() + i + 1);
-                break;
-            }
-        }
-    }
-}
-
 void    Uploader::multipart( string& payload ) {
-    // safe check
     if (payload == CRLF && totalLength == 2) return;
 
     while (true) {
@@ -285,7 +305,7 @@ void    Uploader::multipart( string& payload ) {
                 string tmp = payload.substr(0, pos);
                 
                 if (write(fd, tmp.c_str(), tmp.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
-
+                
                 payload = payload.substr(pos);
             } else {
                 if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
@@ -308,7 +328,7 @@ void    Uploader::decodeChunked( ) {
             ss << hex << buffer.substr(0, buffer.find(CRLF));
             ss >> totalLength;
 
-            if (ss.fail()) throw RequestParser::HttpRequestException("Bad Hex Digit", 400);
+            if (ss.fail() || totalLength < 0) throw RequestParser::HttpRequestException("Bad Hex Digit", 400);
 
             if (!totalLength) {
                 closeUploader();
@@ -327,7 +347,7 @@ void    Uploader::decodeChunked( ) {
             if (isMulti) multipart(payload);
             else if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
-            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) buffer = buffer.substr((totalLength - currentLength) + 2); // + 2 was needed here
+            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) buffer = buffer.substr((totalLength - currentLength) + 2);
             else buffer.clear();
 
             maxPayloadSize -= payloadLength;
@@ -401,4 +421,5 @@ void    Uploader::reset( ) {
     isChunked = false;
     isMulti = false;
     fd = -2;
+    maxPayloadSize = 0;
 }

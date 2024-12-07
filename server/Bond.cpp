@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/04 19:41:47 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 15:26:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void Bond::initParcer( ) {
 
         stringBuffer.append(buf, i);
 
-        // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string
+        // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string // TODO: Wrong Logic Here
         if (stringBuffer.find(CRLF) == string::npos || (stringBuffer.find(CRLF) == stringBuffer.rfind(CRLF))) return ;
 
         setPhase(RESPONSE_READY);
@@ -104,7 +104,8 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
-
+    
+    cout << "." << endl;
     responseGenerator.filterResponseType();
 }
 
@@ -165,8 +166,6 @@ int  Bond::getUploadState( void ) {
 }
 
 void  Bond::reset( void ) {
-    if (connectionSate) return ;
-
     phase = REQUEST_READY;
     responseState = CLOSED;
     connectionSate = true;
