@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/05 13:16:24 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 11:47:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,7 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
         this->clientFd = obj.clientFd;
         this->totalLength = 0;
         this->currentLength = 0;
-        this->a = 0;
-        this->b = 0;
+        this->fd = -2;
         this->state = CHUNKED_LENGTH;
         this->boundaryState = BOUNDARY;
     }
@@ -54,7 +53,7 @@ void    Uploader::setBuffer( string& stringBuffer ) {
 
     currentLength = buffer.length();
     
-    ofs.write(buffer.c_str(), buffer.length()); buffer.clear();
+    write(fd, buffer.c_str(), buffer.length()); buffer.clear();
     if (currentLength >= totalLength) closeUploader();
 }
 
@@ -65,13 +64,13 @@ void    Uploader::setTotalLength( size_t& contentLengthh ) {
 void    Uploader::setBoundary( string boundaryValue ) {
     if (boundaryValue.length() > 70) throw RequestParser::HttpRequestException("Boundary Too Long", 400);
 
-    // this->boundary = CRLF;
-    this->boundary = "--";
+    this->boundary = CRLF;
+    this->boundary += "--";
     this->boundary += boundaryValue;
     this->boundary += CRLF;
 
-    // this->boundary = CRLF;
-    this->closingBoundary = "--";
+    this->closingBoundary = CRLF;
+    this->closingBoundary += "--";
     this->closingBoundary += boundaryValue;
     this->closingBoundary += "--";
     this->closingBoundary += CRLF;
@@ -103,9 +102,11 @@ void    Uploader::setOfs( string& filename ) {
 
     fullPath << filename;
     
-    ofs.open(fullPath.str());
-    if (!ofs.is_open()) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
+    if (fd != -2) close(fd);
+    
+    fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
+    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
 }
 
 void    Uploader::setOfs( ) {
@@ -124,9 +125,11 @@ void    Uploader::setOfs( ) {
 
     fullPath << fileType;
 
-    ofs.open(fullPath.str());
+    if (fd != -2) close(fd);
 
-    if (!ofs.is_open()) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
+    fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
+
+    if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File", 500);
 }
 
 void    Uploader::setUploadState( int statee ) {
@@ -146,7 +149,7 @@ bool    Uploader::getIsMulti( void ) {
 }
  
 void    Uploader::closeUploader( ) {
-    ofs.close(); ofs.clear();
+    close(fd);
     uploadeState = UPLOADED;
 }
 
@@ -181,7 +184,6 @@ void    Uploader::parceHeaders( string& field ) {
 
     if (fieldName == "content-disposition") {
         size_t pos = fieldValue.find("filename=");
-
         if (pos == string::npos) {
             setOfs();
             return ;
@@ -189,7 +191,6 @@ void    Uploader::parceHeaders( string& field ) {
 
         string filename = fieldValue.substr(pos).substr(10); filename.erase(filename.length() - 1);
 
-        ofs.close(); ofs.clear();
         setOfs(filename);
     }
 }
@@ -215,9 +216,12 @@ int    Uploader::readHeaders( string& payload ) {
 }
 
 void    Uploader::boundaryChecks( string& payload ) {
-    if (boundary.length() >= payload.length()) return ;
+    if (boundary.length() >= payload.length() || payload.find(boundary) != string::npos) return ;
     
-    string  lastBufferPart = payload.substr(payload.length() - boundary.length() + 1);
+    if (payload.substr(payload.length() - boundary.length() - 2) == closingBoundary) return ;
+    
+    string  lastBufferPart = payload.substr(payload.length() - boundary.length());
+
     size_t i = 0;
     
     // This Part Is For The Boundary
@@ -233,10 +237,11 @@ void    Uploader::boundaryChecks( string& payload ) {
 
     // This Part Is For The ClosingBoundary
     if (!boundaryPart.length()) {
-        if (closingBoundary.length() >= payload.length()) return ;
-        
+        if (closingBoundary.length() >= payload.length() || payload.find(closingBoundary) != string::npos) return ;
+
         i = 0;
         lastBufferPart = payload.substr(payload.length() - closingBoundary.length() + 1);
+
         for (; i < lastBufferPart.length(); i++) {
             string  tmp = lastBufferPart.substr(i);
 
@@ -250,31 +255,26 @@ void    Uploader::boundaryChecks( string& payload ) {
 }
 
 void    Uploader::multipart( string& payload ) {
-    if (boundaryPart.length()) {
-        payload.insert(0, boundaryPart);
-        boundaryPart.clear();
-    }
-
-    boundaryChecks(payload);
+    // safe check
+    if (payload == CRLF && totalLength == 2) return;
 
     while (true) {
-
         if (boundaryState == BOUNDARY && !payload.rfind(closingBoundary, 0)) {
             closeUploader();
-            return ;
+            break ;
         }
-
-        if (boundaryState == BOUNDARY && !payload.rfind(boundary, 0)) {
-            payload = payload.substr(boundary.length());
+        if (boundaryState == BOUNDARY && (!payload.rfind(boundary, 0) || !payload.rfind(boundary.substr(2), 0))) {
+            if (!payload.find(CRLF)) payload = payload.substr(boundary.length());
+            else payload = payload.substr(boundary.length() - 2);
             
             boundaryState = HEADERS;
         } else if (boundaryState == HEADERS) {
-            if (readHeaders(payload)) return ;
-            
+            if (readHeaders(payload)) break ;
+
             boundaryState = BOUNDARY;
         }
-        else if (boundaryState == BOUNDARY) {
-            if (!payload.length()) return ;
+        else {
+            if (!payload.length()) break ;
             
             if (payload.find(closingBoundary) != string::npos || payload.find(boundary) != string::npos) {
                 size_t pos;
@@ -284,16 +284,16 @@ void    Uploader::multipart( string& payload ) {
                 
                 string tmp = payload.substr(0, pos);
                 
-                if (tmp != CRLF) ofs.write(tmp.c_str(), tmp.length());
+                if (write(fd, tmp.c_str(), tmp.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
                 payload = payload.substr(pos);
             } else {
-                ofs.write(payload.c_str(), payload.length());
-                return ;
+                if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
+                break ;
             }
-        } 
-        else break;
+        }
     }
+    payload.clear();
 }
 
 void    Uploader::decodeChunked( ) {
@@ -302,17 +302,14 @@ void    Uploader::decodeChunked( ) {
 
     while (true) {
         if (state == CHUNKED_LENGTH && buffer.find(CRLF) != string::npos) {
+            totalLength = 0; currentLength = 0;
             stringstream ss;
             
-            if (!buffer.find(CRLF)) buffer = buffer.substr(2);
-
-            if (!buffer.length()) break;
-            
             ss << hex << buffer.substr(0, buffer.find(CRLF));
-            ss >> totalLength; currentLength = 0;
+            ss >> totalLength;
 
             if (ss.fail()) throw RequestParser::HttpRequestException("Bad Hex Digit", 400);
-            
+
             if (!totalLength) {
                 closeUploader();
                 break;
@@ -326,15 +323,13 @@ void    Uploader::decodeChunked( ) {
 
             payload = buffer.substr(0, (totalLength - currentLength));
             payloadLength = payload.length();
-
+            
             if (isMulti) multipart(payload);
-            else ofs.write(payload.c_str(), payload.length());
+            else if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
-            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) 
-                buffer = buffer.substr((totalLength - currentLength) + 2);
+            if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) buffer = buffer.substr((totalLength - currentLength) + 2); // + 2 was needed here
             else buffer.clear();
 
-            currentLength += payloadLength;
             maxPayloadSize -= payloadLength;
 
             if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
@@ -345,7 +340,7 @@ void    Uploader::decodeChunked( ) {
             payload = buffer;
             
             if (isMulti) multipart(payload);
-            else ofs.write(payload.c_str(), payload.length());
+            else if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
             currentLength += buffer.length();
             maxPayloadSize -= buffer.length();
@@ -361,7 +356,7 @@ void    Uploader::decodeChunked( ) {
 
 void    Uploader::read( ) {
     int i;
-    char buf[200001]; // TODO: reading more
+    char buf[200000];
 
     i = recv(clientFd, buf, 200000, 0);
     
@@ -382,26 +377,28 @@ void    Uploader::read( ) {
     if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
     
     if (isMulti) multipart(buffer);
-    else ofs.write(buffer.c_str(), buffer.length());
+    else {
+        if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
+        if (currentLength >= totalLength) closeUploader();
+    }
 
-    if (currentLength >= totalLength) closeUploader();
     buffer.clear();
 }
 
 void    Uploader::reset( ) {
     uploadeState = UPLOADED;
-    ofs.close(); ofs.clear();
     buffer.clear();
     writingBuffer.clear();
     state = CHUNKED_LENGTH;
+    boundaryState = BOUNDARY;
     totalLength = 0;
     currentLength = 0;
     fileType.clear();
     boundary.clear();
     closingBoundary.clear();
     boundaryPart.clear();
-    boundaryState = BOUNDARY;
     uploadPath.clear();
     isChunked = false;
     isMulti = false;
+    fd = -2;
 }

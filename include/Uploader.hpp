@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/05 10:44:32 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 11:44:13 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,7 @@ private:
     int         clientFd;
     size_t      maxPayloadSize;
 
-    int         a;
-    size_t         b;
-
-    ofstream    ofs;
+    int         fd;
 
     string      buffer; // buffer
     string      writingBuffer;
@@ -64,7 +61,7 @@ public:
     void    setUploadState( int state );
 
     int     getUploadState( );
-    bool     getIsMulti( );
+    bool    getIsMulti( );
     void    boundaryChecks( string& payload );
     int     readHeaders( string& payload );
     void    parceHeaders( string& field );
