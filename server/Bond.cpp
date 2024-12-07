@@ -129,6 +129,10 @@ void Bond::setResponseState( int statee ) {
     this->responseState = statee;
 }
 
+void    Bond::setConnectionState(bool cs) {
+    connectionSate = cs;
+}
+
 int Bond::getPhase( ) {
     return phase;
 }

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/28 10:17:03 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 21:43:47 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,9 +60,9 @@ public:
 
     void NormalGETResponse();
     void RangeGETResponse();
-
     void POSTResponse();
-
+    void DELETEMethod();
+    
     string dirlisting();
     void directoryResponse();
 

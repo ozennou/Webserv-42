@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/29 17:53:59 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/07 21:44:09 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,6 @@ public:
     int     getRangeType( void );
     bool     getConnectionState( void );
     int     getUploadState( void );
-
     void    reset( );
+    void    setConnectionState(bool cs);
 };
