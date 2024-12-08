@@ -1,4 +1,14 @@
-#include <header.hpp>
+#include "header.hpp"
+#include "../include/Bond.hpp"
+
+list<Bond>::iterator getBond( list<Bond>& bonds, int clientFd ) {
+    list<Bond>::iterator it = bonds.begin();
+    for (; it != bonds.end(); it++) {
+        if ((it)->getClientFd() == clientFd) return it;
+    }
+    it = bonds.end();
+    return it;
+}
 
 void    close_all_fd(vector<int> fds)
 {
@@ -61,15 +71,16 @@ int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
     return 0;
 }
 
-int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, int &max_size)
+int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &statusCodeMap, int &fd, struct pollfd **pfds, int &size, int &max_size, Socket_map& socket_map)
 {
     sockaddr_storage sa;
     socklen_t t = sizeof(sa);
     int newFd = accept(fd, (sockaddr*)&sa, &t);
     if (newFd < 0)
         return 1;
-    if (sa.ss_family == AF_INET)
+    if (sa.ss_family == AF_INET) {
         logging("Accepted ipv4 new connection", INFO, NULL, 0);
+    }
     else
     {
         close(newFd);
@@ -78,56 +89,77 @@ int newconnection2(Clients &clients, int &fd, struct pollfd **pfds, int &size, i
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
+    Bond b(newFd, fd, socket_map, statusCodeMap); // The Object is constructed in the function's stack
+    bonds.push_back(b); // The list's object is constructed in heap by it COPY constructor
     return 0;
 }
 
-int reading_request2(int &client_fd, Clients &clients, struct pollfd *pfds, int &i)
+int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct pollfd *pfds, int &i)
 {
-    char    bf[1];
-    int     lenght = recv(client_fd, bf, 1, 0);
 
-    if (lenght < 0)
-        return 1;
-    else if (!lenght)
-    {
-        logging("Client disconnected", INFO, NULL, 0);
+    list<Bond>::iterator  bond = getBond(bonds, client_fd); // Getting The Iterator
+    
+    if (bond == bonds.end()) return 1;
+
+    try {
+        bond->initParcer();
+    }
+    catch(const RequestParser::HttpRequestException& e) {
+        if (e.statusCode == 0) {
+            logging("Client Disconnected", ERROR, NULL, 0);
+            bonds.erase(bond);
+            pfds[i].fd = -1;
+            clients.remove_client(client_fd);
+            close(client_fd);
+        }
+        else if (e.statusCode == -1) {
+            return 1;
+        }
+    }
+    return 1;
+}
+
+int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, int &client_fd, int &i)
+{
+    list<Bond>::iterator bond = getBond(bonds, client_fd);
+
+    if (bond == bonds.end()) return 1;
+
+    bond->initResponse();
+    
+    if (bond->getUploadState() == UPLOADED && !bond->getConnectionState() && bond->getResponseState() == CLOSED) {
+        logging("Client Disconnected", ERROR, NULL, 0);
+        bonds.erase(bond);
         pfds[i].fd = -1;
-        clients.remove_client(i);
+        clients.remove_client(client_fd);
         close(client_fd);
     }
-    else
-    {
-        // cout << bf << endl;;    // reding the request part
-        (void)bf;
-    }
-    return 0;
-}
-
-int sending_response2(int &client_fd, Clients &clients, Socket_map &sock_map)
-{
-    int sock_d = clients.get_sock_d(client_fd);
-    if (sock_d < 0)   // used for the client that already desconnected from the same iteration
-        return 1;
-    vector<Server> srv = sock_map.get_servers(sock_d);
-        const char *response =
-        "HTTP/1.1 200 OK\r\n"        
-        "Content-Type: text/html\r\n"
-        "Content-Length: 0\r\n"      
-        "\r\n";                      
-
-    int result = send(client_fd, response, strlen(response), 0);
-    if (result < 0)
-        return 1;
     return 0;
 }
 
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
 {
     (void)srvs;
-    Clients       clients;
-    int           size, fd, max_size = 1;
-    vector<int> sockets = sock_map.get_sockets();
-    struct pollfd *pfds = init_poll_struct(sockets, size, max_size);
+    map<int, string> statusCodeMap;
+
+    statusCodeMap.insert(make_pair<int, string>(505, " HTTP Version Not Supported"));
+    statusCodeMap.insert(make_pair<int, string>(501, " Not Implemented"));
+    statusCodeMap.insert(make_pair<int, string>(500, " Internal Server Error"));
+    statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));
+    statusCodeMap.insert(make_pair<int, string>(413, " Content Too Large"));
+    statusCodeMap.insert(make_pair<int, string>(405, " Method Not Allowed"));
+    statusCodeMap.insert(make_pair<int, string>(404, " Not Found"));
+    statusCodeMap.insert(make_pair<int, string>(403, " Forbidden"));
+    statusCodeMap.insert(make_pair<int, string>(400, " Bad Request"));
+    statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
+    statusCodeMap.insert(make_pair<int, string>(201, " Created"));
+    statusCodeMap.insert(make_pair<int, string>(200, " OK"));
+
+    list<Bond>      bonds;
+    Clients         clients;
+    int             size, fd, max_size = 1;
+    vector<int>     sockets = sock_map.get_sockets();
+    struct pollfd   *pfds = init_poll_struct(sockets, size, max_size);
 
     while (true)
     {
@@ -153,14 +185,12 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
                 if (pfds[i].revents & POLLIN)
                 {
                     if (find(sockets.begin(), sockets.end(), fd) != sockets.end())
-                        newconnection2(clients, fd, &pfds, size, max_size);
+                        newconnection2(clients, bonds, statusCodeMap, fd, &pfds, size, max_size, sock_map);
                     else
-                        reading_request2(fd, clients, pfds, i);
-                } else if (pfds[i].revents & POLLOUT)
-                {
-                    sending_response2(fd, clients, sock_map);
+                        reading_request2(fd, clients, bonds, pfds, i);
+                } else if (pfds[i].revents & POLLOUT) {
+                    sending_response2(clients, bonds, pfds, fd, i);
                 }
-
             }
         }
     }

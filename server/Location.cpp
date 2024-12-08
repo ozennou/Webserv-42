@@ -1,10 +1,26 @@
 #include <Location.hpp>
 
+
 Location::Location() {
     dirlst = false;
     exact = false;
     redirect.first = -1;
     cgi_timeout = 60;  //https://www.baeldung.com/linux/nginx-timeouts#:~:text=NGINX%20fastcgi_*%20Timeouts&text=fastcgi_connect_timeout%20%E2%80%93%20maximum%20time%20to%20connect,FastCGI%20server%20response%20(default%2060)
+}
+
+Location& Location::operator=( const Location& obj ) {
+    if (this != &obj) {
+        this->route = obj.route;
+        this->methods = obj.methods;
+        this->default_pages = obj.default_pages;
+        this->root = obj.root;
+        this->dirlst = obj.dirlst;
+        this->cgi_ext = obj.cgi_ext;
+        this->upload_path = obj.upload_path;
+        this->cgi_timeout = obj.cgi_timeout;
+        this->exact = obj.exact;
+    }
+    return *this;
 }
 
 Location::~Location() {

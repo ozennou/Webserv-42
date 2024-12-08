@@ -1,6 +1,6 @@
 #pragma once
 
-#include <header.hpp>
+#include "header.hpp"
 
 class Location {
     private:
@@ -16,6 +16,8 @@ class Location {
         bool                exact; //exact location matching https://www.freecodecamp.org/news/the-nginx-handbook/
     public:
         Location();
+        Location& operator=( const Location& obj );
+
         ~Location();
 
         std::string getRoute() const;

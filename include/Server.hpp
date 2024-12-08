@@ -1,6 +1,6 @@
 #pragma once
 
-#include <header.hpp>
+#include "header.hpp"
 
 #define DEFAULT_HOST "127.0.0.1" //I'm not sure about this default host
 
@@ -20,6 +20,9 @@ class Server {
 
 	public:
 		Server();
+
+		// Server& operator=( Server& obj );
+
 		~Server();
 
 		void	set_index(const int &_index);

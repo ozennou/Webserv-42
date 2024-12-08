@@ -5,6 +5,21 @@ Server::Server() {
     hostname = DEFAULT_HOST;
 }
 
+// Server& Server::operator=( Server& obj ) {
+//     if (this != &obj) {
+//         this->index = obj.index;
+//         this->hostname = obj.hostname;
+//         this->ports = obj.ports;
+//         this->body_size = obj.body_size;
+//         this->server_names = obj.server_names;
+//         this->error_pages = obj.error_pages;
+//         this->locations = obj.locations;
+//         this->sockets = obj.sockets;
+//         this->mime_types = obj.mime_types;
+//     }
+//     return *this;
+// }
+
 Server::~Server() {
 }
 
