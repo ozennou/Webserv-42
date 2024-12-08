@@ -26,6 +26,7 @@ void printf_locations(vector<Location> &locations) {
             cout << *it4 << " ";
         cout << endl;
         cout << "CGI Timeout : " << it->getCgiTimeout() << endl;
+        cout << "REDIRECT: " << it->getRedirect().first << " -- " << it->getRedirect().second << endl;
         it++;
     }
 }

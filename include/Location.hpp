@@ -12,6 +12,7 @@ class Location {
         set<string>         cgi_ext; //Execute CGI based on certain file extension
         string              upload_path;
         unsigned int        cgi_timeout;
+        pair<int, string>   redirect;
         bool                exact; //exact location matching https://www.freecodecamp.org/news/the-nginx-handbook/
     public:
         Location();
@@ -49,6 +50,9 @@ class Location {
 
         unsigned int getCgiTimeout() const;
         void setCgiTimeout(unsigned int newCgiTimeout);
+
+        pair<int, string>   getRedirect() const;
+        void                setRedirect(int code, string path);
 
         void ready_location(void);
 } ;
