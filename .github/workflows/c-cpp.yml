@@ -46,12 +46,12 @@ jobs:
     - name: run stress test
       run: |
         touch $HOME/siege-index.html
-        curl localhost:8080 -i
         result=$(siege -b -c=200 -t1S 127.0.0.1:8080 2>&1 | grep Availability: | awk '{print $2}')
 
-        if [ $(echo "$result < 100.00" | bc) -eq 1 ]; then
-            echo $result
+        echo $result%
+        if [ $(echo "$result < 1000.00" | bc) -eq 1 ]; then
             exit 1
         fi
-        echo $result%
+    - name: CleanUp
+      run: pkill webserv || exit 1
   
