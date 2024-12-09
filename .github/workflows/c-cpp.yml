@@ -43,12 +43,11 @@ jobs:
     - name: install seige for stress testing the WebServer
       run: brew install siege
 
-    - name: debuging
-      run: siege -b -c=200 -t1M 127.0.0.1:8080
-
     - name: run stress test
       run: |
         touch $HOME/siege-index.html
+        sleep 5
+        curl 127.0.0.1:8080
         result=$(siege -b -c=200 -t1M 127.0.0.1:8080 2>&1 | grep Availability: | awk '{print $2}')
         echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080"
         echo $result%
