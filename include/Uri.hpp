@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:19:39 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 17:02:18 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:24:37 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ enum {
 class Uri
 {
     int socketFd;
+
+    bool    cgi;
 
     Socket_map* socket_map;
 
@@ -65,8 +67,10 @@ public:
     bool    isRegularFile( );
     bool    isRegularFile( string& path );
     bool    isDirectory( );
+    void    checkCGI( Location& location );
 
     size_t    getResourceSize( );
+    bool    getIsCGI( );
 
     void    originForm();
     void    absoluteForm();

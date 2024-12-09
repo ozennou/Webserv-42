@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 21:43:36 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:25:42 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) 
         this->exception = obj.exception;
         this->bond = obj.bond;
         this->statusCodeMap = obj.statusCodeMap;
+        this->isRedirect = false;
     }
     return *this;
 }
@@ -41,6 +42,7 @@ ResponseGenerator::~ResponseGenerator( ) {
 
 void ResponseGenerator::reset( ) {
     toRead = -1;
+    isRedirect = false;
     ifs.close(); ifs.clear();
 }
 
@@ -50,6 +52,11 @@ void ResponseGenerator::setException( RequestParser::HttpRequestException* exc )
 
 void ResponseGenerator::setBondObject( Bond* bondd ) {
     this->bond = bondd;
+}
+
+void ResponseGenerator::setRedirect( pair<int, string> info ) {
+    isRedirect = true;
+    redirectPair = info;
 }
 
 void ResponseGenerator::generateErrorMessage( ) {
@@ -484,8 +491,7 @@ int delete_resource(string path, int is_dir) {
     return remove_resource(path);
 }
 
-void ResponseGenerator::DELETEMethod( ) {
-    // bond->getUri().path;
+void ResponseGenerator::DELETEResponse( ) {
     struct stat result;
     if (false){ // Condition where i should check if it's a CGI case or not
         
@@ -522,9 +528,40 @@ void ResponseGenerator::DELETEMethod( ) {
             this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
             generateErrorMessage();
         }
-        bond->setResponseState(CLOSED);
-        bond->setConnectionState(false);
+        bond->reset();
     }
+}
+
+void ResponseGenerator::RedirectionResponse( ) {
+    stringstream ss;
+    
+    time_t timestamp = time(NULL);
+    struct tm datetime1 = *localtime(&timestamp);
+    char date[40];
+    strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+
+    // Normal HTTP Header
+    ss << "HTTP/1.1 " << redirectPair.first << statusCodeMap->find(redirectPair.first)->second << CRLF;
+    ss << "Date: " << date << CRLF;
+    ss << "Location: " << redirectPair.second << CRLF;
+
+    // Connection State
+    if (bond->getConnectionState()) ss << "Connection: keep-alive" << CRLF;
+    else ss << "Connection: close" << CRLF;
+    
+    ss << CRLF;
+
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+
+    if (a == -1) {
+        this->exception = new RequestParser::HttpRequestException("", 500);
+        generateErrorMessage();
+    }
+
+    bond->reset();
+}
+
+void ResponseGenerator::CGI( ) {
 }
 
 void ResponseGenerator::filterResponseType( ) {
@@ -533,15 +570,16 @@ void ResponseGenerator::filterResponseType( ) {
 
     bond->rangeHeader();
     if (exception) generateErrorMessage();
+    else if (bond->isCGI()) CGI();
     else {
-        if (bond->getMethod() == GET) {
+        if (isRedirect) RedirectionResponse();
+        else if (bond->getMethod() == GET) {
             if (bond->getUri().isDirectory()) directoryResponse();
             else if (bond->rangeHeader()) RangeGETResponse();
             else NormalGETResponse();
             return ;
         }
         else if (bond->getMethod() == POST) POSTResponse();
-        else if (bond->getMethod() == DELETE) DELETEMethod();
+        else if (bond->getMethod() == DELETE) DELETEResponse();
     }
 }
-

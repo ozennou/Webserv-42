@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 14:31:20 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:24:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ void    Uri::reset( ) {
     query.clear();
     host.clear();
     port = 80;
+    cgi = false;
 }
 
 bool    Uri::isRegularFile( ) {
@@ -73,11 +74,34 @@ bool    Uri::isDirectory( ) {
     return S_ISDIR(path_stat.st_mode);
 }
 
+void    Uri::checkCGI( Location& location ) {
+    if (path.rfind('.') == string::npos) return ;
+    
+    string extension = path.substr(path.rfind('.'));
+    cout << extension << endl;
+    set<string> s = location.getCgiExt();
+    set<string>::iterator it = s.begin();
+
+    for (; it != s.end(); it++) {
+        cout << *(it) << endl;
+        if (*(it) == extension) {
+            cgi = true;
+            break;
+        }
+    }
+    cout << cgi << endl;
+    return ;
+}
+
 size_t    Uri::getResourceSize( ) {
     struct stat path_stat;
 
     if (stat(path.c_str(), &path_stat) == -1) RequestParser::HttpRequestException("Stat Failed When getting the size", 500);
     return path_stat.st_size;
+}
+
+bool    Uri::getIsCGI( ) {
+    return cgi;
 }
 
 Location Uri::matchURI( Server& server ) {

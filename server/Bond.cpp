@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 15:26:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:25:17 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,6 @@ void Bond::initParcer( ) {
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
     
-    cout << "." << endl;
     responseGenerator.filterResponseType();
 }
 
@@ -141,6 +140,10 @@ void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
 
+void Bond::setRedirect( pair<int, string> info ) {
+    responseGenerator.setRedirect(info);
+}
+
 bool Bond::rangeHeader( void ) {
     if (requestParser.isRange() && !requestParser.isValidRange()) {
         RequestParser::HttpRequestException e("Range Condition Not Good", 416);
@@ -169,7 +172,13 @@ int  Bond::getUploadState( void ) {
     return requestParser.getUploadState();
 }
 
+bool  Bond::isCGI( void ) {
+    return requestParser.isCGI();
+}
+
 void  Bond::reset( void ) {
+    if (!connectionSate) return ;
+    
     phase = REQUEST_READY;
     responseState = CLOSED;
     connectionSate = true;

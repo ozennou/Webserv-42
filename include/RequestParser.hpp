@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 11:26:56 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/11/27 17:16:44 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:23:50 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ public:
     
     bool isRange( void );
     bool isValidRange( void );
+    bool isCGI( void );
 
     string& getStringBuffer( void );
 
@@ -87,6 +88,7 @@ public:
     string getRangeLast( void );
     int getRangeType( void );
     bool getConnectionState( void );
+
 
     void upload( void );
 

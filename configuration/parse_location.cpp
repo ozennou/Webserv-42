@@ -82,7 +82,7 @@ void    parse_directive(vector<pair<int, string> >::iterator &i, vector<pair<int
         int code;
         stringstream ss(i->second);
         ss >> code;
-        if (ss.fail() || !ss.eof() || code < 300 || code > 308) //https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_redirection
+        if (ss.fail() || !ss.eof() || (code != 301 && code != 302 && code != 307 && code != 308)) //https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#3xx_redirection
             throw logic_error("Error: invalid redirect status code :" + i->second);
         if ((++i)->first != TOKEN && i->first != TOKEN_IN_QUOTES)
             throw logic_error("Error: REDIRECT format issue (REDIRECT=status_code return_link)" + i->second);

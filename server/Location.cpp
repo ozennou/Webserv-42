@@ -19,6 +19,7 @@ Location& Location::operator=( const Location& obj ) {
         this->upload_path = obj.upload_path;
         this->cgi_timeout = obj.cgi_timeout;
         this->exact = obj.exact;
+        this->redirect = obj.redirect;
     }
     return *this;
 }
