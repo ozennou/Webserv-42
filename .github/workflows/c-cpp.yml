@@ -31,10 +31,17 @@ jobs:
       with:
         name: webserver-executable
         path: ./
+    - name: Make Executable Permissions
+      run: |
+        chmod +x ./webserv
+        ls -la
+
     - name: Start the Webserver
       run: ./webserver &
+
     - name: install seige for stress testing the WebServer
       run: brew install siege
+
     - name: run stress test
       run: |
         touch $HOME/siege-index.html
