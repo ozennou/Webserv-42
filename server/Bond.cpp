@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 14:55:53 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 14:56:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,10 +104,7 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
-<<<<<<< HEAD
-=======
     
->>>>>>> mlouazir-redir
     responseGenerator.filterResponseType();
 }
 
