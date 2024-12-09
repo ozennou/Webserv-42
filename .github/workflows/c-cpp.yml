@@ -22,4 +22,4 @@ jobs:
       run: |
         echo $HOME
         touch $HOME/siege-index.html
-        siege -b -c=200  -t1M 127.0.0.1:8080/siege/siege-index.html
+        siege -b -c=200  -t1M -q 127.0.0.1:8080/siege/siege-index.html
