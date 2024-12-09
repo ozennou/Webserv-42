@@ -45,6 +45,7 @@ jobs:
 
     - name: run stress test
       run: |
+        pwd
         mkdir -p siege
         touch siege/index.html
         curl 127.0.0.1:8080/siege -i
