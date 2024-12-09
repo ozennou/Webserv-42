@@ -95,6 +95,7 @@ void Bond::initParcer( ) {
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
             responseGenerator.setException(&e);
+            connectionSate = requestParser.getConnectionState();
             requestParser.reset();
             return ;
         }
