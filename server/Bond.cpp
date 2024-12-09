@@ -104,8 +104,6 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
-    
-    cout << "." << endl;
     responseGenerator.filterResponseType();
 }
 
