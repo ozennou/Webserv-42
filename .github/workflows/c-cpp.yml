@@ -15,5 +15,10 @@ jobs:
     - uses: actions/checkout@v4
     - name: make
       run: |
-        make -j 100
-        brew -h
+        make -j 100 && ./webserv &
+    - name: install seige for stress testing the WebServer
+      run: brew install siege
+    - name: run stress test
+      run: |
+        touch /siege-index.html
+        siege -b -c=200  -t1M 127.0.0.1:8080/siege/siege-index.html
