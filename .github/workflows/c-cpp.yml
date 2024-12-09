@@ -34,10 +34,9 @@ jobs:
     - name: Make Executable Permissions
       run: |
         chmod +x ./webserv
-        ls -la
 
     - name: Start the Webserver
-      run: ./webserver &
+      run: ./webserv &
 
     - name: install seige for stress testing the WebServer
       run: brew install siege
