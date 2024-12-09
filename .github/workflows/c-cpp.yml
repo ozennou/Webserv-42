@@ -47,7 +47,7 @@ jobs:
       run: |
         mkdir -p /Users/runner/siege
         touch /Users/runner/siege/index.html
-        curl 127.0.0.1:8080/siege -i
+        curl 127.0.0.1:8080/siege -i 2>&1
         result=$(siege -b -c=200 -t1M 127.0.0.1:8080/siege 2>&1 | grep Availability: | awk '{print $2}')
         echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080/siege"
         echo $result%
