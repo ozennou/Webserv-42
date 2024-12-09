@@ -26,6 +26,8 @@ jobs:
     runs-on: macos-latest
     needs: build
     steps:
+    - uses: actions/checkout@v4
+
     - name: Download Executable
       uses: actions/download-artifact@v4
       with:
