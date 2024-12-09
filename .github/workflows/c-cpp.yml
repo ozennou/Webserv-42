@@ -45,9 +45,8 @@ jobs:
 
     - name: run stress test
       run: |
-        pwd
-        mkdir -p siege
-        touch siege/index.html
+        mkdir -p /Users/runner/siege
+        touch /Users/runnersiege/index.html
         curl 127.0.0.1:8080/siege -i
         result=$(siege -b -c=200 -t1M 127.0.0.1:8080/siege 2>&1 | grep Availability: | awk '{print $2}')
         echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080/siege"
