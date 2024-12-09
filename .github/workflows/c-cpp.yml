@@ -38,7 +38,7 @@ jobs:
         chmod +x ./webserv
 
     - name: Start the Webserver
-      run: ./webserv &
+      run: ./webserv -c config_file/test.conf &
 
     - name: install seige for stress testing the WebServer
       run: brew install siege
