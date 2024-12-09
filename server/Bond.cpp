@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 15:24:51 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:17:08 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ void Bond::initParcer( ) {
 
         i = recv(clientFd, buf, 5620, 0);
 
-        if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
+        if (!i) {cout << "Connection Ended" << endl;throw RequestParser::HttpRequestException("Connection Ended", 0);}
         if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
         string& stringBuffer = requestParser.getStringBuffer();

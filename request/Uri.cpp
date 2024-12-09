@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 15:41:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:13:29 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,6 @@ void    Uri::checkCGI( Location& location ) {
     set<string>::iterator it = s.begin();
 
     for (; it != s.end(); it++) {
-        cout << *(it) << endl;
         if (*(it) == extension) {
             cgi = true;
             break;
@@ -221,7 +220,7 @@ void Uri::extractPath( string& requestT ) {
     if (requestTarget[0] == '/') {
         originForm();
         type = ORIGIN;
-    }
+    } else throw RequestParser::HttpRequestException("Invalid Request Target", 400);
 
     normalizePath();
 }

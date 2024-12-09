@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 15:25:22 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 18:13:09 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,7 +282,6 @@ void RequestParser::requestLine( ) {
     if (httpVersion.length() != 8 || httpVersion.find('/') != 4 \
     || httpVersion.compare(0, 6, "HTTP/1") || (httpVersion.compare(6, 2, ".0") && httpVersion.compare(6, 2, ".1")))
         throw RequestParser::HttpRequestException("Bad Http Version", 505);
-
 
     if (requestMethod == "GET") this->method = GET;
     else if (requestMethod == "POST") this->method = POST;
