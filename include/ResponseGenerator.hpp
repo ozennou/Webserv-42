@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 11:22:44 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:20:46 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ class ResponseGenerator
 
     RequestParser::HttpRequestException* exception;
     map<int, string>* statusCodeMap;
+    map<int, string> errorPages;
 
 public:
     
@@ -49,8 +50,8 @@ public:
     
     void setException( RequestParser::HttpRequestException* exception );
     void setBondObject( Bond* bond );
-
     void setRedirect( pair<int, string> info );
+    void setErrorPages( map<int, string> errorPages );
 
     void generateErrorMessage( );
 

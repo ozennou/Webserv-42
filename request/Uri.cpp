@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 11:24:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:41:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,6 @@ void    Uri::checkCGI( Location& location ) {
     if (path.rfind('.') == string::npos) return ;
     
     string extension = path.substr(path.rfind('.'));
-    cout << extension << endl;
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
 
@@ -89,7 +88,6 @@ void    Uri::checkCGI( Location& location ) {
             break;
         }
     }
-    cout << cgi << endl;
     return ;
 }
 

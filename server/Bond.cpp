@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 14:56:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:24:51 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,7 @@ void Bond::initParcer( ) {
     catch(RequestParser::HttpRequestException& e) {
         if (e.statusCode > 0) {
             responseGenerator.setException(&e);
+            connectionSate = requestParser.getConnectionState();
             requestParser.reset();
             return ;
         }
@@ -144,12 +145,8 @@ void Bond::setRedirect( pair<int, string> info ) {
     responseGenerator.setRedirect(info);
 }
 
-bool Bond::rangeHeader( void ) {
-    if (requestParser.isRange() && !requestParser.isValidRange()) {
-        RequestParser::HttpRequestException e("Range Condition Not Good", 416);
-        responseGenerator.setException(&e);
-    }
-    return requestParser.isRange() && requestParser.isValidRange();
+void Bond::setErrorPages( map<int, string> errorPages ) {
+    responseGenerator.setErrorPages(errorPages);
 }
 
 string  Bond::getRangeFirst( void ) {
@@ -174,6 +171,14 @@ int  Bond::getUploadState( void ) {
 
 bool  Bond::isCGI( void ) {
     return requestParser.isCGI();
+}
+
+bool Bond::rangeHeader( void ) {
+    if (requestParser.isRange() && !requestParser.isValidRange()) {
+        RequestParser::HttpRequestException e("Range Condition Not Good", 416);
+        responseGenerator.setException(&e);
+    }
+    return requestParser.isRange() && requestParser.isValidRange();
 }
 
 void  Bond::reset( void ) {

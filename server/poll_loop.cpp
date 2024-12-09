@@ -126,7 +126,7 @@ int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, 
     if (bond == bonds.end()) return 1;
 
     bond->initResponse();
-    
+
     if (bond->getUploadState() == UPLOADED && !bond->getConnectionState() && bond->getResponseState() == CLOSED) {
         logging("Client Disconnected", ERROR, NULL, 0);
         bonds.erase(bond);

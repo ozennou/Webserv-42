@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 11:25:42 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:40:42 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ ResponseGenerator& ResponseGenerator::operator=( const ResponseGenerator& obj ) 
         this->exception = obj.exception;
         this->bond = obj.bond;
         this->statusCodeMap = obj.statusCodeMap;
+        this->errorPages = obj.errorPages;
         this->isRedirect = false;
     }
     return *this;
@@ -59,9 +60,12 @@ void ResponseGenerator::setRedirect( pair<int, string> info ) {
     redirectPair = info;
 }
 
+void ResponseGenerator::setErrorPages( map<int, string> errorPagess ) {
+    this->errorPages = errorPagess;
+}
+
 void ResponseGenerator::generateErrorMessage( ) {
     stringstream ss;
-    string  responseBuffer;
     Uri uri = bond->getUri();
 
     time_t timestamp = time(NULL);
@@ -74,14 +78,38 @@ void ResponseGenerator::generateErrorMessage( ) {
     ss << "Date: " << date << CRLF;
     ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
     ss << "Connection: close" << CRLF;
-    ss << "Content-Length: 0" << CRLF;
     
     if (exception->statusCode == 416) ss << "Content-Range: */" << uri.getResourceSize() << CRLF;
 
-    ss << CRLF;
-    responseBuffer += ss.str();
 
-    send(clientFd, responseBuffer.c_str(), responseBuffer.length(), 0);
+    // Adding Error Pages
+    if (errorPages.find(exception->statusCode) != errorPages.end()) {
+        ifstream    in;
+        string      str;
+        string      buffer = "";
+        size_t      length = 0;
+
+        in.open(errorPages.find(exception->statusCode)->second);
+        if (!in.fail()) {
+            while (!in.eof()) {
+                getline(in, str);
+                length += str.length();
+                buffer += str;
+            }
+
+            ss << "Content-Length: " << length << CRLF;
+            ss << CRLF;
+            ss << buffer;
+        } else {
+            ss << "Content-Length: 0" << CRLF;
+            ss << CRLF;
+        }
+    } else {
+        ss << "Content-Length: 0" << CRLF;
+        ss << CRLF;
+    }
+
+    send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     delete exception; exception = NULL;
 

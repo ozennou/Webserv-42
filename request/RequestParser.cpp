@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 11:24:49 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 15:25:22 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,6 +300,8 @@ void RequestParser::init( ) {
     if (method == GET) stringBuffer.clear();
 
     Server server = uri.getHostServer();
+
+    bond->setErrorPages(server.getErrorPages());
 
     Location location = uri.matchURI(server);
 
