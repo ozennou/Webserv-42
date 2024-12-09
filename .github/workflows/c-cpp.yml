@@ -38,7 +38,7 @@ jobs:
         chmod +x ./webserv
 
     - name: Start the Webserver
-      run: ./webserv -c config_file/test.conf &
+      run: ./webserv &
 
     - name: install seige for stress testing the WebServer
       run: brew install siege
@@ -47,7 +47,7 @@ jobs:
       run: |
         touch $HOME/siege-index.html
         sleep 5
-        curl 127.0.0.1:8080
+        curl 127.0.0.1:8080 -i
         result=$(siege -b -c=200 -t1M 127.0.0.1:8080 2>&1 | grep Availability: | awk '{print $2}')
         echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080"
         echo $result%
