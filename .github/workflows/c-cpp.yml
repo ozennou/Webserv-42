@@ -14,4 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: make -j 100
+      run: |
+        make -j 100
+        siege -h
