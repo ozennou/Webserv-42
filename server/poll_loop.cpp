@@ -151,6 +151,10 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(404, " Not Found"));
     statusCodeMap.insert(make_pair<int, string>(403, " Forbidden"));
     statusCodeMap.insert(make_pair<int, string>(400, " Bad Request"));
+    statusCodeMap.insert(make_pair<int, string>(308, " Permanent Redirect"));
+    statusCodeMap.insert(make_pair<int, string>(307, " Temporary Redirect"));
+    statusCodeMap.insert(make_pair<int, string>(302, " Found"));
+    statusCodeMap.insert(make_pair<int, string>(301, " Moved Permanently"));
     statusCodeMap.insert(make_pair<int, string>(206, " Partial Content"));
     statusCodeMap.insert(make_pair<int, string>(201, " Created"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 14:47:50 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 21:44:09 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:23:00 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,9 @@ public:
     int     getPhase( void );
     void     setPhase( int phasee );
 
+    void     setRedirect( pair<int, string> info );
+
+    bool    isCGI( void );
     bool    rangeHeader( void );
     string    getRangeFirst( void );
     string    getRangeLast( void );

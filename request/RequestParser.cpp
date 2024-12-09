@@ -6,12 +6,13 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 21:46:45 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/09 11:24:49 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/RequestParser.hpp"
 #include "../include/MessageHeaders.hpp"
+#include "../include/RequestParser.hpp"
+#include "../include/Bond.hpp"
 #include "header.hpp"
 
 RequestParser::RequestParser( ) {
@@ -108,6 +109,10 @@ bool  RequestParser::isValidRange( void ) {
     return headers.isValidRange(uri);
 }
 
+bool  RequestParser::isCGI( void ) {
+    return uri.getIsCGI();
+}
+
 string  RequestParser::getRangeFirst( void ) {
     return headers.getRangeFirst();
 }
@@ -174,6 +179,16 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
 
 void RequestParser::resolveResource( Location& location ) {
 
+    // In Case Of Redirection - 1
+    uri.checkCGI(location);
+
+    // In Case Of Redirection
+    if (location.getRedirect().first != -1) {
+        bond->setRedirect(location.getRedirect());
+        return;
+    }
+
+    // TODO: Check Theses Conditions
     // In Case Of POST method
     if (method == POST) {
         if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
@@ -192,7 +207,7 @@ void RequestParser::resolveResource( Location& location ) {
     }
 
     // In Case of GET method
-
+    
     // Either stat() failed, or the macro failed
     if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
@@ -216,18 +231,17 @@ void RequestParser::resolveResource( Location& location ) {
         if (iterator == defaultPages.end() && !location.getDirListings()) throw RequestParser::HttpRequestException("Directory Listing is off and the client is trying to access it", 403);
     }
 
-    if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
-    set<string> set = location.getMethods();
-    if (set.find("GET") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
+    // In Case Of Redirection - 2
+    uri.checkCGI(location);
 
+    // TODO: Check What Was the Logic Here In Previuos Commits
     if (uri.isRegularFile()) {
         if (method == GET) {
             if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
             std::set<string> s = location.getMethods();
-            if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 403);
+            if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
         }
     } else if (uri.isDirectory()) {
-        // cout << "It is a directory" << endl;
     }
 }
 
