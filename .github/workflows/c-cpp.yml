@@ -16,4 +16,4 @@ jobs:
     - name: make
       run: |
         make -j 100
-        siege -h
+        brew -h
