@@ -14,12 +14,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: make
-      run: |
-        make -j 100 && ./webserv &
+      run: make -j
+    - name: Upload Executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: webserver-executable
+        path: ./webserv
+        retention-days: 1
+
+  test:
+    runs-on: macos-latest
+    needs: build
+    steps:
+    - name: Download Executable
+      uses: actions/download-artifact@v4
+      with:
+        name: webserver-executable
+        path: ./
+    - name: Start the Webserver
+      run: ./webserver &
     - name: install seige for stress testing the WebServer
       run: brew install siege
     - name: run stress test
       run: |
-        echo $HOME
         touch $HOME/siege-index.html
         siege -b -c=200  -t1M -q 127.0.0.1:8080/siege/siege-index.html
+  
