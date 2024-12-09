@@ -168,6 +168,7 @@ int  Bond::getUploadState( void ) {
 }
 
 void  Bond::reset( void ) {
+    if (!connectionSate) return ;
     phase = REQUEST_READY;
     responseState = CLOSED;
     connectionSate = true;
