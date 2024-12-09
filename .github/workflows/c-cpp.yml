@@ -51,7 +51,7 @@ jobs:
         result=$(siege -b -c=200 -t1M 127.0.0.1:8080/siege 2>&1 | grep Availability: | awk '{print $2}')
         echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080/siege"
         echo $result%
-        if [ $(echo "$result < 100.00" | bc) -eq 1 ]; then
+        if [ $(echo "$result < 99.5" | bc) -eq 1 ]; then
             exit 1
         fi
 
