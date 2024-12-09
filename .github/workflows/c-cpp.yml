@@ -53,4 +53,5 @@ jobs:
             echo $result
             exit 1
         fi
+        echo $result%
   
