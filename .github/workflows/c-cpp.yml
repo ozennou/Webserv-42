@@ -52,6 +52,11 @@ jobs:
         if [ $(echo "$result < 100.00" | bc) -eq 1 ]; then
             exit 1
         fi
+
+    - name: run stress test
+      run: |
+        siege -b -c=200 -t1M 127.0.0.1:8080 2>&1
+
     - name: CleanUp
       run: pkill webserv || exit 1
   
