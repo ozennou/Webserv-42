@@ -78,18 +78,15 @@ void    Uri::checkCGI( Location& location ) {
     if (path.rfind('.') == string::npos) return ;
     
     string extension = path.substr(path.rfind('.'));
-    cout << extension << endl;
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
 
     for (; it != s.end(); it++) {
-        cout << *(it) << endl;
         if (*(it) == extension) {
             cgi = true;
             break;
         }
     }
-    cout << cgi << endl;
     return ;
 }
 
