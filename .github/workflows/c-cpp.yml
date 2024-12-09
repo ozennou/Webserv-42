@@ -43,6 +43,9 @@ jobs:
     - name: install seige for stress testing the WebServer
       run: brew install siege
 
+    - name: debuging
+      run: siege -b -c=200 -t1M 127.0.0.1:8080
+
     - name: run stress test
       run: |
         touch $HOME/siege-index.html
