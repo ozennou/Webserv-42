@@ -589,7 +589,51 @@ void ResponseGenerator::RedirectionResponse( ) {
     bond->reset();
 }
 
+string CheckExec(string cgiExec) {
+    if (access(cgiExec.c_str(), X_OK & F_OK) == -1)
+        return "";
+    char full_path[PATH_MAX];    
+    if ((realpath(cgiExec.c_str(), full_path)) == NULL)
+        return "";
+    return string(full_path);
+}
+
+string getCgiExec(string cgiExt) {
+    string res;
+    if (cgiExt == "py")
+    {
+        res = CheckExec("./cgi-exe/python-cgi");
+        return res;
+    }
+    else if (cgiExt == "php")
+    {
+        res = CheckExec("./cgi-exe/php-cgi");
+        if(res == "")
+            res = CheckExec("/usr/bin/php");
+        return res;
+    }
+    else if (cgiExt == "sh")
+    {
+        res = CheckExec("/bin/sh");
+        return res;
+    }
+    else if (cgiExt == "pl")
+    {
+        res = CheckExec("/usr/bin/perl");
+        return res;
+    }
+    return res;
+}
+
 void ResponseGenerator::CGI( ) {
+    Uri& uri = bond->getUri();
+    string cgiExec = getCgiExec(uri.getCgiExt());
+    if (cgiExec == "")
+    {
+        this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
+        generateErrorMessage();
+        return ;
+    }
 }
 
 void ResponseGenerator::filterResponseType( ) {
@@ -599,7 +643,8 @@ void ResponseGenerator::filterResponseType( ) {
     bond->rangeHeader();
     if (exception) generateErrorMessage();
     else {
-        if (isRedirect) RedirectionResponse();
+        if (bond->isCGI()) CGI();
+        else if (isRedirect) RedirectionResponse();
         else if (bond->getMethod() == GET) {
             if (bond->getUri().isDirectory()) directoryResponse();
             else if (bond->rangeHeader()) RangeGETResponse();

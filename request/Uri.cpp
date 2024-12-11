@@ -46,6 +46,7 @@ Uri::~Uri( ) {
 }
 
 void    Uri::reset( ) {
+    cout << "//" <<endl;
     type = 0;
     requestTarget.clear();
     query.clear();
@@ -76,15 +77,16 @@ bool    Uri::isDirectory( ) {
 }
 
 void    Uri::checkCGI( Location& location ) {
-    if (path.rfind('.') == string::npos) return ;
-    
-    string extension = path.substr(path.rfind('.'));
+    if (path.rfind('.') == string::npos || path.rfind('.') == path.size() - 1) return ;
+
+    string extension = path.substr(path.rfind('.') + 1);
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
-
     for (; it != s.end(); it++) {
+        cout << *it << endl;
         if (*(it) == extension) {
             cgi = true;
+            cgiExt = extension;
             break;
         }
     }
@@ -224,4 +226,8 @@ void Uri::extractPath( string& requestT ) {
     } else throw RequestParser::HttpRequestException("Invalid Request Target", 400);
 
     normalizePath();
+}
+
+string Uri::getCgiExt() const {
+    return cgiExt;
 }
