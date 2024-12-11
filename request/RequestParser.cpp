@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 18:13:09 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 17:27:54 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,8 +178,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
 }
 
 void RequestParser::resolveResource( Location& location ) {
-
-    // In Case Of Redirection - 1
+    // In Case Of CGI - 1
     uri.checkCGI(location);
 
     // In Case Of Redirection
@@ -188,7 +187,6 @@ void RequestParser::resolveResource( Location& location ) {
         return;
     }
 
-    // TODO: Check Theses Conditions
     // In Case Of POST method
     if (method == POST) {
         if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
@@ -200,7 +198,7 @@ void RequestParser::resolveResource( Location& location ) {
 
     // In Case Of DELETE method
     if (method == DELETE) {
-        if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to delete the to the directory", 403);
+        if (access(uri.path.c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to delete the to the directory", 403);
         set<string> set = location.getMethods();
         if (set.find("DELETE") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
         return ;
@@ -231,18 +229,13 @@ void RequestParser::resolveResource( Location& location ) {
         if (iterator == defaultPages.end() && !location.getDirListings()) throw RequestParser::HttpRequestException("Directory Listing is off and the client is trying to access it", 403);
     }
 
-    // In Case Of Redirection - 2
+    // In Case Of CGI - 2
     uri.checkCGI(location);
 
-    // TODO: Check What Was the Logic Here In Previuos Commits
-    if (uri.isRegularFile()) {
-        if (method == GET) {
-            if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
-            std::set<string> s = location.getMethods();
-            if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
-        }
-    } else if (uri.isDirectory()) {
-    }
+    if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
+    std::set<string> s = location.getMethods();
+    if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
+
 }
 
 void RequestParser::headerSection( ) {
@@ -271,6 +264,7 @@ void RequestParser::requestLine( ) {
 
     stringBuffer = stringBuffer.substr(stringBuffer.find(CRLF) + 2);
 
+    // cout << requestLine << endl;
     if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Wrong Number Of Spaces", 400);
 
     string requestMethod = requestLine.substr(0, requestLine.find(32));

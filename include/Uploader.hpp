@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 14:09:36 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 17:41:40 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ class Uploader
 private:
     int         uploadeState;
     int         clientFd;
-    size_t      maxPayloadSize;
+    long long      maxPayloadSize;
 
     int         fd;
 

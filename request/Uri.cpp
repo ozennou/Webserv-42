@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 18:13:29 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 16:48:28 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Uri& Uri::operator=( const Uri& obj ) {
         this->query = obj.query;
         this->host = obj.host;
         this->port = obj.port;
+        this->cgi = false;
     }
     return *this;
 }
@@ -129,7 +130,7 @@ Location Uri::matchURI( Server& server ) {
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
     
-    path.insert(0, location.getRoot()); // TODO: This Part here should be revised
+    path.insert(0, location.getRoot());
     return location;
 }
 

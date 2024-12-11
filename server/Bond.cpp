@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 18:17:08 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 19:12:25 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,16 +78,16 @@ void Bond::initParcer( ) {
 
         i = recv(clientFd, buf, 5620, 0);
 
-        if (!i) {cout << "Connection Ended" << endl;throw RequestParser::HttpRequestException("Connection Ended", 0);}
+        if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
         if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
 
         string& stringBuffer = requestParser.getStringBuffer();
 
         stringBuffer.append(buf, i);
 
-        // If the string does not contain CRLF at all --------- If the position of the first occurence matche the position of the last occurence -> meaning only one CRLF exits in that string // TODO: Wrong Logic Here
-        if (stringBuffer.find(CRLF) == string::npos || (stringBuffer.find(CRLF) == stringBuffer.rfind(CRLF))) return ;
-
+        // Only When Two CRLFs are encoutered we start parcing
+        if (stringBuffer.find("\r\n\r\n") == string::npos) return ;
+        
         setPhase(RESPONSE_READY);
         requestParser.init();
         connectionSate = requestParser.getConnectionState();
@@ -182,11 +182,9 @@ bool Bond::rangeHeader( void ) {
 }
 
 void  Bond::reset( void ) {
-    if (!connectionSate) return ;
-
+    // TODO: Keep an eye here
     phase = REQUEST_READY;
     responseState = CLOSED;
-    connectionSate = true;
     requestParser.reset();
     responseGenerator.reset();
 }

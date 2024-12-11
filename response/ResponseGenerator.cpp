@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 16:03:16 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 17:53:47 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,8 +198,9 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     }
     
     // Normal HTTP Headers
-    ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF; // TODO: Is the server good
+    ss << "Server: " <<  *(uri.getHostServer().getServerNames().begin()) << CRLF;
     ss << "Content-Type: " << contentType << CRLF;
+    ss << "Accept-Ranges: bytes" << CRLF;
 
     // In Case of Range request
     if (statusCode == 206) {
@@ -217,8 +218,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
 
     // Adding The Paylod
     ss << fileBuffer;
-    
-    // cout << ss.str() << endl;
+
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
 
     if (a == -1) {
@@ -598,13 +598,14 @@ void ResponseGenerator::filterResponseType( ) {
 
     bond->rangeHeader();
     if (exception) generateErrorMessage();
-    else if (bond->isCGI()) CGI();
     else {
         if (isRedirect) RedirectionResponse();
         else if (bond->getMethod() == GET) {
             if (bond->getUri().isDirectory()) directoryResponse();
             else if (bond->rangeHeader()) RangeGETResponse();
-            else NormalGETResponse();
+            else {
+                NormalGETResponse();
+            }
             return ;
         }
         else if (bond->getMethod() == POST) POSTResponse();

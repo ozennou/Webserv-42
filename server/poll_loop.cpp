@@ -89,7 +89,6 @@ int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &status
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
-    cout << newFd << endl;
     Bond b(newFd, fd, socket_map, statusCodeMap); // The Object is constructed in the function's stack
     bonds.push_back(b); // The list's object is constructed in heap by it COPY constructor
     return 0;

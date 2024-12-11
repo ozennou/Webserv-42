@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/07 14:58:11 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/11 11:17:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,19 +87,22 @@ void    Uploader::setBuffer( string& stringBuffer ) {
         decodeChunked();
 
         maxPayloadSize -= buffer.length();
-        if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+        if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+
         return ;
     } else if (isMulti) {
         multipart(buffer);
 
         maxPayloadSize -= buffer.length();
-        if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+        if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+        
         return ;
     }
 
     currentLength = buffer.length();
     
-    write(fd, buffer.c_str(), buffer.length()); buffer.clear();
+    if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
+    buffer.clear();
     if (currentLength >= totalLength) closeUploader();
 }
 
@@ -143,7 +146,7 @@ void    Uploader::setFileType( string type ) {
 }
 
 void    Uploader::setUploadPath( string uploadPathh ) {
-    this->uploadPath = uploadPathh; // TODO: Does Amin check for this upload Path
+    this->uploadPath = uploadPathh; // TODO: Give Amin Normilze Path
 }
 
 void    Uploader::setUploadState( int statee ) {
@@ -151,7 +154,7 @@ void    Uploader::setUploadState( int statee ) {
 }
 
 void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
-    this->maxPayloadSize = payloadSize * 1000000; // TODO: Is this number right, or should we add some protections
+    this->maxPayloadSize = payloadSize * 1000000;
 }
 
 void    Uploader::setOfs( string& filename ) {
@@ -352,7 +355,7 @@ void    Uploader::decodeChunked( ) {
 
             maxPayloadSize -= payloadLength;
 
-            if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+            if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
             state = CHUNKED_LENGTH;
         }
@@ -365,7 +368,7 @@ void    Uploader::decodeChunked( ) {
             currentLength += buffer.length();
             maxPayloadSize -= buffer.length();
 
-            if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+            if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
             buffer.clear(); payload.clear();
             break;
@@ -394,7 +397,7 @@ void    Uploader::read( ) {
     currentLength += i;
     maxPayloadSize -= i;
 
-    if (maxPayloadSize < 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+    if (maxPayloadSize - i <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
     if (isMulti) multipart(buffer);
     else {

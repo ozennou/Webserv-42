@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 18:44:59 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/09 15:20:46 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/10 09:02:34 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class ResponseGenerator
     size_t toRead;
     
     ifstream    ifs;
-    
+
     Bond*       bond;
 
     bool                isRedirect;
