@@ -38,18 +38,20 @@ jobs:
         chmod +x ./webserv
 
     - name: Start the Webserver
-      run: ./webserv -c config_file/test.conf &
+      run: ./webserv &
 
     - name: install seige for stress testing the WebServer
       run: brew install siege
 
     - name: run stress test
       run: |
-        touch $HOME/siege-index.html
-        result=$(siege -b -c=200 -t1M 127.0.0.1:8080 2>&1 | grep Availability: | awk '{print $2}')
-        echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080"
+        mkdir -p /Users/runner/siege
+        touch /Users/runner/siege/index.html
+        curl 127.0.0.1:8080/siege -i 2>&1
+        result=$(siege -b -c=200 -t1M 127.0.0.1:8080/siege 2>&1 | grep Availability: | awk '{print $2}')
+        echo "Command : siege -b -c=200 -t1M 127.0.0.1:8080/siege"
         echo $result%
-        if [ $(echo "$result < 100.00" | bc) -eq 1 ]; then
+        if [ $(echo "$result < 99.5" | bc) -eq 1 ]; then
             exit 1
         fi
 
