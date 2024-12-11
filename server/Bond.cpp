@@ -57,13 +57,14 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->connectionSate = obj.connectionSate;
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
+        this->sa = obj.sa;
         this->responseGenerator.setBondObject(this);
         this->requestParser.setBondObject(this);
     }
     return *this;
 }
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap ) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), sa(sa), responseGenerator(clientFd, statusCodeMap) {
 }
 
 void Bond::initParcer( ) {
@@ -181,12 +182,33 @@ bool Bond::rangeHeader( void ) {
     return requestParser.isRange() && requestParser.isValidRange();
 }
 
+map<string, string>& Bond::getHeaders( void ) {
+    return requestParser.getHeaders();
+}
+
 void  Bond::reset( void ) {
     // TODO: Keep an eye here
     phase = REQUEST_READY;
     responseState = CLOSED;
     requestParser.reset();
     responseGenerator.reset();
+}
+
+string  Bond::getRemoteHost() const {
+    char host[NI_MAXHOST];
+    char service[NI_MAXSERV];
+
+    if (getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), service, sizeof(service), NI_NAMEREQD))
+        return getRemoteAddr();
+    return host;
+}
+string  Bond::getRemoteAddr() const {
+    char ip_str[INET6_ADDRSTRLEN];
+
+    struct sockaddr_in *test = (struct sockaddr_in *)&sa;
+    if(!inet_ntop(AF_INET, &(test->sin_addr), ip_str, sizeof(ip_str)))
+        return "";
+    return ip_str;
 }
 
 Bond::~Bond( ) {

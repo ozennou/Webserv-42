@@ -133,6 +133,10 @@ bool  RequestParser::getConnectionState( void ) {
     return headers.connectionState();
 }
 
+map<string, string>&  RequestParser::getHeaders( void ) {
+    return headers.getHeaders();
+}
+
 void  RequestParser::upload( void ) {
     uploader.read();
 }

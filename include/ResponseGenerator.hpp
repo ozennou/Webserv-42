@@ -74,4 +74,6 @@ public:
     void directoryResponse();
 
     void reset();
+
+    char** cgiEnvs();
 };

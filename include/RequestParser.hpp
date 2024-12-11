@@ -76,6 +76,7 @@ public:
     
     int getMethod( void );
     Uri& getUri( void );
+    map<string, string>& getHeaders( void );
     int getUploadState( void );
     
     bool isRange( void );

@@ -31,7 +31,7 @@ class MessageHeaders
     string delimiters;
     string space;
 
-    multimap<string, string> headers;
+    map<string, string> headers;
     
 public:
     MessageHeaders( );
@@ -57,6 +57,6 @@ public:
     bool connectionState( );
 
     map<string, string>::iterator findContentHeaders( );
-
+    map<string, string>& getHeaders( void );
     void reset( );
 };

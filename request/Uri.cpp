@@ -46,7 +46,6 @@ Uri::~Uri( ) {
 }
 
 void    Uri::reset( ) {
-    cout << "//" <<endl;
     type = 0;
     requestTarget.clear();
     query.clear();
@@ -83,7 +82,6 @@ void    Uri::checkCGI( Location& location ) {
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
     for (; it != s.end(); it++) {
-        cout << *it << endl;
         if (*(it) == extension) {
             cgi = true;
             cgiExt = extension;

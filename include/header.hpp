@@ -93,10 +93,15 @@ string check_flags(int ac, char **av);
 
 size_t  getRangeValue( string rangeString );
 
-//to_remove
+
 int poll_loop(vector<Server> &srvs, Socket_map &sock_map);
 struct pollfd *init_poll_struct(vector<int> sockets, int &size);
-//end_remove
+
+//Cgi.cpp
+string CheckExec(string cgiExec);
+string getCgiExec(string cgiExt);
+void delete_envs(char **envs, int *fd);
+
 
 #include <Server.hpp>
 #include <Location.hpp>

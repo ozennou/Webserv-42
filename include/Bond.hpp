@@ -34,13 +34,17 @@ private:
 
     RequestParser requestParser;
 
+    sockaddr_storage sa;
+
     ResponseGenerator responseGenerator;
+
 public:
+
     Bond( );
     Bond( const Bond& obj );
     Bond& operator=( const Bond& obj );
 
-    Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap );
+    Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa);
 
     ~Bond( );
 
@@ -54,6 +58,7 @@ public:
     int     getRangeType( void );
     bool    getConnectionState( void );
     int     getUploadState( void );
+    map<string, string>& getHeaders( void );
 
     void     setPhase( int phasee );
     void     setResponseState( int state );
@@ -69,4 +74,7 @@ public:
     bool    rangeHeader( void );
 
     void    reset( );
+
+    string  getRemoteAddr() const;
+    string  getRemoteHost() const;
 };
