@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/11 11:17:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/11 11:25:35 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -397,7 +397,7 @@ void    Uploader::read( ) {
     currentLength += i;
     maxPayloadSize -= i;
 
-    if (maxPayloadSize - i <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
+    if (maxPayloadSize <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
     if (isMulti) multipart(buffer);
     else {
