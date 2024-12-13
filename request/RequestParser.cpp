@@ -211,7 +211,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case of GET method
     
     // Either stat() failed, or the macro failed
-    if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
+    if (!uri.getIsCGI() && !uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
     if (uri.isDirectory()) {
         vector<string> defaultPages = location.getDefaultPages();

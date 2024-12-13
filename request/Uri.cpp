@@ -76,16 +76,26 @@ bool    Uri::isDirectory( ) {
 }
 
 void    Uri::checkCGI( Location& location ) {
-    if (path.rfind('.') == string::npos || path.rfind('.') == path.size() - 1) return ;
-
-    string extension = path.substr(path.rfind('.') + 1);
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
+
     for (; it != s.end(); it++) {
-        if (*(it) == extension) {
-            cgi = true;
-            cgiExt = extension;
-            break;
+        string extension = ".";
+        extension += *(it);
+
+        if (path.find(extension) != string::npos) {
+
+            if (path.find(extension) + extension.length() == path.length() \
+            || (path.find(extension) + extension.length() < path.length() && path[path.find(extension) + extension.length()] == '/')) {
+
+                string cgiPath = path.substr(0, path.find(extension) + extension.length());
+                
+                if (isRegularFile(cgiPath)) {
+                    cgi = true;
+                    cgiExt = extension;
+                    break;
+                }
+            }
         }
     }
     return ;
