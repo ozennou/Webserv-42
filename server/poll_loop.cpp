@@ -137,9 +137,8 @@ int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, 
     return 0;
 }
 
-int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
+int poll_loop(Socket_map &sock_map)
 {
-    (void)srvs;
     map<int, string> statusCodeMap;
 
     statusCodeMap.insert(make_pair<int, string>(505, " HTTP Version Not Supported"));

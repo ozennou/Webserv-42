@@ -76,4 +76,6 @@ public:
     void reset();
 
     char** cgiEnvs();
+
+    void CgiWait(void) ;
 };

@@ -64,7 +64,7 @@ Bond& Bond::operator=( const Bond& obj ) {
     return *this;
 }
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), sa(sa), responseGenerator(clientFd, statusCodeMap) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), sa(sa), responseGenerator(clientFd, statusCodeMap), isCgi(false) {
 }
 
 void Bond::initParcer( ) {
@@ -212,4 +212,13 @@ string  Bond::getRemoteAddr() const {
 }
 
 Bond::~Bond( ) {
+}
+
+pair<int, pid_t>    Bond::getCgiInfos() const {
+    return pair<int, pid_t>(pipeFd, p);
+}
+
+void                Bond::setCgiInfos(int fd, pid_t _p) {
+    pipeFd = fd;
+    p = _p;
 }

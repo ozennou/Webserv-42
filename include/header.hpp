@@ -94,7 +94,7 @@ string check_flags(int ac, char **av);
 size_t  getRangeValue( string rangeString );
 
 
-int poll_loop(vector<Server> &srvs, Socket_map &sock_map);
+int poll_loop(Socket_map &sock_map);
 struct pollfd *init_poll_struct(vector<int> sockets, int &size);
 
 //Cgi.cpp

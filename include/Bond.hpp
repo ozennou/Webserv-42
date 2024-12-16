@@ -32,6 +32,10 @@ private:
 
     bool connectionSate; // keep-alive = true, close = false
 
+    int  pipeFd;
+
+    pid_t p;
+
     RequestParser requestParser;
 
     sockaddr_storage sa;
@@ -39,6 +43,8 @@ private:
     ResponseGenerator responseGenerator;
 
 public:
+
+    bool isCgi;
 
     Bond( );
     Bond( const Bond& obj );
@@ -67,7 +73,7 @@ public:
     void     setErrorPages( map<int, string> errorPages );
 
     void    initParcer( void );
-    void    initResponse( void );
+    void    initResponse( );
 
     bool    isCGI( void );
 
@@ -77,4 +83,7 @@ public:
 
     string  getRemoteAddr() const;
     string  getRemoteHost() const;
+
+    pair<int, pid_t>    getCgiInfos() const;
+    void                setCgiInfos(int fd, pid_t _p);
 };

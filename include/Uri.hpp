@@ -52,7 +52,9 @@ public:
 
     string requestTarget;
 
+    string root;
     string path;
+    string cgiPath;
     string query;
 
     string host;

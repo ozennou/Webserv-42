@@ -34,6 +34,7 @@ Uri& Uri::operator=( const Uri& obj ) {
         this->host = obj.host;
         this->port = obj.port;
         this->cgi = false;
+        this->cgiPath = "";
     }
     return *this;
 }
@@ -88,9 +89,13 @@ void    Uri::checkCGI( Location& location ) {
             if (path.find(extension) + extension.length() == path.length() \
             || (path.find(extension) + extension.length() < path.length() && path[path.find(extension) + extension.length()] == '/')) {
 
-                string cgiPath = path.substr(0, path.find(extension) + extension.length());
+                string tmp = path.substr(0, path.find(extension) + extension.length());
                 
-                if (isRegularFile(cgiPath)) {
+                if (isRegularFile(tmp)) {
+                    if (path.find(extension) + extension.length() < path.length()) cgiPath = path.substr(path.find(extension) + extension.length());
+                    path = tmp;
+
+
                     cgi = true;
                     cgiExt = extension;
                     break;
@@ -140,7 +145,7 @@ Location Uri::matchURI( Server& server ) {
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
     
-    path.insert(0, location.getRoot());
+    path.insert(0, location.getRoot()); root = location.getRoot();
     return location;
 }
 

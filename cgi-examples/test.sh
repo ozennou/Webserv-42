@@ -3,8 +3,8 @@
 # This script outputs a simple HTML page
 
 # Content-type header (required for CGI scripts)
-echo "Content-type: text/html"
-echo ""
+echo "Content-type: text/html\r"
+echo "\r"
 
 # HTML content
 echo "<html>"

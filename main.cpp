@@ -36,7 +36,7 @@ int main(int ac, char **av) {
         init_servers(servers, sock_map);
         // print_servers(servers);
         // sock_map.print_map();
-        poll_loop(servers, sock_map);
+        poll_loop(sock_map);
     } catch(exception &e) {
         cerr << RED << e.what() << RESET << endl;
         return 1;

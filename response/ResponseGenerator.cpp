@@ -589,9 +589,10 @@ void ResponseGenerator::RedirectionResponse( ) {
     bond->reset();
 }
 
-void ResponseGenerator::CGI( ) {
+void ResponseGenerator::CGI() {
     Uri& uri = bond->getUri();
     string cgiExec = getCgiExec(uri.getCgiExt());
+    cout << BLUE << uri.path << RESET << endl;
     if (cgiExec == "")
     {
         this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
@@ -614,8 +615,7 @@ void ResponseGenerator::CGI( ) {
         return ;
     }
     cout << cgiExec << endl;
-    
-    exit(2);
+
     pid_t p = fork();
     if (p == -1)
     {
@@ -630,21 +630,68 @@ void ResponseGenerator::CGI( ) {
         if (dup2(fd[1], STDOUT_FILENO) == -1)
         {
             delete_envs(envs, fd);
-            exit(1);
+            exit(52);
         }
         close(fd[1]);
-        // execve(cgiExec.c_str(), )
+        if (chdir(uri.root.c_str()) == -1) {
+            delete_envs(envs, NULL);
+            exit(52);
+        }
+        const char *av[6];
+        av[0] = cgiExec.c_str();
+        if (uri.getCgiExt() == ".php") {
+            av[1] = "-d";
+            av[2] = "cgi.force_redirect=0";
+            av[3] = "-f";
+            av[4] = uri.path.c_str();
+            av[5] = NULL;
+        }
+        else {
+            av[1] = uri.path.c_str();
+            av[2] = NULL;
+        }
+        if (execve(cgiExec.c_str(), const_cast<char**>(av), envs) == -1)
+        {
+            delete_envs(envs, NULL);
+            exit(52);
+        }
+        delete_envs(envs, NULL);
     }
+    delete_envs(envs, NULL);
+    close(fd[1]);
+    // char bf[1024];
+    // cout << YELLOW << read(fd[0], bf, 1024) << RESET << endl;
+    // cout << bf << endl;
+    // exit(1);
+    bond->setCgiInfos(fd[0], p);
+    bond->isCgi = true;
+    CgiWait();
 }
 
-void ResponseGenerator::filterResponseType( ) {
+void ResponseGenerator::CgiWait()
+{
+    int                 status;
+    pair<int, pid_t>    infos = bond->getCgiInfos(); 
+
+    if (waitpid(infos.second, &status, WNOHANG) == -1)
+        return ;
+    stringstream    cgiRspns;
+    char            bf[1024];
+    while (read(infos.first, bf, 1024) > 0)
+        cgiRspns << bf;
+    cout << cgiRspns.str();
+    exit(1);
+}
+
+void ResponseGenerator::filterResponseType() {
     stringstream stream;
     string  responseBuffer;
 
     bond->rangeHeader();
     if (exception) generateErrorMessage();
     else {
-        if (bond->isCGI()) CGI();
+        if (bond->isCgi) CgiWait();
+        else if (bond->isCGI()) CGI();
         else if (isRedirect) RedirectionResponse();
         else if (bond->getMethod() == GET) {
             if (bond->getUri().isDirectory()) directoryResponse();

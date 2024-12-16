@@ -236,7 +236,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case Of CGI - 2
     uri.checkCGI(location);
 
-    if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
+    // if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);  // check later
     std::set<string> s = location.getMethods();
     if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
 

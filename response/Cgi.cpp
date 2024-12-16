@@ -13,24 +13,24 @@ string CheckExec(string cgiExec) {
 
 string getCgiExec(string cgiExt) {
     string res;
-    if (cgiExt == "py")
+    if (cgiExt == ".py")
     {
         res = CheckExec("./cgi-exe/python-cgi");
         return res;
     }
-    else if (cgiExt == "php")
+    else if (cgiExt == ".php")
     {
         res = CheckExec("./cgi-exe/php-cgi");
         if(res == "")
             res = CheckExec("/usr/bin/php");
         return res;
     }
-    else if (cgiExt == "sh")
+    else if (cgiExt == ".sh")
     {
         res = CheckExec("/bin/sh");
         return res;
     }
-    else if (cgiExt == "pl")
+    else if (cgiExt == ".pl")
     {
         res = CheckExec("/usr/bin/perl");
         return res;
@@ -43,6 +43,7 @@ char** ResponseGenerator::cgiEnvs() {
     Uri& uri = bond->getUri();
     map<string, string> &headers = bond->getHeaders();
     map<string, string> envs;
+    (void)uri;
     envs.insert(pair<string, string>("GATEWAY_INTERFACE", "CGI/1.1"));
     envs.insert(pair<string, string>("SERVER_NAME", *uri.getHostServer().getServerNames().begin()));
     envs.insert(pair<string, string>("SERVER_SOFTWARE", "WebServer-42/1.0.0"));
@@ -50,7 +51,14 @@ char** ResponseGenerator::cgiEnvs() {
     envs.insert(pair<string, string>("SERVER_PORT", to_string(uri.port)));
     envs.insert(pair<string, string>("REQUEST_METHOD", (bond->getMethod() == GET) ? "GET" : "POST"));
     envs.insert(pair<string, string>("SCRIPT_NAME", uri.requestTarget));
+    envs.insert(pair<string, string>("SCRIPT_FILENAME", uri.path));
     envs.insert(pair<string, string>("QUERY_STRING", uri.query));
+    envs.insert(pair<string, string>("QUERY_STRING", uri.query));
+    if (uri.cgiPath != "")
+    {
+        envs.insert(pair<string, string>("PATH_INFO", uri.cgiPath));
+        envs.insert(pair<string, string>("PATH_TRANSLATED", uri.root + uri.cgiPath));
+    }
     envs.insert(pair<string, string>("REMOTE_ADDR", bond->getRemoteAddr()));
     envs.insert(pair<string, string>("REMOTE_HOST", bond->getRemoteHost()));
     for (map<string, string>::iterator it = headers.begin(); it != headers.end(); it++)
@@ -59,7 +67,6 @@ char** ResponseGenerator::cgiEnvs() {
         if (check == envs.end())
             envs.insert(pair<string, string>(it->first, it->second));
     }
-
     env = new(nothrow) char*[envs.size() + 1];
     if (!env)
         return NULL;
