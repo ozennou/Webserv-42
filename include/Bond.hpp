@@ -41,6 +41,8 @@ private:
     sockaddr_storage sa;
 
     ResponseGenerator responseGenerator;
+    
+    bool cgiPhase;
 
 public:
 
@@ -86,4 +88,7 @@ public:
 
     pair<int, pid_t>    getCgiInfos() const;
     void                setCgiInfos(int fd, pid_t _p);
+
+    void                setCgiPhase(bool _phase);
+    bool                getCgiPhase();
 };

@@ -78,4 +78,6 @@ public:
     char** cgiEnvs();
 
     void CgiWait(void) ;
+
+    void generateCgiResponse(map<string, string> &headers, string &reponse, Uri& uri);
 };

@@ -18,6 +18,8 @@ function sanitize_input($data) {
     return $data;
 }
 
+// sleep(2);
+
 // Simple user authentication (mock example)
 $valid_users = [
     'admin' => 'password123',

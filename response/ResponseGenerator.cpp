@@ -590,9 +590,13 @@ void ResponseGenerator::RedirectionResponse( ) {
 }
 
 void ResponseGenerator::CGI() {
+    // if (bond->getCgiInfos().first != -1) {
+    //     bond->isCgi = true;
+    //     CgiWait();
+    //     return ;
+    // }
     Uri& uri = bond->getUri();
     string cgiExec = getCgiExec(uri.getCgiExt());
-    cout << BLUE << uri.path << RESET << endl;
     if (cgiExec == "")
     {
         this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
@@ -607,6 +611,8 @@ void ResponseGenerator::CGI() {
         return ;
     }
     int fd[2];
+    cout << bond->isCgi << endl;
+    cout << "------------------------------------------------------------------------------------------------------------" << endl;
     if (pipe(fd) == -1)
     {
         delete_envs(envs, NULL);
@@ -659,28 +665,9 @@ void ResponseGenerator::CGI() {
     }
     delete_envs(envs, NULL);
     close(fd[1]);
-    // char bf[1024];
-    // cout << YELLOW << read(fd[0], bf, 1024) << RESET << endl;
-    // cout << bf << endl;
-    // exit(1);
     bond->setCgiInfos(fd[0], p);
     bond->isCgi = true;
     CgiWait();
-}
-
-void ResponseGenerator::CgiWait()
-{
-    int                 status;
-    pair<int, pid_t>    infos = bond->getCgiInfos(); 
-
-    if (waitpid(infos.second, &status, WNOHANG) == -1)
-        return ;
-    stringstream    cgiRspns;
-    char            bf[1024];
-    while (read(infos.first, bf, 1024) > 0)
-        cgiRspns << bf;
-    cout << cgiRspns.str();
-    exit(1);
 }
 
 void ResponseGenerator::filterResponseType() {

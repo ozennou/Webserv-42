@@ -58,13 +58,19 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->requestParser = obj.requestParser;
         this->responseGenerator = obj.responseGenerator;
         this->sa = obj.sa;
+        this->pipeFd = obj.pipeFd;
+        this->p = obj.p;
+        this->cgiPhase = obj.cgiPhase;
+        this->isCgi = obj.isCgi;
         this->responseGenerator.setBondObject(this);
         this->requestParser.setBondObject(this);
     }
     return *this;
 }
 
-Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), sa(sa), responseGenerator(clientFd, statusCodeMap), isCgi(false) {
+Bond::Bond( int clientFd, int socketFd, Socket_map& socket_map, map<int, string>& statusCodeMap, sockaddr_storage sa) : phase(REQUEST_READY), responseState(CLOSED), clientFd(clientFd), connectionSate(true), requestParser(clientFd, socketFd, socket_map), sa(sa), responseGenerator(clientFd, statusCodeMap), cgiPhase(false), isCgi(false) {
+    pipeFd = -1;
+    p = -1;
 }
 
 void Bond::initParcer( ) {
@@ -106,8 +112,12 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
-    
-    responseGenerator.filterResponseType();
+    // if (cgiPhase) responseGenerator.CgiWait(); return;
+
+    if (isCgi)
+        responseGenerator.CgiWait();
+    else
+        responseGenerator.filterResponseType();
 }
 
 int Bond::getClientFd( ) const {
@@ -156,6 +166,14 @@ string  Bond::getRangeFirst( void ) {
 
 string  Bond::getRangeLast( void ) {
     return requestParser.getRangeLast();
+}
+
+void Bond::setCgiPhase(bool _phase) {
+    cgiPhase = _phase;
+}
+
+bool Bond::getCgiPhase() {
+    return cgiPhase;
 }
 
 int  Bond::getRangeType( void ) {
@@ -219,6 +237,11 @@ pair<int, pid_t>    Bond::getCgiInfos() const {
 }
 
 void                Bond::setCgiInfos(int fd, pid_t _p) {
+
+    if (pipeFd != -1)
+        return ;
+    // if (pipeFd != -1)
+    //     close(pipeFd);
     pipeFd = fd;
     p = _p;
 }

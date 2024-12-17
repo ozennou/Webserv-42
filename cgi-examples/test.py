@@ -3,9 +3,12 @@ import cgi
 import cgitb
 import html
 import os
+import time
 
 # Enable CGI error reporting
+
 cgitb.enable()
+
 
 # Print the HTTP header
 print("Content-Type: text/html; charset=utf-8\r")
