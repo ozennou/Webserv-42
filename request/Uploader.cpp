@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/11 11:25:35 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:14:25 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
         this->fd = -2;
         this->state = CHUNKED_LENGTH;
         this->boundaryState = BOUNDARY;
+        this->isCgi = false;
     }
     return *this;
 }
@@ -140,6 +141,10 @@ void    Uploader::setIsMulti( bool value ) {
     isMulti = value;
 }
 
+void    Uploader::setIsCgi( bool value ) {
+    isCgi = value;
+}
+
 void    Uploader::setFileType( string type ) {
     fileType = ".";
     fileType += type;
@@ -177,7 +182,10 @@ void    Uploader::setOfs( string& filename ) {
 void    Uploader::setOfs( ) {
     stringstream fullPath;
 
-    fullPath << uploadPath;
+    if (isCgi) {
+        fullPath << "/tmp/";
+    } else fullPath << uploadPath;
+
     if (fullPath.str()[fullPath.str().length() - 1] != '/') fullPath << '/';
 
     fullPath << clientFd;
@@ -195,6 +203,8 @@ void    Uploader::setOfs( ) {
     fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
 
     if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-2", 500);
+
+    if (isCgi) if (unlink(fullPath.str().c_str()) == -1) throw RequestParser::HttpRequestException("unlink failed", 500);
 }
 
 int    Uploader::getUploadState( void ) {
@@ -347,7 +357,7 @@ void    Uploader::decodeChunked( ) {
             payload = buffer.substr(0, (totalLength - currentLength));
             payloadLength = payload.length();
             
-            if (isMulti) multipart(payload);
+            if (isMulti && !isCgi) multipart(payload);
             else if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
             if ((currentLength + buffer.length() > totalLength) && ((totalLength - currentLength) + 2 < buffer.length())) buffer = buffer.substr((totalLength - currentLength) + 2);
@@ -362,7 +372,7 @@ void    Uploader::decodeChunked( ) {
         else if (state == CHUNKED_DATA) {
             payload = buffer;
             
-            if (isMulti) multipart(payload);
+            if (isMulti && !isCgi) multipart(payload);
             else if (write(fd, payload.c_str(), payload.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
 
             currentLength += buffer.length();
@@ -399,7 +409,7 @@ void    Uploader::read( ) {
 
     if (maxPayloadSize <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
-    if (isMulti) multipart(buffer);
+    if (isMulti && !isCgi) multipart(buffer);
     else {
         if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
         if (currentLength >= totalLength) closeUploader();

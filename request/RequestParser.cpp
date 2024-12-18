@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/10 17:27:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:20:26 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
 
     uploader.setIsChunked(false);
     uploader.setIsMulti(false);
+    uploader.setIsCgi(uri.getIsCGI());
 
     string contentType = headers.getFieldValue("content-type");
     map<string, string> mapp = server.getMimeTypes();
@@ -174,7 +175,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
         uploader.setTotalLength(sizee);
     }
 
-    if (!uploader.getIsMulti()) uploader.setOfs();
+    if (uri.getIsCGI() || !uploader.getIsMulti()) uploader.setOfs();
 
     uploader.setUploadState(UPLOADING);
     
