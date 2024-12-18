@@ -121,7 +121,6 @@ void ResponseGenerator::CgiWait()
     while ((r = read(infos.first, bf, 1024)) > 0)
         rspns.append(bf, r);
     if (r == -1) {
-        cout << "fail read: " << bond->isCgi << endl;
         bond->isCgi = false;
         bond->setCgiPhase(false);
         return ;
@@ -150,10 +149,15 @@ void ResponseGenerator::CgiWait()
     //     cout << RED << i->first  << "=" << i->second <<  RESET << endl;
         
     // cout << YELLOW << rspns << RESET << endl;
-    // cout << WIFEXITED(status) << " " << WEXITSTATUS(status) <<  endl;
+    cout << WIFEXITED(status) << " " << WEXITSTATUS(status) <<  endl;
+    if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM) {
+        this->exception = new RequestParser::HttpRequestException("CGI Timeout", 500);
+        generateErrorMessage();
+        return ;
+    }
     if (WEXITSTATUS(status)) {
-        // this->exception = new RequestParser::HttpRequestException("CGI Internal server error2", 500);
-        // generateErrorMessage();
+        this->exception = new RequestParser::HttpRequestException("CGI Internal server error", 500);
+        generateErrorMessage();
         return ;
     }
     generateCgiResponse(headers, rspns, bond->getUri());

@@ -44,6 +44,8 @@ private:
     
     bool cgiPhase;
 
+    unsigned int cgiTimeout;
+
 public:
 
     bool isCgi;
@@ -66,6 +68,7 @@ public:
     int     getRangeType( void );
     bool    getConnectionState( void );
     int     getUploadState( void );
+    unsigned int    getCgiTimeout( void );
     map<string, string>& getHeaders( void );
 
     void     setPhase( int phasee );
@@ -73,6 +76,7 @@ public:
     void     setRedirect( pair<int, string> info );
     void     setConnectionState( bool cs );
     void     setErrorPages( map<int, string> errorPages );
+    void     setCgiTimeout( unsigned int cgiTimeout );
 
     void    initParcer( void );
     void    initResponse( );

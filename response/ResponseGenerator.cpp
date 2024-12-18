@@ -611,8 +611,6 @@ void ResponseGenerator::CGI() {
         return ;
     }
     int fd[2];
-    cout << bond->isCgi << endl;
-    cout << "------------------------------------------------------------------------------------------------------------" << endl;
     if (pipe(fd) == -1)
     {
         delete_envs(envs, NULL);
@@ -620,8 +618,6 @@ void ResponseGenerator::CGI() {
         generateErrorMessage();
         return ;
     }
-    cout << cgiExec << endl;
-
     pid_t p = fork();
     if (p == -1)
     {
@@ -632,6 +628,7 @@ void ResponseGenerator::CGI() {
     }
     if (!p)
     {
+        alarm(bond->getCgiTimeout());
         close(fd[0]);
         if (dup2(fd[1], STDOUT_FILENO) == -1)
         {

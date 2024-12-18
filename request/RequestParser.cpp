@@ -302,6 +302,8 @@ void RequestParser::init( ) {
 
     Location location = uri.matchURI(server);
 
+    bond->setCgiTimeout(location.getCgiTimeout());
+
     resolveResource(location);
 
     if (method == POST) setUploader(server, location);

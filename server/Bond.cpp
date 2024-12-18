@@ -62,6 +62,7 @@ Bond& Bond::operator=( const Bond& obj ) {
         this->p = obj.p;
         this->cgiPhase = obj.cgiPhase;
         this->isCgi = obj.isCgi;
+        this->cgiTimeout = 0;
         this->responseGenerator.setBondObject(this);
         this->requestParser.setBondObject(this);
     }
@@ -148,6 +149,10 @@ int Bond::getPhase( ) {
     return phase;
 }
 
+unsigned int Bond::getCgiTimeout( void ) {
+    return cgiTimeout;
+}
+
 void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
@@ -158,6 +163,10 @@ void Bond::setRedirect( pair<int, string> info ) {
 
 void Bond::setErrorPages( map<int, string> errorPages ) {
     responseGenerator.setErrorPages(errorPages);
+}
+
+void Bond::setCgiTimeout( unsigned int cgiTimeoutt ) {
+    this->cgiTimeout = cgiTimeoutt;
 }
 
 string  Bond::getRangeFirst( void ) {

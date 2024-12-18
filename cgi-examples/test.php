@@ -18,7 +18,7 @@ function sanitize_input($data) {
     return $data;
 }
 
-// sleep(2);
+sleep(1);
 
 // Simple user authentication (mock example)
 $valid_users = [
