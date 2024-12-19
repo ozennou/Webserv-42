@@ -153,6 +153,10 @@ unsigned int Bond::getCgiTimeout( void ) {
     return cgiTimeout;
 }
 
+Uploader& Bond::getUploader( void ) {
+    return requestParser.getUploader();
+}
+
 void Bond::setPhase( int statee ) {
     this->phase = statee;
 }
@@ -246,11 +250,6 @@ pair<int, pid_t>    Bond::getCgiInfos() const {
 }
 
 void                Bond::setCgiInfos(int fd, pid_t _p) {
-
-    if (pipeFd != -1)
-        return ;
-    // if (pipeFd != -1)
-    //     close(pipeFd);
     pipeFd = fd;
     p = _p;
 }

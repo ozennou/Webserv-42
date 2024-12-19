@@ -91,7 +91,7 @@ void    Uploader::setBuffer( string& stringBuffer ) {
         if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
         return ;
-    } else if (isMulti) {
+    } else if (isMulti && !isCgi) {
         multipart(buffer);
 
         maxPayloadSize -= buffer.length();
@@ -204,7 +204,7 @@ void    Uploader::setOfs( ) {
 
     if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-2", 500);
 
-    if (isCgi) if (unlink(fullPath.str().c_str()) == -1) throw RequestParser::HttpRequestException("unlink failed", 500);
+    if (isCgi) file = fullPath.str();
 }
 
 int    Uploader::getUploadState( void ) {
@@ -216,6 +216,7 @@ bool    Uploader::getIsMulti( void ) {
 }
  
 void    Uploader::closeUploader( ) {
+    cout << "closed" << endl;
     close(fd);
     uploadeState = UPLOADED;
 }
@@ -407,10 +408,13 @@ void    Uploader::read( ) {
     currentLength += i;
     maxPayloadSize -= i;
 
+    cout << "Here" << endl;
+
     if (maxPayloadSize <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
     if (isMulti && !isCgi) multipart(buffer);
     else {
+        cout << "writing=" << i << endl;
         if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
         if (currentLength >= totalLength) closeUploader();
     }

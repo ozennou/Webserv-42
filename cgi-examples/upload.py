@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import cgi
 import cgitb
-import html
 import os
+import html
 import sys
 import io
+import base64
 
 # Enable detailed error reporting
 cgitb.enable()
@@ -12,6 +13,13 @@ cgitb.enable()
 # Print the HTTP header first
 print("Content-Type: text/html; charset=utf-8\r")
 print("\r")
+
+# Define the upload directory
+UPLOAD_DIR = '/Users/mozennou/Desktop/Webserv-42/cgi-examples/uploads'
+
+# Ensure the upload directory exists
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
 
 # Debugging function
 def print_debug_info(error_message):
@@ -58,10 +66,10 @@ try:
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>CGI Form Handler</title>
+        <title>CGI Binary File Upload</title>
     </head>
     <body>
-        <h1>CGI Form Submission</h1>
+        <h1>CGI Binary File Upload</h1>
     """)
 
     # Check if form was submitted
@@ -71,29 +79,48 @@ try:
         
         # Iterate through all form fields
         for key in form.keys():
-            # Get the value and escape it to prevent XSS
-            value = html.escape(form.getvalue(key))
-            print(f"<li><strong>{html.escape(key)}:</strong> {value}</li>")
+            # Check if the field is a file
+            field = form[key]
+            if field.filename:
+                # Save the uploaded file
+                filename = os.path.basename(field.filename)
+                filepath = os.path.join(UPLOAD_DIR, filename)
+                with open(filepath, 'wb') as f:
+                    f.write(field.file.read())
+                print(f"<li><strong>File uploaded:</strong> {html.escape(filename)}</li>")
+                
+                # Optionally, encode the file to base64 for display
+                with open(filepath, 'rb') as f:
+                    file_content = f.read()
+                    base64_content = base64.b64encode(file_content).decode('utf-8')
+
+                print(f"""<li><strong>File preview (Base64 encoded):</strong><pre>{html.escape(base64_content)}</pre></li>""")
+                
+                # Provide a link to download the file
+                download_link = f"/uploads/{filename}"
+                print(f"""<li><strong>Download the file:</strong> <a href="{download_link}">Click here to download {html.escape(filename)}</a></li>""")
+
+            else:
+                # Handle non-file fields
+                value = html.escape(field.value)
+                print(f"<li><strong>{html.escape(key)}:</strong> {value}</li>")
         
         print("</ul>")
 
     # Display the form
     print("""
-        <form method="post" action="/test.py">
+        <h2>Upload a Binary File</h2>
+        <form method="post" action="/upload.py" enctype="multipart/form-data">
             <div>
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
             </div>
             <div>
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email">
+                <label for="file">Select a binary file to upload:</label>
+                <input type="file" id="file" name="file" required>
             </div>
             <div>
-                <label for="message">Message:</label>
-                <textarea id="message" name="message" rows="4"></textarea>
-            </div>
-            <div>
-                <input type="submit" value="Submit">
+                <input type="submit" value="Upload">
             </div>
         </form>
 

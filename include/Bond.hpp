@@ -68,6 +68,7 @@ public:
     int     getRangeType( void );
     bool    getConnectionState( void );
     int     getUploadState( void );
+    Uploader&     getUploader( void );
     unsigned int    getCgiTimeout( void );
     map<string, string>& getHeaders( void );
 

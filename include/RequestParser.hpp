@@ -90,6 +90,8 @@ public:
     int getRangeType( void );
     bool getConnectionState( void );
 
+    Uploader& getUploader( void );
+
 
     void upload( void );
 

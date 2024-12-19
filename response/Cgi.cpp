@@ -109,15 +109,28 @@ void delete_envs(char **envs, int *fd)
 
 void ResponseGenerator::CgiWait()
 {
-    int                 status;
+    int                 status = 0;
+    pid_t               pid;
     pair<int, pid_t>    infos = bond->getCgiInfos();
-    if (waitpid(infos.second, &status, WNOHANG) != -1)
+    pid = waitpid(infos.second, &status, WNOHANG);
+    if (pid <= 0)
+        return;
+    if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM) {
+        this->exception = new RequestParser::HttpRequestException("CGI Timeout", 502);
+        generateErrorMessage();
         return ;
+    }
+    cout << WEXITSTATUS(status) << endl;
+    // if (WEXITSTATUS(status) || pid == -1) {
+    //     this->exception = new RequestParser::HttpRequestException("CGI Internal server error", 500);  //ril
+    //     generateErrorMessage();
+    //     return ;
+    // }
     char            bf[1024];
     string          rspns;
     string          header;
-    ssize_t          r;
     map<string, string> headers;
+    ssize_t          r;
     while ((r = read(infos.first, bf, 1024)) > 0)
         rspns.append(bf, r);
     if (r == -1) {
@@ -126,18 +139,21 @@ void ResponseGenerator::CgiWait()
         return ;
     }
     close(infos.first);
-    while (rspns.find_first_of(CRLF) != string::npos)
+    if (rspns.find("\r\n\r\n") != string::npos)
     {
-        header = rspns.substr(0, rspns.find_first_of(CRLF));
-        rspns = rspns.substr(rspns.find_first_of(CRLF) + 2);
-        if (header == "")
-            break;
-        headers.insert(std::pair<std::string, std::string>(
-            header.substr(0, header.find_first_of(':')), 
-            header.substr(header.find_first_of(':') + 1)
-        ));
-
+        while (rspns.find(CRLF) != string::npos)
+        {
+            header = rspns.substr(0, rspns.find(CRLF));
+            rspns = rspns.substr(rspns.find(CRLF) + 2);
+            if (header == "")
+                break;
+            headers.insert(std::pair<std::string, std::string>(
+                header.substr(0, header.find(':')), 
+                header.substr(header.find(':') + 1)
+            ));
+        }
     }
+    
     if (headers.find("Content-Length") == headers.end())
         headers.insert(std::pair<std::string, std::string>(
             "Content-Length", 
@@ -149,18 +165,9 @@ void ResponseGenerator::CgiWait()
     //     cout << RED << i->first  << "=" << i->second <<  RESET << endl;
         
     // cout << YELLOW << rspns << RESET << endl;
-    cout << WIFEXITED(status) << " " << WEXITSTATUS(status) <<  endl;
-    if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM) {
-        this->exception = new RequestParser::HttpRequestException("CGI Timeout", 500);
-        generateErrorMessage();
-        return ;
-    }
-    if (WEXITSTATUS(status)) {
-        this->exception = new RequestParser::HttpRequestException("CGI Internal server error", 500);
-        generateErrorMessage();
-        return ;
-    }
     generateCgiResponse(headers, rspns, bond->getUri());
+    cout << "DONE" << endl;
+    bond->isCgi = false;
     bond->setCgiPhase(true);
     bond->reset();
 }

@@ -590,22 +590,38 @@ void ResponseGenerator::RedirectionResponse( ) {
 }
 
 void ResponseGenerator::CGI() {
-    // if (bond->getCgiInfos().first != -1) {
-    //     bond->isCgi = true;
-    //     CgiWait();
-    //     return ;
-    // }
+    bool isPost = (bond->getMethod() == POST);
     Uri& uri = bond->getUri();
+    int postFd = -1;
+    if (isPost)
+    {
+        postFd = open(bond->getUploader().file.c_str(), O_RDONLY, 0644);
+        if (unlink(bond->getUploader().file.c_str()) == -1 || postFd == -1)
+        {
+            close(postFd);
+            this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
+            generateErrorMessage();
+            return ;
+        }
+        // cout << bond->getUploader().file << endl;
+        // char a[1024];
+        // cout << RED << read(postFd, a, 1024) << RESET << endl;
+        // cout << a << endl;
+    }
     string cgiExec = getCgiExec(uri.getCgiExt());
     if (cgiExec == "")
     {
+        close(postFd);
         this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
         generateErrorMessage();
         return ;
     }
     char **envs = cgiEnvs();
+    
     if (envs == NULL)
     {
+        close(postFd);
+        delete_envs(envs, NULL);
         this->exception = new RequestParser::HttpRequestException("envs allocations fails", 500);
         generateErrorMessage();
         return ;
@@ -613,6 +629,7 @@ void ResponseGenerator::CGI() {
     int fd[2];
     if (pipe(fd) == -1)
     {
+        close(postFd);
         delete_envs(envs, NULL);
         this->exception = new RequestParser::HttpRequestException("pipe fails", 500);
         generateErrorMessage();
@@ -621,6 +638,7 @@ void ResponseGenerator::CGI() {
     pid_t p = fork();
     if (p == -1)
     {
+        close(postFd);
         delete_envs(envs, fd);
         this->exception = new RequestParser::HttpRequestException("fork fails", 500);
         generateErrorMessage();
@@ -636,6 +654,15 @@ void ResponseGenerator::CGI() {
             exit(52);
         }
         close(fd[1]);
+        if (isPost)
+        {
+            if (dup2(postFd, STDIN_FILENO) == -1)
+            {
+                delete_envs(envs, fd);
+                exit(52);
+            }
+            close(postFd);
+        }
         if (chdir(uri.root.c_str()) == -1) {
             delete_envs(envs, NULL);
             exit(52);
@@ -658,10 +685,10 @@ void ResponseGenerator::CGI() {
             delete_envs(envs, NULL);
             exit(52);
         }
-        delete_envs(envs, NULL);
     }
     delete_envs(envs, NULL);
     close(fd[1]);
+    close(postFd);
     bond->setCgiInfos(fd[0], p);
     bond->isCgi = true;
     CgiWait();
@@ -670,7 +697,7 @@ void ResponseGenerator::CGI() {
 void ResponseGenerator::filterResponseType() {
     stringstream stream;
     string  responseBuffer;
-
+    cout << "test" << endl;
     bond->rangeHeader();
     if (exception) generateErrorMessage();
     else {

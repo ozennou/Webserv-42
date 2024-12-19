@@ -142,6 +142,7 @@ int poll_loop(Socket_map &sock_map)
     map<int, string> statusCodeMap;
 
     statusCodeMap.insert(make_pair<int, string>(505, " HTTP Version Not Supported"));
+    statusCodeMap.insert(make_pair<int, string>(502, " CGI application timeout"));
     statusCodeMap.insert(make_pair<int, string>(501, " Not Implemented"));
     statusCodeMap.insert(make_pair<int, string>(500, " Internal Server Error"));
     statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));

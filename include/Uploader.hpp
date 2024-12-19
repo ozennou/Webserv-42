@@ -21,8 +21,6 @@ private:
     int         clientFd;
     long long      maxPayloadSize;
 
-    int         fd;
-
     string      buffer; // buffer
     string      writingBuffer;
     int         state;
@@ -75,4 +73,7 @@ public:
     void    closeUploader( );
 
     void    reset( );
+
+    int         fd;
+    string      file;
 };
