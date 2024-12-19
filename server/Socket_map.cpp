@@ -81,3 +81,16 @@ void Socket_map::print_map(void)
     }
     cout << RESET;
 }
+
+// string Socket_map::get_port(int sock_d) {
+//     for (map_sock::iterator i = sock_map.begin(); i != sock_map.end(); i++)
+//     {
+//         if (sock_d == i->second.first)
+//         {
+//             cout << (i->first) << endl;
+//             return "";
+//             // return (i->first).substr(".");
+//         }
+//     }
+//     return "";
+// }

@@ -103,6 +103,10 @@ size_t  getRangeValue( string rangeString ) {
     return rangeValue;
 }
 
+map<string, string>&  MessageHeaders::getHeaders( void ) {
+    return headers;
+}
+
 bool MessageHeaders::isValidRange( Uri& uri ) {
 
     size_t resourceSize = uri.getResourceSize();

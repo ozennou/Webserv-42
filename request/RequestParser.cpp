@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/10 17:27:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/18 11:20:26 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,14 @@ bool  RequestParser::getConnectionState( void ) {
     return headers.connectionState();
 }
 
+map<string, string>&  RequestParser::getHeaders( void ) {
+    return headers.getHeaders();
+}
+
+Uploader&  RequestParser::getUploader( void ) {
+    return uploader;
+}
+
 void  RequestParser::upload( void ) {
     uploader.read();
 }
@@ -141,6 +149,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
 
     uploader.setIsChunked(false);
     uploader.setIsMulti(false);
+    uploader.setIsCgi(uri.getIsCGI());
 
     string contentType = headers.getFieldValue("content-type");
     map<string, string> mapp = server.getMimeTypes();
@@ -170,7 +179,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
         uploader.setTotalLength(sizee);
     }
 
-    if (!uploader.getIsMulti()) uploader.setOfs();
+    if (uri.getIsCGI() || !uploader.getIsMulti()) uploader.setOfs();
 
     uploader.setUploadState(UPLOADING);
     
@@ -189,7 +198,8 @@ void RequestParser::resolveResource( Location& location ) {
 
     // In Case Of POST method
     if (method == POST) {
-        if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
+        cout << location.getUploadPath() << endl;
+        if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403); //ril
         set<string> set = location.getMethods();
         if (set.find("POST") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
         headers.findContentHeaders();
@@ -207,7 +217,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case of GET method
     
     // Either stat() failed, or the macro failed
-    if (!uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
+    if (!uri.getIsCGI() && !uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
 
     if (uri.isDirectory()) {
         vector<string> defaultPages = location.getDefaultPages();
@@ -232,7 +242,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case Of CGI - 2
     uri.checkCGI(location);
 
-    if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
+    // if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);  // check later
     std::set<string> s = location.getMethods();
     if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
 
@@ -297,6 +307,8 @@ void RequestParser::init( ) {
     bond->setErrorPages(server.getErrorPages());
 
     Location location = uri.matchURI(server);
+
+    bond->setCgiTimeout(location.getCgiTimeout());
 
     resolveResource(location);
 

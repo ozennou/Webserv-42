@@ -34,6 +34,7 @@ Uri& Uri::operator=( const Uri& obj ) {
         this->host = obj.host;
         this->port = obj.port;
         this->cgi = false;
+        this->cgiPath = "";
     }
     return *this;
 }
@@ -76,16 +77,30 @@ bool    Uri::isDirectory( ) {
 }
 
 void    Uri::checkCGI( Location& location ) {
-    if (path.rfind('.') == string::npos) return ;
-    
-    string extension = path.substr(path.rfind('.'));
     set<string> s = location.getCgiExt();
     set<string>::iterator it = s.begin();
 
     for (; it != s.end(); it++) {
-        if (*(it) == extension) {
-            cgi = true;
-            break;
+        string extension = ".";
+        extension += *(it);
+
+        if (path.find(extension) != string::npos) {
+
+            if (path.find(extension) + extension.length() == path.length() \
+            || (path.find(extension) + extension.length() < path.length() && path[path.find(extension) + extension.length()] == '/')) {
+
+                string tmp = path.substr(0, path.find(extension) + extension.length());
+                
+                if (isRegularFile(tmp)) {
+                    if (path.find(extension) + extension.length() < path.length()) cgiPath = path.substr(path.find(extension) + extension.length());
+                    path = tmp;
+
+
+                    cgi = true;
+                    cgiExt = extension;
+                    break;
+                }
+            }
         }
     }
     return ;
@@ -130,7 +145,7 @@ Location Uri::matchURI( Server& server ) {
     
     if (!location.getRoute().length()) throw RequestParser::HttpRequestException("No Location Was Found", 404);
     
-    path.insert(0, location.getRoot());
+    path.insert(0, location.getRoot()); root = location.getRoot();
     return location;
 }
 
@@ -224,4 +239,8 @@ void Uri::extractPath( string& requestT ) {
     } else throw RequestParser::HttpRequestException("Invalid Request Target", 400);
 
     normalizePath();
+}
+
+string Uri::getCgiExt() const {
+    return cgiExt;
 }

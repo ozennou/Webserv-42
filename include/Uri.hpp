@@ -32,6 +32,7 @@ class Uri
     int socketFd;
 
     bool    cgi;
+    string  cgiExt;
 
     Socket_map* socket_map;
 
@@ -51,7 +52,9 @@ public:
 
     string requestTarget;
 
+    string root;
     string path;
+    string cgiPath;
     string query;
 
     string host;
@@ -76,6 +79,8 @@ public:
     void    absoluteForm();
 
     void    extractQuery( size_t& index );
+
+    string  getCgiExt() const;
 
     void    reset( );
 };

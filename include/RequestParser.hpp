@@ -76,6 +76,7 @@ public:
     
     int getMethod( void );
     Uri& getUri( void );
+    map<string, string>& getHeaders( void );
     int getUploadState( void );
     
     bool isRange( void );
@@ -88,6 +89,8 @@ public:
     string getRangeLast( void );
     int getRangeType( void );
     bool getConnectionState( void );
+
+    Uploader& getUploader( void );
 
 
     void upload( void );

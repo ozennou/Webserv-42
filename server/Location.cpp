@@ -100,7 +100,7 @@ std::set<std::string> &Location::getCgiExt() {
 }
 
 void Location::addCgiExt(const std::string& cgiExt) {
-    if (cgiExt != "java" && cgiExt != "sh" && cgiExt != "php" && cgiExt != "py")
+    if (cgiExt != "pl" && cgiExt != "sh" && cgiExt != "php" && cgiExt != "py")
         throw logic_error("Error: Invalid CGI extension :" + cgiExt);
     cgi_ext.insert(cgiExt);
 }

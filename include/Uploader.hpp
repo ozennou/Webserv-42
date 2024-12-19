@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/10 17:41:40 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/18 10:55:54 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,6 @@ private:
     int         uploadeState;
     int         clientFd;
     long long      maxPayloadSize;
-
-    int         fd;
 
     string      buffer; // buffer
     string      writingBuffer;
@@ -40,6 +38,7 @@ private:
 
     bool        isChunked;
     bool        isMulti;
+    bool        isCgi;
 public:
     Uploader( );
     Uploader( int& clientFd );
@@ -53,6 +52,7 @@ public:
     void    setBoundary( string boundaryValue );
     void    setIsChunked( bool value );
     void    setIsMulti( bool value );
+    void    setIsCgi( bool value );
     void    setFileType( string type );
     void    setMaxPayloadSize( size_t payloadSize );
     void    setOfs( );
@@ -73,4 +73,7 @@ public:
     void    closeUploader( );
 
     void    reset( );
+
+    int         fd;
+    string      file;
 };

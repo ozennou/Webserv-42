@@ -89,7 +89,7 @@ int newconnection2(Clients &clients, list<Bond> &bonds, map<int, string> &status
     if (add_client(pfds, newFd, size, max_size))
         return 1;
     clients.add_client(newFd, fd);
-    Bond b(newFd, fd, socket_map, statusCodeMap); // The Object is constructed in the function's stack
+    Bond b(newFd, fd, socket_map, statusCodeMap, sa); // The Object is constructed in the function's stack
     bonds.push_back(b); // The list's object is constructed in heap by it COPY constructor
     return 0;
 }
@@ -137,12 +137,12 @@ int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, 
     return 0;
 }
 
-int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
+int poll_loop(Socket_map &sock_map)
 {
-    (void)srvs;
     map<int, string> statusCodeMap;
 
     statusCodeMap.insert(make_pair<int, string>(505, " HTTP Version Not Supported"));
+    statusCodeMap.insert(make_pair<int, string>(502, " CGI application timeout"));
     statusCodeMap.insert(make_pair<int, string>(501, " Not Implemented"));
     statusCodeMap.insert(make_pair<int, string>(500, " Internal Server Error"));
     statusCodeMap.insert(make_pair<int, string>(416, " Range Not Satisfiable"));
@@ -175,6 +175,7 @@ int poll_loop(vector<Server> &srvs, Socket_map &sock_map)
             exit(0);
         }
         int f = poll(pfds, size, POLL_TIMEOUT);
+        // cout << RED << "TEST" << RESET << endl;
         if (f < 0)
             continue;
         else if (!f)
