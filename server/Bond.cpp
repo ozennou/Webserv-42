@@ -93,9 +93,11 @@ void Bond::initParcer( ) {
 
         stringBuffer.append(buf, i);
 
-        // Only When Two CRLFs are encoutered we start parcing
-        if (stringBuffer.find("\r\n\r\n") == string::npos) return ;
-        
+        if (stringBuffer.find("\r\n\r\n") == string::npos) {
+            // cout << "retuerned" << endl;
+            return ;
+        }
+
         setPhase(RESPONSE_READY);
         requestParser.init();
         connectionSate = requestParser.getConnectionState();
@@ -113,7 +115,6 @@ void Bond::initParcer( ) {
 
 void Bond::initResponse( ) {
     if (phase != RESPONSE_READY || requestParser.getUploadState() != UPLOADED)  return;
-    // if (cgiPhase) responseGenerator.CgiWait(); return;
 
     if (isCgi)
         responseGenerator.CgiWait();
@@ -226,12 +227,7 @@ void  Bond::reset( void ) {
 }
 
 string  Bond::getRemoteHost() const {
-    char host[NI_MAXHOST];
-    char service[NI_MAXSERV];
-
-    if (getnameinfo((struct sockaddr*)&sa, sizeof(sa), host, sizeof(host), service, sizeof(service), NI_NAMEREQD))
-        return getRemoteAddr();
-    return host;
+    return getRemoteAddr();
 }
 string  Bond::getRemoteAddr() const {
     char ip_str[INET6_ADDRSTRLEN];

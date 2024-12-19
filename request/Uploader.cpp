@@ -407,13 +407,10 @@ void    Uploader::read( ) {
     currentLength += i;
     maxPayloadSize -= i;
 
-    cout << "Here" << endl;
-
     if (maxPayloadSize <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
     if (isMulti && !isCgi) multipart(buffer);
     else {
-        cout << "writing=" << i << endl;
         if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
         if (currentLength >= totalLength) closeUploader();
     }
