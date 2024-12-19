@@ -116,16 +116,17 @@ void ResponseGenerator::CgiWait()
     if (pid <= 0)
         return;
     if (WIFSIGNALED(status) && WTERMSIG(status) == SIGALRM) {
+        close(infos.first);
         this->exception = new RequestParser::HttpRequestException("CGI Timeout", 502);
         generateErrorMessage();
         return ;
     }
-    cout << WEXITSTATUS(status) << endl;
-    // if (WEXITSTATUS(status) || pid == -1) {
-    //     this->exception = new RequestParser::HttpRequestException("CGI Internal server error", 500);  //ril
-    //     generateErrorMessage();
-    //     return ;
-    // }
+    if (WEXITSTATUS(status)) {
+        close(infos.first);
+        this->exception = new RequestParser::HttpRequestException("CGI Internal server error", 500);
+        generateErrorMessage();
+        return ;
+    }
     char            bf[1024];
     string          rspns;
     string          header;
@@ -133,12 +134,12 @@ void ResponseGenerator::CgiWait()
     ssize_t          r;
     while ((r = read(infos.first, bf, 1024)) > 0)
         rspns.append(bf, r);
+    close(infos.first);
     if (r == -1) {
         bond->isCgi = false;
         bond->setCgiPhase(false);
         return ;
     }
-    close(infos.first);
     if (rspns.find("\r\n\r\n") != string::npos)
     {
         while (rspns.find(CRLF) != string::npos)
@@ -161,15 +162,112 @@ void ResponseGenerator::CgiWait()
         ));
     else
         headers["Content-Length"] = " " + to_string(rspns.size());
-    // for (map<string, string>::iterator i = headers.begin(); i != headers.end(); i++)
-    //     cout << RED << i->first  << "=" << i->second <<  RESET << endl;
-        
-    // cout << YELLOW << rspns << RESET << endl;
     generateCgiResponse(headers, rspns, bond->getUri());
-    cout << "DONE" << endl;
     bond->isCgi = false;
     bond->setCgiPhase(true);
     bond->reset();
+}
+
+void ResponseGenerator::CGI() {
+    bool isPost = (bond->getMethod() == POST);
+    Uri& uri = bond->getUri();
+    int postFd = -1;
+    if (isPost)
+    {
+        postFd = open(bond->getUploader().file.c_str(), O_RDONLY, 0644);
+        if (unlink(bond->getUploader().file.c_str()) == -1 || postFd == -1)
+        {
+            close(postFd);
+            this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
+            generateErrorMessage();
+            return ;
+        }
+    }
+    string cgiExec = getCgiExec(uri.getCgiExt());
+    if (cgiExec == "")
+    {
+        close(postFd);
+        this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
+        generateErrorMessage();
+        return ;
+    }
+    char **envs = cgiEnvs();
+    
+    if (envs == NULL)
+    {
+        close(postFd);
+        delete_envs(envs, NULL);
+        this->exception = new RequestParser::HttpRequestException("envs allocations fails", 500);
+        generateErrorMessage();
+        return ;
+    }
+    int fd[2];
+    if (pipe(fd) == -1)
+    {
+        close(postFd);
+        delete_envs(envs, NULL);
+        this->exception = new RequestParser::HttpRequestException("pipe fails", 500);
+        generateErrorMessage();
+        return ;
+    }
+    pid_t p = fork();
+    if (p == -1)
+    {
+        close(postFd);
+        delete_envs(envs, fd);
+        this->exception = new RequestParser::HttpRequestException("fork fails", 500);
+        generateErrorMessage();
+        return ;
+    }
+    if (!p)
+    {
+        alarm(bond->getCgiTimeout());
+        close(fd[0]);
+        if (dup2(fd[1], STDOUT_FILENO) == -1)
+        {
+            delete_envs(envs, fd);
+            exit(52);
+        }
+        close(fd[1]);
+        if (isPost)
+        {
+            if (dup2(postFd, STDIN_FILENO) == -1)
+            {
+                delete_envs(envs, fd);
+                exit(52);
+            }
+            close(postFd);
+        }
+        if (chdir(uri.root.c_str()) == -1) {
+            delete_envs(envs, NULL);
+            exit(52);
+        }
+        const char *av[6];
+        av[0] = cgiExec.c_str();
+        if (uri.getCgiExt() == ".php") {
+            av[1] = "-d";
+            av[2] = "cgi.force_redirect=0";
+            av[3] = "-f";
+            av[4] = uri.path.c_str();
+            av[5] = NULL;
+        }
+        else {
+            av[1] = uri.path.c_str();
+            av[2] = NULL;
+        }
+        if (execve(cgiExec.c_str(), const_cast<char**>(av), envs) == -1)
+        {
+            delete_envs(envs, NULL);
+            exit(52);
+        }
+    }
+    delete_envs(envs, NULL);
+    close(fd[1]);
+    close(postFd);
+    bond->setCgiInfos(fd[0], p);
+    cout << fd[0] << endl;
+    bond->isCgi = true;
+    CgiWait();
 }
 
 void ResponseGenerator::generateCgiResponse(map<string, string> &headers, string &reponse, Uri& uri) {

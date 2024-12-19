@@ -25,7 +25,7 @@ void signal_handler(int signal)
 }
 
 int main(int ac, char **av) {
-    // atexit(lol);
+    atexit(lol);
     vector<Server>  servers;
     Socket_map      sock_map;
     try {

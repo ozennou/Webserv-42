@@ -51,7 +51,6 @@ class Server {
 		map<string, string>::iterator getMimeType(string &ext);
 		map<string, string>::iterator MimeEnd();
 		void	setMimeType(string &ext, string &type);
-		void	printMimeType(); //ril
 		
 		vector<Location> &getLocations();
 		void addLocation(const Location& location);

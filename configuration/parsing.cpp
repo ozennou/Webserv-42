@@ -93,7 +93,6 @@ void    parse_mime_types_file(vector<pair<int, string> >::iterator &i, Server &s
             throw logic_error("Error: mime type format 'ext: type;'4");
         srv.setMimeType(ext, type);
     }
-    // srv.printMimeType();  //ril
     i++;
 }
 

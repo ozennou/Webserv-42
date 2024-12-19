@@ -198,8 +198,8 @@ void RequestParser::resolveResource( Location& location ) {
 
     // In Case Of POST method
     if (method == POST) {
-        cout << location.getUploadPath() << endl;
-        if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403); //ril
+        if (!isCGI())
+            if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
         set<string> set = location.getMethods();
         if (set.find("POST") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
         headers.findContentHeaders();

@@ -521,43 +521,39 @@ int delete_resource(string path, int is_dir) {
 
 void ResponseGenerator::DELETEResponse( ) {
     struct stat result;
-    if (false){ // Condition where i should check if it's a CGI case or not
-        
-    } else {
-        if (stat(bond->getUri().path.c_str(), &result)) {
-            this->exception = new RequestParser::HttpRequestException("Not found", 404);
-            generateErrorMessage();
-            return ;
-        }
-        int num = delete_resource(bond->getUri().path, S_ISDIR(result.st_mode));
-        if (num) {
-            if (num == 1)
-                this->exception = new RequestParser::HttpRequestException("Forbidden", 403);
-            else if (num == 2)
-                this->exception = new RequestParser::HttpRequestException("Not found", 404);
-            else
-                this->exception = new RequestParser::HttpRequestException("Internal server error", 500);
-            return;
-        }
-        stringstream ss;
-        string       html_res;
-
-        time_t timestamp = time(NULL);
-        struct tm datetime1 = *localtime(&timestamp);
-        char date[40];
-        strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
-
-        ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
-        ss << "Date: " << date << CRLF;
-        ss << "Connection: close" << CRLF;
-        ss << CRLF;
-        int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
-        if (a == -1) {
-            this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
-            generateErrorMessage();
-        }
-        bond->reset();
+    if (stat(bond->getUri().path.c_str(), &result)) {
+        this->exception = new RequestParser::HttpRequestException("Not found", 404);
+        generateErrorMessage();
+        return ;
     }
+    int num = delete_resource(bond->getUri().path, S_ISDIR(result.st_mode));
+    if (num) {
+        if (num == 1)
+            this->exception = new RequestParser::HttpRequestException("Forbidden", 403);
+        else if (num == 2)
+            this->exception = new RequestParser::HttpRequestException("Not found", 404);
+        else
+            this->exception = new RequestParser::HttpRequestException("Internal server error", 500);
+        return;
+    }
+    stringstream ss;
+    string       html_res;
+
+    time_t timestamp = time(NULL);
+    struct tm datetime1 = *localtime(&timestamp);
+    char date[40];
+    strftime(date, 40, "%a, %d %b %Y %H:%M:%S GMT", &datetime1);
+
+    ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
+    ss << "Date: " << date << CRLF;
+    ss << "Connection: close" << CRLF;
+    ss << CRLF;
+    int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
+    if (a == -1) {
+        this->exception = new RequestParser::HttpRequestException("System Error-Send Failed", 500);
+        generateErrorMessage();
+    }
+    bond->reset();
 }
 
 void ResponseGenerator::RedirectionResponse( ) {
@@ -589,115 +585,9 @@ void ResponseGenerator::RedirectionResponse( ) {
     bond->reset();
 }
 
-void ResponseGenerator::CGI() {
-    bool isPost = (bond->getMethod() == POST);
-    Uri& uri = bond->getUri();
-    int postFd = -1;
-    if (isPost)
-    {
-        postFd = open(bond->getUploader().file.c_str(), O_RDONLY, 0644);
-        if (unlink(bond->getUploader().file.c_str()) == -1 || postFd == -1)
-        {
-            close(postFd);
-            this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
-            generateErrorMessage();
-            return ;
-        }
-        // cout << bond->getUploader().file << endl;
-        // char a[1024];
-        // cout << RED << read(postFd, a, 1024) << RESET << endl;
-        // cout << a << endl;
-    }
-    string cgiExec = getCgiExec(uri.getCgiExt());
-    if (cgiExec == "")
-    {
-        close(postFd);
-        this->exception = new RequestParser::HttpRequestException("Cgi executable not found or don't have the right permessions", 500);
-        generateErrorMessage();
-        return ;
-    }
-    char **envs = cgiEnvs();
-    
-    if (envs == NULL)
-    {
-        close(postFd);
-        delete_envs(envs, NULL);
-        this->exception = new RequestParser::HttpRequestException("envs allocations fails", 500);
-        generateErrorMessage();
-        return ;
-    }
-    int fd[2];
-    if (pipe(fd) == -1)
-    {
-        close(postFd);
-        delete_envs(envs, NULL);
-        this->exception = new RequestParser::HttpRequestException("pipe fails", 500);
-        generateErrorMessage();
-        return ;
-    }
-    pid_t p = fork();
-    if (p == -1)
-    {
-        close(postFd);
-        delete_envs(envs, fd);
-        this->exception = new RequestParser::HttpRequestException("fork fails", 500);
-        generateErrorMessage();
-        return ;
-    }
-    if (!p)
-    {
-        alarm(bond->getCgiTimeout());
-        close(fd[0]);
-        if (dup2(fd[1], STDOUT_FILENO) == -1)
-        {
-            delete_envs(envs, fd);
-            exit(52);
-        }
-        close(fd[1]);
-        if (isPost)
-        {
-            if (dup2(postFd, STDIN_FILENO) == -1)
-            {
-                delete_envs(envs, fd);
-                exit(52);
-            }
-            close(postFd);
-        }
-        if (chdir(uri.root.c_str()) == -1) {
-            delete_envs(envs, NULL);
-            exit(52);
-        }
-        const char *av[6];
-        av[0] = cgiExec.c_str();
-        if (uri.getCgiExt() == ".php") {
-            av[1] = "-d";
-            av[2] = "cgi.force_redirect=0";
-            av[3] = "-f";
-            av[4] = uri.path.c_str();
-            av[5] = NULL;
-        }
-        else {
-            av[1] = uri.path.c_str();
-            av[2] = NULL;
-        }
-        if (execve(cgiExec.c_str(), const_cast<char**>(av), envs) == -1)
-        {
-            delete_envs(envs, NULL);
-            exit(52);
-        }
-    }
-    delete_envs(envs, NULL);
-    close(fd[1]);
-    close(postFd);
-    bond->setCgiInfos(fd[0], p);
-    bond->isCgi = true;
-    CgiWait();
-}
-
 void ResponseGenerator::filterResponseType() {
     stringstream stream;
     string  responseBuffer;
-    cout << "test" << endl;
     bond->rangeHeader();
     if (exception) generateErrorMessage();
     else {

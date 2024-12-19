@@ -175,7 +175,6 @@ int poll_loop(Socket_map &sock_map)
             exit(0);
         }
         int f = poll(pfds, size, POLL_TIMEOUT);
-        // cout << RED << "TEST" << RESET << endl;
         if (f < 0)
             continue;
         else if (!f)
