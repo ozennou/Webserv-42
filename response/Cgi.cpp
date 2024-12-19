@@ -265,7 +265,6 @@ void ResponseGenerator::CGI() {
     close(fd[1]);
     close(postFd);
     bond->setCgiInfos(fd[0], p);
-    cout << fd[0] << endl;
     bond->isCgi = true;
     CgiWait();
 }

@@ -1,118 +1,147 @@
-<!-- index.html -->
+<?php
+// Simulate a database for storing comments (you can replace this with an actual database connection if needed)
+$comments = [
+    ['username' => 'John Doe', 'comment' => 'Great article! I learned a lot.'],
+    ['username' => 'Jane Smith', 'comment' => 'Thanks for the insights. Very helpful!'],
+];
+
+// Handle comment submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment']) && !empty($_POST['comment'])) {
+    // Validate and sanitize input
+    $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : 'Anonymous';
+    $comment = htmlspecialchars($_POST['comment']);
+
+    // Simulate adding the comment to the "database"
+    $comments[] = ['username' => $username, 'comment' => $comment];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload Form</title>
+    <title>Amazing PHP Article</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
         }
-        .upload-form {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .button {
-            background: #4CAF50;
+        header {
+            background-color: #007bff;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            text-align: center;
+            padding: 20px;
         }
-        .button:hover {
-            background: #45a049;
+        header h1 {
+            font-size: 36px;
+            margin: 0;
         }
-        .message {
+        .content {
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .content h2 {
+            color: #007bff;
+        }
+        .content p {
+            line-height: 1.6;
+            font-size: 18px;
+        }
+        .comment-section {
+            margin-top: 40px;
+        }
+        .comment-section h3 {
+            color: #007bff;
+            font-size: 24px;
+        }
+        .comment {
+            background-color: #f9f9f9;
             padding: 10px;
-            margin-top: 10px;
-            border-radius: 4px;
+            margin-bottom: 10px;
+            border-left: 4px solid #007bff;
         }
-        .success {
-            background: #dff0d8;
-            color: #3c763d;
+        .comment p {
+            margin: 5px 0;
         }
-        .error {
-            background: #f2dede;
-            color: #a94442;
+        .comment-form input, .comment-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .comment-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .comment-form button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div class="upload-form">
-        <h2>File Upload</h2>
-        <form action="upload.php" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <input type="file" name="fileToUpload" id="fileToUpload" required>
+
+<header>
+    <h1>Amazing PHP Article</h1>
+    <p>Learn everything about PHP and how it can help you build dynamic websites!</p>
+</header>
+
+<div class="content">
+    <h2>The Power of PHP in Modern Web Development</h2>
+    <p><strong>Published on:</strong> <?php echo date('F j, Y'); ?></p>
+    <p>PHP is one of the most widely used server-side scripting languages, and for good reason. It powers websites like Facebook, WordPress, and even Wikipedia. With its ability to interact with databases, manage sessions, and create dynamic content, PHP is an essential tool for any web developer. In this article, we’ll explore the power of PHP and how you can use it to enhance your website's functionality.</p>
+
+    <h3>What is PHP?</h3>
+    <p>PHP (Hypertext Preprocessor) is an open-source server-side scripting language primarily used for web development. Unlike client-side languages like JavaScript, PHP code is executed on the server, and the results are sent to the user's browser. This allows for dynamic content generation, such as personalized greetings, user logins, and more.</p>
+
+    <h3>Why Use PHP?</h3>
+    <p>PHP is extremely versatile. Whether you're building a simple blog, a content management system (CMS), or a complex e-commerce platform, PHP can handle it all. Here are some reasons why developers love PHP:</p>
+    <ul>
+        <li><strong>Easy to learn and use</strong></li>
+        <li><strong>Works with all major databases</strong></li>
+        <li><strong>Massive community support</strong></li>
+        <li><strong>Open-source and free</strong></li>
+    </ul>
+
+    <h3>How PHP Works</h3>
+    <p>PHP scripts are processed on the server before being sent to the browser as HTML. For example, when a user visits a page, PHP can retrieve data from a database, process it, and output the HTML that the user will see. This allows for a high degree of flexibility and customization for each user.</p>
+</div>
+
+<!-- Comment Section -->
+<div class="comment-section">
+    <h3>Leave a Comment</h3>
+
+    <!-- Comment Form -->
+    <form class="comment-form" method="POST" action="">
+        <input type="text" name="username" placeholder="Your Name (Optional)" />
+        <textarea name="comment" rows="5" placeholder="Write your comment..." required></textarea>
+        <button type="submit">Submit Comment</button>
+    </form>
+
+    <!-- Display Comments -->
+    <h3>Comments:</h3>
+    <?php if (count($comments) > 0): ?>
+        <?php foreach ($comments as $comment): ?>
+            <div class="comment">
+                <strong><?php echo htmlspecialchars($comment['username']); ?> says:</strong>
+                <p><?php echo nl2br(htmlspecialchars($comment['comment'])); ?></p>
             </div>
-            <div class="form-group">
-                <button type="submit" name="submit" class="button">Upload File</button>
-            </div>
-        </form>
-    </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <p>No comments yet. Be the first to leave one!</p>
+    <?php endif; ?>
+</div>
+
 </body>
 </html>
-
-<?php
-// upload.php
-
-// Set the target directory for uploads
-$target_dir = "/tmp";
-
-// Create the uploads directory if it doesn't exist
-if (!file_exists($target_dir)) {
-    mkdir($target_dir, 0777, true);
-}
-
-// Get the file name and path
-$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
-$uploadOk = 1;
-$imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
-
-// Check if file was actually uploaded
-if(isset($_POST["submit"])) {
-    if(isset($_FILES["fileToUpload"])) {
-        // Check if file already exists
-        if (file_exists($target_file)) {
-            echo "<div class='message error'>Sorry, file already exists.</div>";
-            $uploadOk = 0;
-        }
-
-        // Check file size (limited to 5MB)
-        if ($_FILES["fileToUpload"]["size"] > 5000000) {
-            echo "<div class='message error'>Sorry, your file is too large. Maximum size is 5MB.</div>";
-            $uploadOk = 0;
-        }
-
-        // Allow only certain file formats
-        $allowed_types = array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx');
-        if (!in_array($imageFileType, $allowed_types)) {
-            echo "<div class='message error'>Sorry, only JPG, JPEG, PNG, GIF, PDF, DOC & DOCX files are allowed.</div>";
-            $uploadOk = 0;
-        }
-
-        // Check if $uploadOk is set to 0 by an error
-        if ($uploadOk == 0) {
-            echo "<div class='message error'>Your file was not uploaded.</div>";
-        } else {
-            // Try to upload file
-            if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-                echo "<div class='message success'>The file ". htmlspecialchars(basename($_FILES["fileToUpload"]["name"])). " has been uploaded successfully.</div>";
-            } else {
-                echo "<div class='message error'>Sorry, there was an error uploading your file.</div>";
-            }
-        }
-    } else {
-        echo "<div class='message error'>No file was selected for upload.</div>";
-    }
-}
-?>
