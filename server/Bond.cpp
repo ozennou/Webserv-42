@@ -243,6 +243,7 @@ string  Bond::getRemoteAddr() const {
 }
 
 Bond::~Bond( ) {
+    close(pipeFd);
 }
 
 pair<int, pid_t>    Bond::getCgiInfos() const {

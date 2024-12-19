@@ -216,7 +216,6 @@ bool    Uploader::getIsMulti( void ) {
 }
  
 void    Uploader::closeUploader( ) {
-    cout << "closed" << endl;
     close(fd);
     uploadeState = UPLOADED;
 }

@@ -3,3 +3,4 @@ test
 archi
 **/*.o
 webserv
+.github

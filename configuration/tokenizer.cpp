@@ -51,7 +51,6 @@ string  get_token(string &line, size_t& index, int sp = -1)
     size_t  old_index = index;
     while (line[index])
     {
-        // cout << is_special_token(line[index]) <<": c = " << line[index] << endl;
         if (sp == SINGLE_QUOTE && line[index] == '\'')
             break ;
         if (sp == DOUBLE_QUOTE && line[index] == '"')
