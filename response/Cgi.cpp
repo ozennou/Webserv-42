@@ -43,7 +43,6 @@ char** ResponseGenerator::cgiEnvs() {
     Uri& uri = bond->getUri();
     map<string, string> &headers = bond->getHeaders();
     map<string, string> envs;
-    (void)uri;
     envs.insert(pair<string, string>("GATEWAY_INTERFACE", "CGI/1.1"));
     envs.insert(pair<string, string>("SERVER_NAME", *uri.getHostServer().getServerNames().begin()));
     envs.insert(pair<string, string>("SERVER_SOFTWARE", "WebServer-42/1.0.0"));

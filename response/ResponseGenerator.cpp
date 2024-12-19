@@ -558,7 +558,7 @@ void ResponseGenerator::DELETEResponse( ) {
 
 void ResponseGenerator::RedirectionResponse( ) {
     stringstream ss;
-    
+
     time_t timestamp = time(NULL);
     struct tm datetime1 = *localtime(&timestamp);
     char date[40];
@@ -589,6 +589,7 @@ void ResponseGenerator::filterResponseType() {
     stringstream stream;
     string  responseBuffer;
     bond->rangeHeader();
+
     if (exception) generateErrorMessage();
     else {
         if (bond->isCgi) CgiWait();
