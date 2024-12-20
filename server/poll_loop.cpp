@@ -172,6 +172,7 @@ int poll_loop(Socket_map &sock_map)
     statusCodeMap.insert(make_pair<int, string>(201, " Created"));
     statusCodeMap.insert(make_pair<int, string>(200, " OK"));
 
+
     list<Bond>      bonds;
     Clients         clients;
     int             size, fd, max_size = 1;
