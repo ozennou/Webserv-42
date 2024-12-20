@@ -70,12 +70,12 @@ map<string, string>::iterator MessageHeaders::findContentHeaders( ) {
 }
 
 bool MessageHeaders::connectionState( ) {
-    // if (findField("content-length") && findField("transfer-encoding")) {cout << "r-1" << endl;return false;} // This was protection taken from the RFC
+    // if (findField("content-length") && findField("transfer-encoding")) return false; // This was protection taken from the RFC
     
     map<string, string>::iterator it = headers.find("connection");
     if (it == headers.end()) return true;
     stolower(it->second);
-    if (it->second == "close") {cout << "r-2" << endl;return false;}
+    if (it->second == "close") return false;
     return true;
 }
 

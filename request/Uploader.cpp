@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/20 18:09:57 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 22:02:46 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,11 @@
 
 Uploader::Uploader( ) {
     uploadeState = UPLOADED;
+    fd = -2;
 }
 
 Uploader::Uploader( int& clientFd ) : uploadeState(UPLOADED), clientFd(clientFd) {
-
+    fd = -2;
 }
 
 Uploader::Uploader( const Uploader& obj ) {
