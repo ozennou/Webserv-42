@@ -57,7 +57,10 @@ int add_client(struct pollfd **pfds, int &newFd, int &size, int &max_size)
         {
             struct pollfd *tmp = new(nothrow) struct pollfd[max_size * 2];
             if (!tmp)
+            {
+                set_value(1);
                 return 1;
+            }
             for (int j = 0; j < size; j++)
                 tmp[j] = (*pfds)[j];
             delete[] (*pfds);
@@ -103,8 +106,10 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
 
     try {
         bond->initParcer();
-    }
-    catch(const RequestParser::HttpRequestException& e) {
+    } catch(const bad_alloc& e) {
+        logging(string(e.what()), ERROR, NULL, 0);
+        set_value(1);
+    } catch(const RequestParser::HttpRequestException& e) {
         if (e.statusCode == 0) {
             logging("Client Disconnected", ERROR, NULL, 0);
             bonds.erase(bond);
@@ -125,7 +130,14 @@ int sending_response2(Clients &clients, list<Bond> &bonds, struct pollfd *pfds, 
 
     if (bond == bonds.end()) return 1;
 
-    bond->initResponse();
+    try {
+        bond->initResponse();
+    } catch(const bad_alloc& e) {
+        logging(string(e.what()), ERROR, NULL, 0);
+        set_value(1);
+    } catch(exception &e) {
+        logging(string(e.what()), ERROR, NULL, 0);
+    }
 
     if (bond->getUploadState() == UPLOADED && !bond->getConnectionState() && bond->getResponseState() == CLOSED) {
         logging("Client Disconnected", ERROR, NULL, 0);
@@ -175,8 +187,10 @@ int poll_loop(Socket_map &sock_map)
             exit(0);
         }
         int f = poll(pfds, size, POLL_TIMEOUT);
-        if (f < 0)
-            continue;
+        if (f < 0) {
+            logging("poll fail: " + string(strerror(errno)), ERROR, NULL, 0);
+            set_value(1);
+        }
         else if (!f)
             continue;
         else
