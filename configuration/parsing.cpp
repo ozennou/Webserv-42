@@ -42,7 +42,7 @@ void    parse_error_pages(vector<pair<int, string> >::iterator &i, vector<pair<i
     {
         stringstream ss(i->second);
         ss >> error_code;
-        if (ss.fail() || !ss.eof() || error_code < 300 || error_code > 599)
+        if (ss.fail() || !ss.eof() || error_code < 400 || error_code > 599)
             throw logic_error("Error: error code number (must be between 300 and 599) :" + i->second);
         if (++i == end || i->first != EQUAL)
             throw logic_error("Error: wrong formay (error_code=error_page) :");

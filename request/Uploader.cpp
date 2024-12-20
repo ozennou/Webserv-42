@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/18 11:14:25 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 12:27:01 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,7 +159,7 @@ void    Uploader::setUploadState( int statee ) {
 }
 
 void    Uploader::setMaxPayloadSize( size_t payloadSize ) {
-    this->maxPayloadSize = payloadSize * 1000000;
+    this->maxPayloadSize = payloadSize;
 }
 
 void    Uploader::setOfs( string& filename ) {

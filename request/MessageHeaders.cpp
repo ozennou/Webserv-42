@@ -131,21 +131,21 @@ bool MessageHeaders::isValidRange( Uri& uri ) {
 }
 
 void MessageHeaders::storeRange( string& fieldValue ) {
-    if (!fieldValue.length()) return ;
+    if (!fieldValue.length()) throw RequestParser::HttpRequestException("Invalid Range", 400);
 
-    if (fieldValue.compare(0, 6, "bytes=")) return ;
+    if (fieldValue.compare(0, 6, "bytes=")) throw RequestParser::HttpRequestException("Invalid Range", 400);
 
     string rangeSet = fieldValue.substr(6);
     if (rangeSet[0] == '-') {
         for (size_t i = 1; i < rangeSet.length(); i++) {
-            if (!isdigit(rangeSet[i])) return ;
+            if (!isdigit(rangeSet[i])) throw RequestParser::HttpRequestException("Invalid Range", 400);
         }
         last = rangeSet.substr(1);
         rangeType = SUFFIX_RANGE;
     } else if (isdigit(rangeSet[0])) {
         size_t i = 0;
         for (; i < rangeSet.length(); i++) {
-            if (!isdigit(rangeSet[i]) && rangeSet[i] != '-') return ;
+            if (!isdigit(rangeSet[i]) && rangeSet[i] != '-') throw RequestParser::HttpRequestException("Invalid Range", 400);
             if (rangeSet[i] == '-') break;
         }
         
@@ -154,7 +154,7 @@ void MessageHeaders::storeRange( string& fieldValue ) {
         if (i != rangeSet.length()) {
             size_t a = i + 1;
             for (; a < rangeSet.length(); a++) {
-                if (!isdigit(rangeSet[a])) return ;
+                if (!isdigit(rangeSet[a])) throw RequestParser::HttpRequestException("Invalid Range", 400);
             }
             last = rangeSet.substr(i + 1, (rangeSet.length() - (i + 1)));
         }

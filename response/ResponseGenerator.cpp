@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/10 17:53:47 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 12:47:51 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,17 @@ void ResponseGenerator::setErrorPages( map<int, string> errorPagess ) {
     this->errorPages = errorPagess;
 }
 
+string generateErrorPage(int statusCode, string &msg) {
+    stringstream res;
+
+    res << "<!DOCTYPE HTML><html><head>";
+    res << "<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>";
+    res << "</head><body>";
+    res << "<h1>" << statusCode << msg << "</h1>";
+    res << "</body><html>";
+    return res.str();
+}
+
 void ResponseGenerator::generateErrorMessage( ) {
     stringstream ss;
     Uri uri = bond->getUri();
@@ -80,7 +91,6 @@ void ResponseGenerator::generateErrorMessage( ) {
     ss << "Connection: close" << CRLF;
     
     if (exception->statusCode == 416) ss << "Content-Range: */" << uri.getResourceSize() << CRLF;
-
 
     // Adding Error Pages
     if (errorPages.find(exception->statusCode) != errorPages.end()) {
@@ -101,12 +111,16 @@ void ResponseGenerator::generateErrorMessage( ) {
             ss << CRLF;
             ss << buffer;
         } else {
-            ss << "Content-Length: 0" << CRLF;
+            string errorPage = generateErrorPage(exception->statusCode, statusCodeMap->find(exception->statusCode)->second);
+            ss << "Content-Length: " << errorPage.size() << CRLF;
             ss << CRLF;
+            ss << errorPage;
         }
     } else {
-        ss << "Content-Length: 0" << CRLF;
+        string errorPage = generateErrorPage(exception->statusCode, statusCodeMap->find(exception->statusCode)->second);
+        ss << "Content-Length: " << errorPage.size() << CRLF;
         ss << CRLF;
+        ss << errorPage;
     }
 
     send(clientFd, ss.str().c_str(), ss.str().length(), 0);
@@ -206,7 +220,7 @@ void ResponseGenerator::generateValidMessage( int statusCode, Uri& uri, string& 
     if (statusCode == 206) {
         ss << "Content-Range: bytes " << rangeFirst << "-" << rangeLast << "/" << uri.getResourceSize() << CRLF;
         if (bond->getRangeType() == INT_RANGE) ss << "Content-Length: " << (rangeLast - rangeFirst + 1) << CRLF;
-        if (bond->getRangeType() == SUFFIX_RANGE) ss << "Content-Length: " << (rangeLast - (rangeLast - rangeFirst)) << CRLF;
+        if (bond->getRangeType() == SUFFIX_RANGE) ss << "Content-Length: " << ((rangeLast - rangeFirst)) << CRLF;
     }
     else ss << "Content-Length: " << uri.getResourceSize() << CRLF;
 
@@ -319,6 +333,8 @@ void ResponseGenerator::RangeGETResponse( ) {
         ifs.seekg(rangeLast - rangeFirst);
 
         toRead = rangeLast - (rangeLast - rangeFirst);
+
+        rangeFirst = rangeLast - rangeFirst;
     }
 
     string fileBuffer;

@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/18 11:20:26 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 12:37:45 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,23 +198,25 @@ void RequestParser::resolveResource( Location& location ) {
 
     // In Case Of POST method
     if (method == POST) {
-        if (!isCGI())
-            if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
         set<string> set = location.getMethods();
         if (set.find("POST") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
+        if (!isCGI())
+            if (access(location.getUploadPath().c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to write to the directory", 403);
         headers.findContentHeaders();
         return ;
     }
 
     // In Case Of DELETE method
     if (method == DELETE) {
-        if (access(uri.path.c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to delete the to the directory", 403);
         set<string> set = location.getMethods();
         if (set.find("DELETE") == set.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
+        if (access(uri.path.c_str(), W_OK) == -1) throw RequestParser::HttpRequestException("No permission to delete the to the directory", 403);
         return ;
     }
 
     // In Case of GET method
+    std::set<string> s = location.getMethods();
+    if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
     
     // Either stat() failed, or the macro failed
     if (!uri.getIsCGI() && !uri.isRegularFile() && !uri.isDirectory()) throw RequestParser::HttpRequestException("The requested resource is neither a regular file or a directory, or it does not exists at all", 404);
@@ -242,10 +244,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case Of CGI - 2
     uri.checkCGI(location);
 
-    // if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);  // check later
-    std::set<string> s = location.getMethods();
-    if (s.find("GET") == s.end()) throw RequestParser::HttpRequestException("Method is not allowed for this location", 405);
-
+    if (!uri.getIsCGI() && access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
 }
 
 void RequestParser::headerSection( ) {
@@ -265,6 +264,8 @@ void RequestParser::headerSection( ) {
 
     headers.parceFieldValue();
 
+    if (!headers.findField("host") || !headers.getFieldValue("host").length()) throw RequestParser::HttpRequestException("No Host Header Found", 400);
+    
     stringBuffer.erase(0, 2);
 }
 

@@ -188,7 +188,6 @@ int poll_loop(Socket_map &sock_map)
         }
         int f = poll(pfds, size, POLL_TIMEOUT);
         if (f < 0) {
-            logging("poll fail: " + string(strerror(errno)), ERROR, NULL, 0);
             set_value(1);
         }
         else if (!f)

@@ -5,7 +5,7 @@ void    set_hint(struct addrinfo *hints)
     memset(hints, 0, sizeof(*hints));
     hints->ai_family = AF_INET;         // IPv4
     hints->ai_socktype = SOCK_STREAM;  //TCP SOCK_DGRAM
-    hints->ai_flags = AI_PASSIVE;      // if the node is NULL 0.0.0.0
+    hints->ai_flags = AI_NUMERICHOST;      // if the node is NULL 0.0.0.0
     hints->ai_protocol = IPPROTO_TCP;  //TCP 
 }
 
