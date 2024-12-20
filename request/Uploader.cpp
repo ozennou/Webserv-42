@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/20 12:27:01 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 18:09:57 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
 }
 
 Uploader::~Uploader( ) {
+    close(fd);
 }
 
 void Uploader::normalizePath( string filename ) {
@@ -88,14 +89,12 @@ void    Uploader::setBuffer( string& stringBuffer ) {
         decodeChunked();
 
         maxPayloadSize -= buffer.length();
-        if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
         return ;
     } else if (isMulti && !isCgi) {
         multipart(buffer);
 
         maxPayloadSize -= buffer.length();
-        if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
         
         return ;
     }
@@ -218,6 +217,9 @@ bool    Uploader::getIsMulti( void ) {
 void    Uploader::closeUploader( ) {
     close(fd);
     uploadeState = UPLOADED;
+    if (maxPayloadSize <= 0) {
+        throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
+    }
 }
 
 int    Uploader::parceHeaders( string& field ) {
@@ -365,8 +367,6 @@ void    Uploader::decodeChunked( ) {
 
             maxPayloadSize -= payloadLength;
 
-            if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
-
             state = CHUNKED_LENGTH;
         }
         else if (state == CHUNKED_DATA) {
@@ -377,8 +377,6 @@ void    Uploader::decodeChunked( ) {
 
             currentLength += buffer.length();
             maxPayloadSize -= buffer.length();
-
-            if (maxPayloadSize <= 0) throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
 
             buffer.clear(); payload.clear();
             break;
@@ -406,8 +404,6 @@ void    Uploader::read( ) {
     
     currentLength += i;
     maxPayloadSize -= i;
-
-    if (maxPayloadSize <= 0) {cout << "Max Exceeded" << endl; throw RequestParser::HttpRequestException("Max Payload Exceded", 413);}
     
     if (isMulti && !isCgi) multipart(buffer);
     else {

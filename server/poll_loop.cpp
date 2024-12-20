@@ -103,7 +103,8 @@ int reading_request2(int &client_fd, Clients &clients, list<Bond> &bonds,struct 
     list<Bond>::iterator  bond = getBond(bonds, client_fd); // Getting The Iterator
     
     if (bond == bonds.end()) return 1;
-
+    
+    // cout << "request" << endl;
     try {
         bond->initParcer();
     } catch(const bad_alloc& e) {

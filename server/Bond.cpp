@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 15:15:28 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/20 11:17:09 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/20 20:43:52 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,20 @@ void Bond::initParcer( ) {
             return;
         }
 
+        cout << phase << endl;
+        // if (phase == RESPONSE_READY) {
+        //     cout << "rr" << endl;
+        //     int i;
+        //     char buf[200000];
+
+        //     i = recv(clientFd, buf, 200000, 0);
+
+        //     if (!i) throw RequestParser::HttpRequestException("Connection Ended", 0);
+        //     if (i == -1) throw RequestParser::HttpRequestException("Nothing Yet", -1);
+
+        //     return ;
+        // }
+
         int i;
         char buf[5621];
 
@@ -94,7 +108,6 @@ void Bond::initParcer( ) {
         stringBuffer.append(buf, i);
 
         if (stringBuffer.find("\r\n\r\n") == string::npos) {
-            // cout << "retuerned" << endl;
             return ;
         }
 
