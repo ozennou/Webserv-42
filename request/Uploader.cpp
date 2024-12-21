@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/21 09:39:52 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 10:58:06 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,9 @@ void    Uploader::setBuffer( string& stringBuffer ) {
     currentLength = buffer.length();
     
     if (write(fd, buffer.c_str(), buffer.length()) == -1) throw RequestParser::HttpRequestException("Can't Write To The File", 500);
+
+    maxPayloadSize -= buffer.length();
+    
     buffer.clear();
     if (currentLength >= totalLength) closeUploader();
 }
