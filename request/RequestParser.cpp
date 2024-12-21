@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/21 11:08:03 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 12:08:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,7 +275,6 @@ void RequestParser::requestLine( ) {
 
     stringBuffer = stringBuffer.substr(stringBuffer.find(CRLF) + 2);
 
-    // cout << requestLine << endl;
     if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Wrong Number Of Spaces", 400);
 
     string requestMethod = requestLine.substr(0, requestLine.find(32));

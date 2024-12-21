@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/26 17:16:06 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/18 10:55:54 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 11:47:46 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ private:
     bool        isChunked;
     bool        isMulti;
     bool        isCgi;
+
+    vector<string> filenames;
 public:
     Uploader( );
     Uploader( int& clientFd );

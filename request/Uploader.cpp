@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/27 08:59:45 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/21 10:58:06 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 11:52:23 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ Uploader& Uploader::operator=( const Uploader& obj ) {
         this->state = CHUNKED_LENGTH;
         this->boundaryState = BOUNDARY;
         this->isCgi = false;
+        this->filenames = obj.filenames;
     }
     return *this;
 }
@@ -180,6 +181,8 @@ void    Uploader::setOfs( string& filename ) {
     fd = open(fullPath.str().c_str(), O_CREAT | O_TRUNC | O_WRONLY, 0644);
     
     if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-1", 500);
+
+    filenames.push_back(fullPath.str());
 }
 
 void    Uploader::setOfs( ) {
@@ -208,6 +211,8 @@ void    Uploader::setOfs( ) {
     if (fd == -1) throw RequestParser::HttpRequestException("Failed To Open The Requested File-2", 500);
 
     if (isCgi) file = fullPath.str();
+
+    filenames.push_back(fullPath.str());
 }
 
 int    Uploader::getUploadState( void ) {
@@ -222,6 +227,10 @@ void    Uploader::closeUploader( ) {
     close(fd);
     uploadeState = UPLOADED;
     if (maxPayloadSize <= 0) {
+        for (size_t i = 0; i < filenames.size(); i++) {
+            unlink(filenames[i].c_str());
+        }
+        
         throw RequestParser::HttpRequestException("Max Payload Exceded", 413);
     }
 }
@@ -433,6 +442,9 @@ void    Uploader::reset( ) {
     uploadPath.clear();
     isChunked = false;
     isMulti = false;
+    isCgi = false;
     fd = -2;
+    file.clear();
     maxPayloadSize = 0;
+    filenames.clear();
 }
