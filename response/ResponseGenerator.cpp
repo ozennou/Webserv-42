@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/01 20:52:22 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/20 21:58:34 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 09:45:59 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -474,6 +474,7 @@ void ResponseGenerator::POSTResponse( ) {
     ss << "HTTP/1.1 " << 201 << statusCodeMap->find(201)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Server: " <<  *(bond->getUri().getHostServer().getServerNames().begin()) << CRLF;
+    ss << "Content-Length: 0" << CRLF;
 
     // Normal HTTP Headers
     if (bond->getConnectionState()) ss << "Connection: keep-alive" << CRLF;
@@ -563,6 +564,7 @@ void ResponseGenerator::DELETEResponse( ) {
     ss << "HTTP/1.1 " << 200 << statusCodeMap->find(200)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Connection: close" << CRLF;
+    ss << "Content-Length: 0" << CRLF;
     ss << CRLF;
     int a = send(clientFd, ss.str().c_str(), ss.str().length(), 0);
     if (a == -1) {
@@ -584,6 +586,7 @@ void ResponseGenerator::RedirectionResponse( ) {
     ss << "HTTP/1.1 " << redirectPair.first << statusCodeMap->find(redirectPair.first)->second << CRLF;
     ss << "Date: " << date << CRLF;
     ss << "Location: " << redirectPair.second << CRLF;
+    ss << "Content-Length: 0" << CRLF;
 
     // Connection State
     if (bond->getConnectionState()) ss << "Connection: keep-alive" << CRLF;

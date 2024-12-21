@@ -8,7 +8,7 @@ void    parse_ports(vector<pair<int, string> >::iterator &i, vector<pair<int, st
         int             port;
         stringstream    ss(i->second);
         ss >> port;
-        if (ss.fail() || !ss.eof() || port <= 0 || port > 65535 || i->first != TOKEN)
+        if (ss.fail() || !ss.eof() || port <= 0 || port > 65535 || i->first != TOKEN || srv.getPorts().find(port) != srv.getPorts().end())
             throw logic_error("Error: not valid port :" + i->second);
         srv.addPort(port);
         if ((++i) != end && i->first == SEMICOLON)
