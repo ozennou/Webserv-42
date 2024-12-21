@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:36:42 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/21 09:39:47 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 12:08:10 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
     }
     
     if (it != mapp.end()) uploader.setFileType(it->first);
-    else if (!contentType.rfind("multipart/form-data", 0)) {
+    else if (!contentType.rfind("multipart/form-data; boundary=", 0)) {
         uploader.setIsMulti(true);
         uploader.setBoundary(contentType.substr(contentType.find('=') + 1));
     }
@@ -174,7 +174,7 @@ void  RequestParser::setUploader( Server& server, Location& location ) {
         size_t sizee;
         if (!headers.getFieldValue("content-length").length()) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
         ss << headers.getFieldValue("content-length"); ss >> sizee;
-        if (ss.fail()) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
+        if (ss.fail() || sizee < 0) throw  RequestParser::HttpRequestException("Invalid Content-Length Value", 400);
 
         uploader.setTotalLength(sizee);
     }
@@ -244,7 +244,7 @@ void RequestParser::resolveResource( Location& location ) {
     // In Case Of CGI - 2
     uri.checkCGI(location);
 
-    if (!uri.getIsCGI() && access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
+    if (access(uri.path.c_str(), R_OK) == -1) throw RequestParser::HttpRequestException("No permission to read the file", 403);
 }
 
 void RequestParser::headerSection( ) {
@@ -275,7 +275,6 @@ void RequestParser::requestLine( ) {
 
     stringBuffer = stringBuffer.substr(stringBuffer.find(CRLF) + 2);
 
-    // cout << requestLine << endl;
     if (count(requestLine.begin(), requestLine.end(), 32) != 2) throw  RequestParser::HttpRequestException("Wrong Number Of Spaces", 400);
 
     string requestMethod = requestLine.substr(0, requestLine.find(32));

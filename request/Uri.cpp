@@ -6,7 +6,7 @@
 /*   By: mlouazir <mlouazir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/23 21:34:55 by mlouazir          #+#    #+#             */
-/*   Updated: 2024/12/10 16:48:28 by mlouazir         ###   ########.fr       */
+/*   Updated: 2024/12/21 11:21:59 by mlouazir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,9 @@ void    Uri::reset( ) {
     requestTarget.clear();
     query.clear();
     host.clear();
+    path.clear();
+    cgiPath.clear();
+    root.clear();
     port = 80;
     cgi = false;
 }
